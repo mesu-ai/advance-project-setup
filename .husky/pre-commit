@@ -1,0 +1,7 @@
+echo "🔍 Running TypeScript type check..."
+npm run type-check
+
+echo "✨ Linting & formatting staged files..."
+npx lint-staged
+
+echo "✅ All checks passed! Proceeding with commit..."

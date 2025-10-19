@@ -1,12 +1,12 @@
-@import "tailwindcss";
+@import 'tailwindcss';
 
 :root {
-  --font-english: "Roboto", system-ui, sans-serif;
-  --font-bengali: "Noto Sans Bengali", "SolaimanLipi", sans-serif;
+  --font-english: 'Roboto', system-ui, sans-serif;
+  --font-bengali: 'Noto Sans Bengali', 'SolaimanLipi', sans-serif;
 
-  --background: #F3F3F3;
+  --background: #f3f3f3;
   --foreground: #282628;
-  --surface: #FFFFFF;
+  --surface: #ffffff;
 
   color-scheme: light dark;
   font-synthesis: none;
@@ -19,7 +19,7 @@
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-surface: var(--surface);
-  
+
   --font-english: var(--font-english);
   --font-bengali: var(--font-bengali);
 }
@@ -27,7 +27,7 @@
 @media (prefers-color-scheme: dark) {
   :root {
     --background: #282628;
-    --foreground: #FFFFFF;
+    --foreground: #ffffff;
     --surface: #383838;
   }
 }

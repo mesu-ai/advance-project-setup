@@ -1,7 +1,13 @@
+import { RouterProvider } from 'react-router';
 import './index.css';
+import { router } from './routes';
 
 function App() {
-  return <div className="text-amber-300">Welcome to the admin portal</div>;
+  return (
+    <div>
+      <RouterProvider router={router} />
+    </div>
+  );
 }
 
 export default App;

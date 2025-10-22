@@ -1,3 +1,5 @@
+//app.routes.ts:
+
 import { lazy, type ComponentType, type LazyExoticComponent, type ReactNode } from 'react';
 const Home = lazy(() => import('../pages/home/index'));
 const Contact = lazy(() => import('../pages/contact/index'));
@@ -9,25 +11,33 @@ const RejectedProduct = lazy(() => import('../pages/products/rejected/RejectedPr
 const LowStockProduct = lazy(() => import('../pages/products/low-stock/LowStockProductPage'));
 const Login = lazy(() => import('../pages/login/index'));
 const Register = lazy(() => import('../pages/register/index'));
+const Forgot = lazy(() => import('../pages/forgot/index'));
 
 export interface AppRouteProps {
   index?: boolean;
   path?: string;
   Component?: LazyExoticComponent<ComponentType<unknown>> | (() => ReactNode);
   layout?: LazyExoticComponent<ComponentType<unknown>> | (() => ReactNode);
+  middleware?: [];
   children?: AppRouteProps[];
 }
 
 export const appRoutes: AppRouteProps[] = [
-  { index: true, Component: Home },
-  { path: 'contact', Component: Contact },
+  //public route:
   {
     path: 'auth',
     children: [
       { path: 'login', Component: Login },
       { path: 'register', Component: Register },
+      { path: 'forgot', Component: Forgot },
     ],
   },
+
+  //protected route:
+
+  { index: true, Component: Home },
+  { path: 'contact', Component: Contact },
+
   {
     path: 'products',
     children: [

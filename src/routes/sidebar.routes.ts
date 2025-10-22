@@ -1,3 +1,5 @@
+//sidebar.routes.ts
+
 import type { ReactNode } from 'react';
 
 interface SideRouteProps {

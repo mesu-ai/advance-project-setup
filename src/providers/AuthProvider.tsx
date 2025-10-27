@@ -5,7 +5,7 @@ import type { User } from '../types/types';
 const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
 
-  const login = (userData: User) => {
+  const login = async (userData: User) => {
     console.log({ userData });
     setUser(userData);
     localStorage.setItem('user', JSON.stringify(userData));

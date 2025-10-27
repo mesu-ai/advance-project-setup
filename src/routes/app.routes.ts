@@ -1,6 +1,7 @@
 //app.routes.ts:
 
 import { lazy, type ComponentType, type LazyExoticComponent, type ReactNode } from 'react';
+import type { ActionFunction, LoaderFunction } from 'react-router';
 const Home = lazy(() => import('../pages/home/index'));
 const Contact = lazy(() => import('../pages/contact/index'));
 const Products = lazy(() => import('../pages/products/index'));
@@ -20,10 +21,12 @@ export interface AppRouteProps {
   layout?: LazyExoticComponent<ComponentType<unknown>> | (() => ReactNode);
   middleware?: [];
   children?: AppRouteProps[];
+  action?: ActionFunction;
+  loader?: LoaderFunction;
 }
 
 export const appRoutes: AppRouteProps[] = [
-  //public route:
+  //public
   {
     path: 'auth',
     children: [
@@ -34,7 +37,6 @@ export const appRoutes: AppRouteProps[] = [
   },
 
   //protected route:
-
   { index: true, Component: Home },
   { path: 'contact', Component: Contact },
 

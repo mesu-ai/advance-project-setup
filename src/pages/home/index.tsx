@@ -1,10 +1,15 @@
-import { useAuth } from '../../hooks/useAuth';
-
 const HomePage = () => {
-  const { user } = useAuth();
-  console.log({ user });
+  // const { user, logout } = useAuth();
+  // console.log({ user });
 
-  return <div>Home Page</div>;
+  return (
+    <div>
+      <p>Home Page</p>
+      {/* <button onClick={() => logout()} type="button" className="cursor-pointer bg-sky-400 text-white px-5 py-2">
+        Logout
+      </button> */}
+    </div>
+  );
 };
 
 export default HomePage;

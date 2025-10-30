@@ -2,6 +2,7 @@
 
 import { lazy, type ComponentType, type LazyExoticComponent, type ReactNode } from 'react';
 import type { ActionFunction, LoaderFunction } from 'react-router';
+// import LoginPage, { loader as loginLoader, action as loginAction } from '../pages/login/index';
 const Home = lazy(() => import('../pages/home/index'));
 const Contact = lazy(() => import('../pages/contact/index'));
 const Products = lazy(() => import('../pages/products/index'));
@@ -39,7 +40,6 @@ export const appRoutes: AppRouteProps[] = [
   //protected route:
   { index: true, Component: Home },
   { path: 'contact', Component: Contact },
-
   {
     path: 'products',
     children: [

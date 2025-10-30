@@ -57,3 +57,62 @@ It provides powerful management capabilities for products, orders, users, roles,
 ---
 
 ## 🏗️ Folder Structure
+
+src/
+├── assets/ # Static assets
+│ ├── images/
+│ ├── icons/
+│ ├── fonts/
+│ └── styles/ # Global styles, variables, mixins
+│
+├── components/ # Reusable components
+│ ├── atoms/ # Smallest components (buttons, inputs, labels)
+│ │ ├── Button/
+│ │ ├── Input/
+│ │ └── Typography/
+│ │
+│ ├── molecules/ # Combinations of atoms (form fields, search bars)
+│ │ ├── FormField/
+│ │ ├── SearchBar/
+│ │ └── CardItem/
+│ │
+│ ├── organisms/ # Complex components (forms, tables, cards)
+│ │ ├── DataTable/
+│ │ ├── FilterPanel/
+│ │ └── DashboardCard/
+│ │
+│ └── templates/ # Page layout templates
+│ ├── DashboardTemplate/
+│ └── SettingsTemplate/
+│
+├── features/ # Feature-based modules
+│ ├── auth/
+│ ├── users/
+│ ├── products/
+│ └── orders/
+│
+├── hooks/ # Custom React hooks
+│ ├── common/
+│ └── feature-specific/
+│
+├── services/ # API services and external integrations
+│ ├── api/
+│ └── third-party/
+│
+├── store/ # State management
+│ ├── slices/
+│ └── middlewares/
+│
+├── utils/ # Utility functions and helpers
+│ ├── formatters/
+│ ├── validators/
+│ └── helpers/
+│
+├── config/ # Configuration files
+│ ├── routes.ts
+│ ├── constants.ts
+│ └── theme.ts
+│
+└── types/ # TypeScript type definitions
+├── common/
+└── entities/

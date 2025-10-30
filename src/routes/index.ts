@@ -6,7 +6,6 @@ import ErrorBoundary from '../components/feedback/ErrorBoundary';
 import { authMiddleware } from '../middleware/auth.middleware';
 
 const RootLayout = lazy(() => import('../layout/RootLayout'));
-// const ErrorBoundary = lazy(() => import('../components/feedback/ErrorBoundary'));
 
 export const router = createBrowserRouter([
   {

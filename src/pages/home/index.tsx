@@ -1,13 +1,14 @@
+import LogoutButton from '../../components/molecules/LogoutButton';
+import { useAuth } from '../../hooks/useAuth';
+
 const HomePage = () => {
-  // const { user, logout } = useAuth();
-  // console.log({ user });
+  const { user, isAuthenticated } = useAuth();
+  console.log({ user, isAuthenticated });
 
   return (
     <div>
-      <p>Home Page</p>
-      {/* <button onClick={() => logout()} type="button" className="cursor-pointer bg-sky-400 text-white px-5 py-2">
-        Logout
-      </button> */}
+      <p>Home Page {user?.name}</p>
+      <LogoutButton />
     </div>
   );
 };

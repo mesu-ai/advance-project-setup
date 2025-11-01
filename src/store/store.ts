@@ -11,7 +11,8 @@ const preloadStorage = () => {
       return {
         auth: {
           user,
-          isAuthenticated: true,
+          accessToken: null,
+          isAuthenticated: false,
         },
       };
     }

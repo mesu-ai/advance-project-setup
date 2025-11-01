@@ -1,8 +1,8 @@
 import { useNavigate, useSearchParams } from 'react-router';
-import { useLoginMutation } from '../../store/api/endpoints/authEndpoints';
-import type { LoginResponseT } from '../../types';
-import { loginAuth } from '../../store/slices/auth/authSlice';
-import { useAppDispatch } from '../../hooks/useAuth';
+import type { LoginResponseT } from '@/types';
+import { useAppDispatch } from '@/hooks/useAuth';
+import { useLoginMutation } from '@/store/api/endpoints/authEndpoints';
+import { loginSucceeded } from '@/store/slices/auth/authSlice';
 
 export default function LoginPage() {
   const [searchParams] = useSearchParams();
@@ -38,8 +38,9 @@ export default function LoginPage() {
       console.log(res);
 
       if (res.success) {
-        localStorage.setItem('user', JSON.stringify(res.data.userInfo));
-        dispatch(loginAuth(res.data.userInfo));
+        const { userInfo, accessToken } = res.data;
+        localStorage.setItem('user', JSON.stringify(userInfo));
+        dispatch(loginSucceeded({ user: userInfo, accessToken }));
         navigate(callbackUrl);
       }
     } catch (error) {

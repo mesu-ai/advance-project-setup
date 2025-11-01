@@ -1,13 +1,15 @@
+import type { UserT } from '@/types';
 import { createSlice, type PayloadAction } from '@reduxjs/toolkit';
-import type { UserT } from '../../../types';
 
 interface UserAuthSliceT {
   user: UserT | null;
+  accessToken: string | null;
   isAuthenticated: boolean;
 }
 
 const initialState: UserAuthSliceT = {
   user: null,
+  accessToken: null,
   isAuthenticated: false,
 };
 
@@ -15,12 +17,21 @@ export const authSlice = createSlice({
   name: 'auth',
   initialState,
   reducers: {
-    loginAuth: (state, action: PayloadAction<UserT>) => {
-      state.user = action.payload;
+    loginSucceeded: (state, action: PayloadAction<{ user: UserT; accessToken: string }>) => {
+      state.user = action.payload.user;
+      state.accessToken = action.payload.accessToken;
       state.isAuthenticated = true;
     },
-    logoutAuth: (state) => {
+
+    tokenRefreshed: (state, action: PayloadAction<string>) => {
+      console.log('token:', action.payload);
+      state.accessToken = action.payload;
+      state.isAuthenticated = true;
+    },
+
+    loggedOut: (state) => {
       state.user = null;
+      state.accessToken = null;
       state.isAuthenticated = false;
 
       //clear localStorage on logout
@@ -29,5 +40,5 @@ export const authSlice = createSlice({
   },
 });
 
-export const { loginAuth, logoutAuth } = authSlice.actions;
+export const { loginSucceeded, tokenRefreshed, loggedOut } = authSlice.actions;
 export default authSlice.reducer;

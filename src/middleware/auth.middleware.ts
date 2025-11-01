@@ -1,5 +1,5 @@
+import { store } from '@/store/store';
 import { redirect } from 'react-router';
-import { store } from '../store/store';
 
 export async function authMiddleware({ request }: { request: Request }) {
   const url = new URL(request.url);
@@ -9,17 +9,24 @@ export async function authMiddleware({ request }: { request: Request }) {
   const publicRoutes = ['/auth/login', '/auth/register', '/auth/forgot'];
   const isPublic = publicRoutes.some((p) => pathname.startsWith(p));
 
-  const isAuthenticated = store.getState().auth.isAuthenticated; // check user valid or not
-  console.log({ isAuthenticated });
+  const { isAuthenticated, user } = store.getState().auth;
 
-  if (!isPublic && !isAuthenticated) {
-    console.log('private and no user');
+  // ✅ Allow access if either:
+  // 1. Has valid token (isAuthenticated = true)
+  // 2. OR has user in state (will be refreshed by useAuthInit)
+  const hasAuth = isAuthenticated || user !== null;
+
+  console.log({ isAuthenticated, hasUser: !!user, hasAuth });
+
+  if (!isPublic && !hasAuth) {
+    console.log('Not authenticated and no user - redirect to login');
     throw redirect(`/auth/login?callbackUrl=${encodeURIComponent(callbackUrl)}`);
   }
 
   if (isPublic && isAuthenticated) {
-    console.log('public and user');
+    console.log('Already authenticated - redirect to home');
     throw redirect('/');
   }
+
   return null;
 }

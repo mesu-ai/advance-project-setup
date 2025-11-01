@@ -1,6 +1,6 @@
 import { useLocation, useNavigate } from 'react-router';
 import { useAppDispatch } from '../../hooks/useAuth';
-import { logoutAuth } from '../../store/slices/auth/authSlice';
+import { loggedOut } from '@/store/slices/auth/authSlice';
 
 const LogoutButton = () => {
   const { pathname, search } = useLocation();
@@ -10,7 +10,7 @@ const LogoutButton = () => {
 
   const handleLogout = () => {
     const callbackUrl = pathname + search;
-    dispatch(logoutAuth());
+    dispatch(loggedOut());
     navigate(`/auth/login?callbackUrl=${encodeURIComponent(callbackUrl)}`);
   };
   return (

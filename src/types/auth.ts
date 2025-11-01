@@ -19,3 +19,10 @@ export interface LoginRequestT {
   username: string;
   password: string;
 }
+
+export interface RefreshTokenResponseT {
+  success: boolean;
+  data: {
+    accessToken: string;
+  };
+}

@@ -1,12 +1,17 @@
 //src/layout/RootLayout.tsx:
 
-import { Outlet } from 'react-router';
+import { Link, Outlet } from 'react-router';
 
 const RootLayout = () => {
   return (
     <div>
       <header>
-        <nav>navbar</nav>
+        <nav className="space-x-5">
+          <Link to="/">Home</Link>
+          <Link to="/products">Products</Link>
+          <Link to="/orders">Orders</Link>
+          <Link to="/products/create">Create Product</Link>
+        </nav>
       </header>
       <main>
         {/* <Suspense fallback={<div>loading</div>}> */}

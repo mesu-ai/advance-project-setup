@@ -1,5 +1,6 @@
 import { store } from '@/store/store';
 import { redirect } from 'react-router';
+import { authApi } from '@/store/api/endpoints/authEndpoints';
 
 export async function authMiddleware({ request }: { request: Request }) {
   const url = new URL(request.url);
@@ -9,11 +10,20 @@ export async function authMiddleware({ request }: { request: Request }) {
   const publicRoutes = ['/auth/login', '/auth/register', '/auth/forgot'];
   const isPublic = publicRoutes.some((p) => pathname.startsWith(p));
 
-  const { isAuthenticated, user } = store.getState().auth;
+  const state = store.getState().auth;
+  const { user } = state;
+  let { isAuthenticated, accessToken } = state;
 
-  // ✅ Allow access if either:
-  // 1. Has valid token (isAuthenticated = true)
-  // 2. OR has user in state (will be refreshed by useAuthInit)
+  if (!isPublic && user && !accessToken) {
+    try {
+      await store.dispatch(authApi.endpoints.refreshToken.initiate()).unwrap();
+      // re-read and update
+      ({ isAuthenticated, accessToken } = store.getState().auth);
+    } catch {
+      // baseApi handles logout on failure
+    }
+  }
+
   const hasAuth = isAuthenticated || user !== null;
 
   console.log({ isAuthenticated, hasUser: !!user, hasAuth });

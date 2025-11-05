@@ -1,9 +1,14 @@
-import LogoutButton from '../../components/molecules/LogoutButton';
-import { useAuth } from '../../hooks/useAuth';
+import LogoutButton from '@/components/molecules/LogoutButton';
+import { useAppSelector, useAuth } from '@/hooks/useAuth';
+import { decodeJwt } from '@/utils/decodeJwt';
 
 const HomePage = () => {
   const { user, isAuthenticated } = useAuth();
+  const token = useAppSelector((state) => state.auth.accessToken);
+
   console.log({ user, isAuthenticated });
+
+  if (token) decodeJwt(token);
 
   return (
     <div>

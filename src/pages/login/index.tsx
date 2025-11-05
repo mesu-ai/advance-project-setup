@@ -17,7 +17,14 @@ export default function LoginPage() {
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     console.log('handle submit button');
+    const data = new FormData(e.currentTarget);
+    const username = String(data.get('username') ?? '').trim();
+    const password = String(data.get('password') ?? '').trim();
+    // const {username, password}= e.target;
+    // console.log({username, password});
     // http://192.168.30.22:56771/api/Auth/AdminLogin
+
+    if (!username || !password) return;
 
     try {
       // const res = await fetch('http://localhost:4000/api/v1/auth/login', {
@@ -34,7 +41,7 @@ export default function LoginPage() {
       //   credentials: 'include',
       // });
 
-      const res: LoginResponseT = await login({ username: 'admin', password: '1234' }).unwrap();
+      const res: LoginResponseT = await login({ username, password }).unwrap();
       console.log(res);
 
       if (res.success) {

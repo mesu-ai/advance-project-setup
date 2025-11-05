@@ -5,12 +5,15 @@ import type { ActionFunction, LoaderFunction } from 'react-router';
 // import LoginPage, { loader as loginLoader, action as loginAction } from '../pages/login/index';
 const Home = lazy(() => import('../pages/home/index'));
 const Contact = lazy(() => import('../pages/contact/index'));
+
 const Products = lazy(() => import('../pages/products/index'));
 const CreateProduct = lazy(() => import('../pages/products/create/CreateProductPage'));
 const PendingProduct = lazy(() => import('../pages/products/pending/PendingProductPage'));
 const ApprovedProduct = lazy(() => import('../pages/products/approved/ApprovedProductPage'));
 const RejectedProduct = lazy(() => import('../pages/products/rejected/RejectedProductPage'));
 const LowStockProduct = lazy(() => import('../pages/products/low-stock/LowStockProductPage'));
+const Orders = lazy(() => import('../pages/orders/index'));
+
 const Login = lazy(() => import('../pages/login/index'));
 const Register = lazy(() => import('../pages/register/index'));
 const Forgot = lazy(() => import('../pages/forgot/index'));
@@ -49,6 +52,17 @@ export const appRoutes: AppRouteProps[] = [
       { path: 'approved', Component: ApprovedProduct },
       { path: 'rejected', Component: RejectedProduct },
       { path: 'low-stock', Component: LowStockProduct },
+    ],
+  },
+  {
+    path: 'orders',
+    children: [
+      { index: true, Component: Orders },
+      { path: 'new', Component: CreateProduct },
+      { path: 'pending', Component: PendingProduct },
+      { path: 'approved', Component: ApprovedProduct },
+      { path: 'return', Component: RejectedProduct },
+      { path: 'cancel', Component: LowStockProduct },
     ],
   },
 ];

@@ -21,12 +21,11 @@ export const authApi = baseApi.injectEndpoints({
       }),
     }),
 
-    // ✅ Logout endpoint
     logout: build.mutation<void, void>({
       query: () => ({
         url: '/auth/logout',
         method: 'POST',
-        credentials: 'include', // ✅ Clear refresh token cookie on server
+        credentials: 'include',
       }),
       invalidatesTags: ['Auth'],
     }),

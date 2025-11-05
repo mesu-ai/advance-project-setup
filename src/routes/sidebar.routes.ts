@@ -23,4 +23,15 @@ export const sidebarRoutes: SideRouteProps[] = [
       { title: 'Low-Stock', path: 'low-stock' },
     ],
   },
+  {
+    title: 'Orders',
+    path: 'orders',
+    children: [
+      { title: 'Create-Product', path: 'create' },
+      { title: 'Pending-Product', path: 'pending' },
+      { title: 'Approved-Product', path: 'approved' },
+      { title: 'Rejected-Product', path: 'rejected' },
+      { title: 'Low-Stock', path: 'low-stock' },
+    ],
+  },
 ];

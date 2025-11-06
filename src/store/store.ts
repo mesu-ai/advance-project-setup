@@ -1,7 +1,16 @@
-import { configureStore } from '@reduxjs/toolkit';
-import { setupListeners } from '@reduxjs/toolkit/query';
+import { configureStore, createListenerMiddleware, isAnyOf } from '@reduxjs/toolkit';
 import { baseApi } from './api/baseApi';
-import authReducer from './slices/auth/authSlice';
+import authReducer, { loggedOut, loginSucceeded } from './slices/auth/authSlice';
+import { setupListeners } from '@reduxjs/toolkit/query';
+
+const authListener = createListenerMiddleware();
+
+authListener.startListening({
+  matcher: isAnyOf(loggedOut, loginSucceeded),
+  effect: async (_action, { dispatch }) => {
+    dispatch(baseApi.util.resetApiState());
+  },
+});
 
 const preloadStorage = () => {
   try {
@@ -27,7 +36,8 @@ export const store = configureStore({
     auth: authReducer,
     [baseApi.reducerPath]: baseApi.reducer,
   },
-  middleware: (getDefaultMiddleware) => getDefaultMiddleware().concat(baseApi.middleware),
+  middleware: (getDefaultMiddleware) =>
+    getDefaultMiddleware().concat(authListener.middleware, baseApi.middleware),
   preloadedState: preloadStorage(),
 });
 

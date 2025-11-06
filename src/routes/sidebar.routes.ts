@@ -1,13 +1,6 @@
 //sidebar.routes.ts
 
-import type { ReactNode } from 'react';
-
-interface SideRouteProps {
-  title: string;
-  path: string;
-  icon?: ReactNode;
-  children?: SideRouteProps[];
-}
+import type { SideRouteProps } from '@/types';
 
 export const sidebarRoutes: SideRouteProps[] = [
   { title: 'Dashboard', path: '/dashboard' },

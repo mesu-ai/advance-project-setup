@@ -7,10 +7,8 @@ import { loginSucceeded } from '@/store/slices/auth/authSlice';
 export default function LoginPage() {
   const [searchParams] = useSearchParams();
   const callbackUrl = decodeURIComponent(searchParams.get('callbackUrl') ?? '/');
-  // const { login } = useAuth();
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
-  // const actionData = useActionData() as { error?: string };
 
   const [login] = useLoginMutation();
 
@@ -20,8 +18,7 @@ export default function LoginPage() {
     const data = new FormData(e.currentTarget);
     const username = String(data.get('username') ?? '').trim();
     const password = String(data.get('password') ?? '').trim();
-    // const {username, password}= e.target;
-    // console.log({username, password});
+
     // http://192.168.30.22:56771/api/Auth/AdminLogin
 
     if (!username || !password) return;

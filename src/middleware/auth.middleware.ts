@@ -1,14 +1,22 @@
 import { store } from '@/store/store';
 import { redirect } from 'react-router';
 import { authApi } from '@/store/api/endpoints/authEndpoints';
+import { routerPermissionMap } from '@/routes/router.map';
+
+function normalizePath(pathname: string) {
+  if (pathname === '/') return '/';
+  return pathname.endsWith('/') ? pathname.slice(0, -1) : pathname;
+}
 
 export async function authMiddleware({ request }: { request: Request }) {
   const url = new URL(request.url);
   const { pathname, search } = url;
   const callbackUrl = pathname + search;
 
-  const publicRoutes = ['/auth/login', '/auth/register', '/auth/forgot'];
+  const publicRoutes = ['/auth/403', '/auth/login', '/auth/register', '/auth/forgot'];
   const isPublic = publicRoutes.some((p) => pathname.startsWith(p));
+  const normalizedPath = normalizePath(pathname);
+  const pagePermission = routerPermissionMap[normalizedPath];
 
   const state = store.getState().auth;
   const { user } = state;
@@ -26,16 +34,16 @@ export async function authMiddleware({ request }: { request: Request }) {
 
   const hasAuth = isAuthenticated || user !== null;
 
-  console.log({ isAuthenticated, hasUser: !!user, hasAuth });
+  console.log({ isAuthenticated, hasUser: !!user, hasAuth, isPublic });
 
-  if (!isPublic && !hasAuth) {
+  if (!isPublic && !isAuthenticated) {
     console.log('Not authenticated and no user - redirect to login');
     throw redirect(`/auth/login?callbackUrl=${encodeURIComponent(callbackUrl)}`);
   }
 
-  if (isPublic && isAuthenticated) {
-    console.log('Already authenticated - redirect to home');
-    throw redirect('/');
+  if (!isPublic && isAuthenticated && !user?.permissions.includes(pagePermission)) {
+    console.log('page permission');
+    throw redirect('/auth/403');
   }
 
   return null;

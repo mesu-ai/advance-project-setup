@@ -1,8 +1,6 @@
 //app.routes.ts:
-
-import { lazy, type ComponentType, type LazyExoticComponent, type ReactNode } from 'react';
-import type { ActionFunction, LoaderFunction } from 'react-router';
-// import LoginPage, { loader as loginLoader, action as loginAction } from '../pages/login/index';
+import type { AppRouteProps } from '@/types';
+import { lazy } from 'react';
 const Home = lazy(() => import('../pages/home/index'));
 const Contact = lazy(() => import('../pages/contact/index'));
 
@@ -17,17 +15,7 @@ const Orders = lazy(() => import('../pages/orders/index'));
 const Login = lazy(() => import('../pages/login/index'));
 const Register = lazy(() => import('../pages/register/index'));
 const Forgot = lazy(() => import('../pages/forgot/index'));
-
-export interface AppRouteProps {
-  index?: boolean;
-  path?: string;
-  Component?: LazyExoticComponent<ComponentType<unknown>> | (() => ReactNode);
-  layout?: LazyExoticComponent<ComponentType<unknown>> | (() => ReactNode);
-  middleware?: [];
-  children?: AppRouteProps[];
-  action?: ActionFunction;
-  loader?: LoaderFunction;
-}
+const AssessDenied = lazy(() => import('../pages/403/index'));
 
 export const appRoutes: AppRouteProps[] = [
   //public
@@ -37,6 +25,7 @@ export const appRoutes: AppRouteProps[] = [
       { path: 'login', Component: Login },
       { path: 'register', Component: Register },
       { path: 'forgot', Component: Forgot },
+      { path: '403', Component: AssessDenied },
     ],
   },
 

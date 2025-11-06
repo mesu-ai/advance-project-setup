@@ -7,13 +7,12 @@ import { decodeJwt } from '@/utils/decodeJwt';
 
 type BaseQueryFnT = BaseQueryFn<string | FetchArgs, unknown, FetchBaseQueryError>;
 
-let isRefreshing = false;
-// Share the in-flight refresh so concurrent callers can await the same network request
-let refreshPromise: Promise<RefreshTokenResponseT | undefined> | null = null;
+let isRefreshing = false; // Ensure one refresh request
+let refreshPromise: Promise<RefreshTokenResponseT | undefined> | null = null; // Share the in-flight refresh so concurrent callers can await the same network request
 
 const baseQuery = fetchBaseQuery({
   baseUrl: 'http://localhost:4000/api/v1',
-  credentials: 'include',
+  credentials: 'include', // required for refresh tokens in http secure cookies
   prepareHeaders: (headers, { getState }) => {
     const token = (getState() as RootState).auth.accessToken;
     if (token) headers.set('authorization', `Bearer ${token}`);
@@ -68,9 +67,7 @@ const baseQueryWithReauth: BaseQueryFnT = async (args, api, extraOptions) => {
   // If this is the refresh call itself, ensure single-flight and dispatch token update
   if (isRefreshCall) {
     const data = await ensureRefreshed(api, extraOptions);
-    if (data) {
-      return { data } as { data: unknown };
-    }
+    if (data) return { data } as { data: unknown };
     return { error: { status: 401, data: { message: 'Refresh failed' } } as FetchBaseQueryError };
   }
 
@@ -89,12 +86,12 @@ const baseQueryWithReauth: BaseQueryFnT = async (args, api, extraOptions) => {
   // main request
   let result = await baseQuery(args, api, extraOptions);
 
-  // fallback refresh if 401
+  // 401 fallback → refresh once → retry only if token is present after refresh
   if (result.error && result.error.status === 401) {
     await ensureRefreshed(api, extraOptions);
     const postToken = (api.getState() as RootState).auth.accessToken;
     if (postToken) {
-      result = await baseQuery(args, api, extraOptions);
+      result = await baseQuery(args, api, extraOptions); // retry once
     }
   }
   return result;

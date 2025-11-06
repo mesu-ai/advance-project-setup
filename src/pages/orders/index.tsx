@@ -1,10 +1,9 @@
 import { useAuth } from '@/hooks/useAuth';
 
 const OrderPage = () => {
-  const { user, isAuthenticated } = useAuth();
-  console.log({ user, isAuthenticated });
+  const { user } = useAuth();
 
-  return <div>Order Page</div>;
+  return <div>Order Page {user?.name}</div>;
 };
 
 export default OrderPage;

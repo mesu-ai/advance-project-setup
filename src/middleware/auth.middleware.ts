@@ -2,11 +2,7 @@ import { store } from '@/store/store';
 import { redirect } from 'react-router';
 import { authApi } from '@/store/api/endpoints/authEndpoints';
 import { routerPermissionMap } from '@/routes/router.map';
-
-function normalizePath(pathname: string) {
-  if (pathname === '/') return '/';
-  return pathname.endsWith('/') ? pathname.slice(0, -1) : pathname;
-}
+import { normalizePath } from '@/utils/normalizePath';
 
 export async function authMiddleware({ request }: { request: Request }) {
   const url = new URL(request.url);
@@ -16,7 +12,7 @@ export async function authMiddleware({ request }: { request: Request }) {
   const publicRoutes = ['/auth/403', '/auth/login', '/auth/register', '/auth/forgot'];
   const isPublic = publicRoutes.some((p) => pathname.startsWith(p));
   const normalizedPath = normalizePath(pathname);
-  const pagePermission = routerPermissionMap[normalizedPath];
+  const pagePermission = routerPermissionMap[normalizedPath]?.page;
 
   const state = store.getState().auth;
   const { user } = state;
@@ -32,17 +28,13 @@ export async function authMiddleware({ request }: { request: Request }) {
     }
   }
 
-  const hasAuth = isAuthenticated || user !== null;
-
-  console.log({ isAuthenticated, hasUser: !!user, hasAuth, isPublic });
-
   if (!isPublic && !isAuthenticated) {
     console.log('Not authenticated and no user - redirect to login');
     throw redirect(`/auth/login?callbackUrl=${encodeURIComponent(callbackUrl)}`);
   }
 
   if (!isPublic && isAuthenticated && !user?.permissions.includes(pagePermission)) {
-    console.log('page permission');
+    console.log('page permission', !user?.permissions.includes(pagePermission));
     throw redirect('/auth/403');
   }
 

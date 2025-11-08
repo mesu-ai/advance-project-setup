@@ -1,15 +1,17 @@
-export const routerPermissionMap: Record<string, string> = {
-  // dashboard
-  '/': 'dashboard',
+interface RoutePermissionT {
+  page: string;
+  actions?: string[];
+}
 
-  // order
-  '/orders': 'orders.index',
+export const routerPermissionMap: Record<string, RoutePermissionT> = {
+  '/': { page: 'dashboard.index', actions: ['view', 'delete'] },
 
-  // products
-  '/products': 'products',
-  '/products/create': 'products.create',
-  '/products/pending': 'products.pending',
-  '/products/approved': 'products.approved',
-  '/products/low-stock': 'products.low-stock',
-  '/products/rejected': 'products.rejected',
+  '/orders': { page: 'orders.index' },
+
+  '/products': { page: 'products.index' },
+  '/products/create': { page: 'products.create', actions: ['create'] },
+  '/products/pending': { page: 'products.pending', actions: ['update', 'delete'] },
+  '/products/approved': { page: 'products.approved', actions: ['update', 'delete'] },
+  '/products/low-stock': { page: 'products.low-stock', actions: ['update', 'delete'] },
+  '/products/rejected': { page: 'products.rejected', actions: ['update', 'delete'] },
 };

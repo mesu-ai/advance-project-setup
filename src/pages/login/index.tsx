@@ -14,7 +14,6 @@ export default function LoginPage() {
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    console.log('handle submit button');
     const data = new FormData(e.currentTarget);
     const username = String(data.get('username') ?? '').trim();
     const password = String(data.get('password') ?? '').trim();

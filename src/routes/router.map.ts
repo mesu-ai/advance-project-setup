@@ -9,7 +9,7 @@ export const routerPermissionMap: Record<string, RoutePermissionT> = {
   '/orders': { page: 'orders.index' },
 
   '/products': { page: 'products.index' },
-  '/products/create': { page: 'products.create', actions: ['create'] },
+  '/products/create': { page: 'products.create', actions: ['edit', 'view'] },
   '/products/pending': { page: 'products.pending', actions: ['update', 'delete'] },
   '/products/approved': { page: 'products.approved', actions: ['update', 'delete'] },
   '/products/low-stock': { page: 'products.low-stock', actions: ['update', 'delete'] },

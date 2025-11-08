@@ -15,8 +15,10 @@ const HomePage = () => {
 
   const handleDelete = () => {
     console.log('click delete button');
-    console.log('action permission:', checkPageAction(pathname, 'delete'));
   };
+
+  console.log('action permission-view:', checkPageAction(pathname, 'view'));
+  console.log('action permission:-edit: ', checkPageAction(pathname, 'delete'));
 
   return (
     <div>
@@ -29,14 +31,16 @@ const HomePage = () => {
           </button>
         )}
 
-        <button
-          onClick={handleDelete}
-          type="button"
-          disabled={!checkPageAction(pathname, 'delete')}
-          className="bg-sky-600 cursor-pointer"
-        >
-          delete
-        </button>
+        {checkPageAction(pathname, 'delete') && (
+          <button
+            onClick={handleDelete}
+            type="button"
+            // disabled={!checkPageAction(pathname, 'delete')}
+            className="bg-sky-600 cursor-pointer"
+          >
+            delete
+          </button>
+        )}
       </div>
     </div>
   );

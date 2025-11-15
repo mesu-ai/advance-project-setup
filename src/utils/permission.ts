@@ -1,4 +1,4 @@
-import { routerPermissionMap } from '@/routes/router.map';
+import { routerPermissionMap } from '@/routes/routes.map';
 import { store } from '@/store/store';
 import type { UserT } from '@/types';
 import { normalizePath } from './normalizePath';

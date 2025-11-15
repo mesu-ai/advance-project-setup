@@ -4,11 +4,14 @@ import type { BaseQueryFn, FetchArgs, FetchBaseQueryError } from '@reduxjs/toolk
 import { loggedOut, tokenRefreshed } from '../slices/auth/authSlice';
 import type { RefreshTokenResponseT } from '@/types';
 import { decodeJwt } from '@/utils/decodeJwt';
+import { publicRoutes } from '@/routes/routes';
 
 type BaseQueryFnT = BaseQueryFn<string | FetchArgs, unknown, FetchBaseQueryError>;
 
 let isRefreshing = false; // Ensure one refresh request
 let refreshPromise: Promise<RefreshTokenResponseT | undefined> | null = null; // Share the in-flight refresh so concurrent callers can await the same network request
+
+// const publicRoutes = ['/auth/403', '/auth/login', '/auth/register', '/auth/forgot'];
 
 const baseQuery = fetchBaseQuery({
   baseUrl: 'http://localhost:4000/api/v1',
@@ -58,6 +61,18 @@ const ensureRefreshed = async (
 const baseQueryWithReauth: BaseQueryFnT = async (args, api, extraOptions) => {
   const { accessToken: token } = (api.getState() as RootState).auth;
   const currTime = Math.floor(Date.now() / 1000);
+
+  const url =
+    typeof args === 'string'
+      ? args
+      : typeof (args as FetchArgs)?.url === 'string'
+        ? (args as FetchArgs).url
+        : '';
+
+  // Skip token refresh logic for public routes
+  const isPublicRoute = publicRoutes.some((route) => url.includes(route));
+  if (isPublicRoute) return await baseQuery(args, api, extraOptions);
+
   const isRefreshCall =
     typeof args === 'string'
       ? args.includes('/auth/refresh')
@@ -73,7 +88,7 @@ const baseQueryWithReauth: BaseQueryFnT = async (args, api, extraOptions) => {
 
   // Note: reload preflight handled in auth.middleware to avoid duplication
 
-  // proactive refresh (<5 min to expire)
+  // Proactive refresh (if token expires < 5 mins)
   if (token) {
     const payload = decodeJwt<{ exp: number }>(token);
 
@@ -83,15 +98,15 @@ const baseQueryWithReauth: BaseQueryFnT = async (args, api, extraOptions) => {
     }
   }
 
-  // main request
+  // Main Request
   let result = await baseQuery(args, api, extraOptions);
 
-  // 401 fallback → refresh once → retry only if token is present after refresh
+  // If 401 → Token expired → Try refresh once
   if (result.error && result.error.status === 401) {
     await ensureRefreshed(api, extraOptions);
     const postToken = (api.getState() as RootState).auth.accessToken;
     if (postToken) {
-      result = await baseQuery(args, api, extraOptions); // retry once
+      result = await baseQuery(args, api, extraOptions); // retry
     }
   }
   return result;

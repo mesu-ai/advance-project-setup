@@ -1,6 +1,6 @@
 import { RouterProvider } from 'react-router';
 import './index.css';
-import { router } from './routes';
+import { router } from './routes/router.config';
 import { store } from './store/store';
 import { Provider } from 'react-redux';
 

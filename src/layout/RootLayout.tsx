@@ -1,24 +1,28 @@
 //src/layout/RootLayout.tsx:
 
-import { Link, Outlet } from 'react-router';
+import { Outlet } from 'react-router';
+import Navbar from './header/Navbar';
+import Sidebar from './header/Sidebar';
+import { useState } from 'react';
 
 const RootLayout = () => {
+  const [showSidebar, setShowSidebar] = useState<boolean>(true);
+
   return (
-    <div>
+    <div className="container mx-auto">
       <header>
-        <nav className="space-x-5">
-          <Link to="/">Home</Link>
-          <Link to="/products">Products</Link>
-          <Link to="/orders">Orders</Link>
-          <Link to="/products/create">Create Product</Link>
-        </nav>
+        <Navbar showLogo={showSidebar} onShowSidebar={() => setShowSidebar((prev) => !prev)} />
       </header>
-      <main>
-        {/* <Suspense fallback={<div>loading</div>}> */}
-        <Outlet />
-        {/* </Suspense> */}
-      </main>
-      <footer>footer</footer>
+
+      <div className="flex h-[calc(100vh-68px)]">
+        <aside className={`w-62 flex-none border-r border-white-700 ${!showSidebar && 'hidden'}`}>
+          <Sidebar />
+        </aside>
+        <main className="flex-1 overflow-y-auto">
+          <Outlet />
+        </main>
+      </div>
+      {/* <footer className="h-12 border-t border-white-700">Footer</footer> */}
     </div>
   );
 };

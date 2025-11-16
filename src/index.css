@@ -26,6 +26,14 @@
   --color-primary-50: #e9eff6;
   --color-primary-500: #1f5da0;
   --color-primary-600: #1c5592;
+
+  --color-neutral-300: #ababab;
+
+  --color-white-700: #ebebeb;
+
+  --height-17: 68px;
+
+  --shadow-custom-1: 0 5px 10px 0 rgba(0, 0, 0, 0.15);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -45,8 +53,13 @@ body {
   font-family: var(--font-english);
 }
 
+input:-webkit-autofill {
+  -webkit-text-fill-color: #000 !important;
+  transition: background-color 9999s ease-in-out 0s;
+}
+
 @utility input-class {
-  @apply w-full border border-neutral-300 text-sm rounded-lg p-2 outline-none focus:border-primary-500;
+  @apply w-full border border-neutral-300 text-sm rounded-lg p-2 outline-none focus-within:border-primary-500;
 }
 
 @utility input-error {

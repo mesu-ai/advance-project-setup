@@ -8,6 +8,12 @@ import * as z from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import Image from '@/components/atoms/Image';
 import loginCover from '@/assets/images/login-cover.png';
+import ArrowLongIcon from '@/assets/svg/ArrowLongIcon';
+import MailIcon from '@/assets/svg/MailIcon';
+import ShowIcon from '@/assets/svg/ShowIcon';
+import HideIcon from '@/assets/svg/HideIcon';
+import { useState } from 'react';
+import { useApiError } from '@/hooks/useApiError';
 
 const loginSchema = z.object({
   username: z.string().min(1, 'Username can not empty'),
@@ -19,13 +25,15 @@ const loginSchema = z.object({
 
 type LoginFormDataT = z.infer<typeof loginSchema>;
 
-export default function LoginPage() {
+const LoginPage = () => {
+  const [show, setShow] = useState<boolean>(false);
   const [searchParams] = useSearchParams();
   const callbackUrl = decodeURIComponent(searchParams.get('callbackUrl') ?? '/');
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
 
   const [login] = useLoginMutation();
+  const { handleApiError } = useApiError();
 
   const {
     register,
@@ -73,7 +81,7 @@ export default function LoginPage() {
   // };
 
   const onSubmit = async (data: LoginFormDataT) => {
-    console.log(data);
+    // console.log(data);
 
     try {
       const res: LoginResponseT = await login(data).unwrap();
@@ -86,14 +94,15 @@ export default function LoginPage() {
         navigate(callbackUrl);
       }
     } catch (error) {
-      console.log({ error });
+      // console.log({ error });
+      handleApiError(error);
     }
   };
 
   return (
     <div className="min-h-screen flex items-center justify-center">
-      <div className="max-w-[1100px] grid grid-cols-2 w-full bg-white rounded-xl shadow-md overflow-clip">
-        <div className="w-full text-black max-w-[400px] mx-auto py-[100px]">
+      <div className="max-w-[1100px] grid grid-cols-2 w-full bg-surface rounded-xl shadow-custom-1 overflow-clip">
+        <div className="w-full max-w-[400px] mx-auto py-[100px]">
           <h1 className="text-[26px] font-bold text-center mb-10">Admin Login</h1>
 
           <form onSubmit={handleSubmit(onSubmit)}>
@@ -102,32 +111,49 @@ export default function LoginPage() {
             <div className="space-y-5">
               <div>
                 <label className="block">Username</label>
-                <input
-                  type="text"
-                  placeholder="Enter Your Username"
-                  {...register('username')}
-                  className="input-class"
-                />
+                <div className="input-class flex justify-between">
+                  <input
+                    type="text"
+                    placeholder="Enter Your Username"
+                    autoComplete="username"
+                    {...register('username')}
+                    className="outline-none w-full"
+                  />
+                  <MailIcon className="w-5 h-5" />
+                </div>
+
                 <p className="input-error">{errors.username?.message}</p>
               </div>
 
               <div>
                 <label className="block">Password</label>
-                <input
-                  type="password"
-                  placeholder="Enter Your Pasword"
-                  {...register('password')}
-                  className="input-class"
-                />
+                <div className="input-class flex justify-between">
+                  <input
+                    type={show ? 'text' : 'password'}
+                    placeholder="Enter Your Pasword"
+                    autoComplete="current-password"
+                    {...register('password')}
+                    className="outline-none w-full"
+                  />
+                  <button
+                    type="button"
+                    aria-label="password show button"
+                    className="cursor-pointer"
+                    onClick={() => setShow((prev) => !prev)}
+                  >
+                    {show ? <HideIcon className="w-5 h-5" /> : <ShowIcon className="w-5 h-5" />}
+                  </button>
+                </div>
+
                 <p className="input-error">{errors.password?.message}</p>
               </div>
             </div>
             <button
               type="submit"
               disabled={isSubmitting}
-              className="mt-10 cursor-pointer w-full bg-primary-500 text-white py-2 rounded-lg hover:bg-primary-600 disabled:opacity-50"
+              className="flex justify-center items-center gap-2 mt-10 cursor-pointer w-full bg-primary-500 text-white py-2 rounded-lg hover:bg-primary-600 disabled:opacity-50"
             >
-              {isSubmitting ? 'Signing in...' : 'Login'}
+              {isSubmitting ? 'Signing in...' : 'Login'} <ArrowLongIcon />
             </button>
           </form>
         </div>
@@ -137,4 +163,6 @@ export default function LoginPage() {
       </div>
     </div>
   );
-}
+};
+
+export default LoginPage;

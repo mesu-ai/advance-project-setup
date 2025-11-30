@@ -1,4 +1,4 @@
-import type { ComponentType, LazyExoticComponent, ReactNode } from 'react';
+import type { ComponentType, LazyExoticComponent, ReactNode, SVGProps } from 'react';
 
 export interface AppRouteProps {
   index?: boolean;
@@ -14,6 +14,6 @@ export interface AppRouteProps {
 export interface SideRouteProps {
   title: string;
   path: string;
-  icon?: ReactNode;
+  icon?: ComponentType<SVGProps<SVGSVGElement>>;
   children?: SideRouteProps[];
 }

@@ -1,15 +1,14 @@
-import type { SvgIconT } from '@/types/svg';
-import type { FC } from 'react';
+import type { FC, SVGProps } from 'react';
 
-const ArrowLongIcon: FC<SvgIconT> = ({ className = '', width = 24, height = 24 }) => {
+const ArrowLongIcon: FC<SVGProps<SVGSVGElement>> = ({ className = '', ...props }) => {
   return (
     <svg
-      width={width}
-      height={height}
-      viewBox={`0 0 ${width} ${height}`}
-      className={className}
+      width={24}
+      height={24}
+      viewBox="0 0 24 24"
       fill="currentColor"
-      xmlns="http://www.w3.org/2000/svg"
+      className={className}
+      {...props}
     >
       <path
         fillRule="evenodd"

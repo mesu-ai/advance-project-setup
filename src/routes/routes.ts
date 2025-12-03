@@ -11,6 +11,7 @@ const ApprovedProduct = lazy(() => import('../pages/products/approved/ApprovedPr
 const RejectedProduct = lazy(() => import('../pages/products/rejected/RejectedProductPage'));
 const LowStockProduct = lazy(() => import('../pages/products/low-stock/LowStockProductPage'));
 const Orders = lazy(() => import('../pages/orders/index'));
+const Role = lazy(() => import('../pages/role/index'));
 
 const Login = lazy(() => import('../pages/login/index'));
 const Register = lazy(() => import('../pages/register/index'));
@@ -41,6 +42,7 @@ export const appRoutes: AppRouteProps[] = [
   //protected route:
   { index: true, Component: Home },
   { path: 'contact', Component: Contact },
+  { path: 'role', Component: Role },
   {
     path: 'products',
     children: [

@@ -14,4 +14,6 @@ export const routerPermissionMap: Record<string, RoutePermissionT> = {
   '/products/approved': { page: 'products.approved', actions: ['update', 'delete'] },
   '/products/low-stock': { page: 'products.low-stock', actions: ['update', 'delete'] },
   '/products/rejected': { page: 'products.rejected', actions: ['update', 'delete'] },
+
+  '/role': { page: 'role.index', actions: ['create', 'update', 'delete'] },
 };

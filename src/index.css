@@ -1,4 +1,5 @@
 @import 'tailwindcss';
+@custom-variant dark (&:where(.dark, .dark *));
 
 :root {
   --font-english: 'Roboto', system-ui, sans-serif;
@@ -15,6 +16,13 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
+:root.dark {
+  --background: #282628;
+  --foreground: #ffffff;
+  --surface: #383838;
+  color-scheme: dark;
+}
+
 @theme inline {
   --font-english: var(--font-english);
   --font-bengali: var(--font-bengali);
@@ -27,8 +35,18 @@
   --color-primary-500: #1f5da0;
   --color-primary-600: #1c5592;
 
+  --color-secondary-50: #e6f2ff;
+  --color-secondary-500: #007bff;
+
+  --color-neutral-50: #f2f2f2;
   --color-neutral-100: #d8d8d8;
   --color-neutral-300: #ababab;
+
+  --color-success-50: #eaf8f1;
+  --color-success-500: #2bb673;
+
+  --color-danger-50: #fbe7e7;
+  --color-danger-500: #d71110;
 
   --color-white-700: #ebebeb;
 
@@ -37,14 +55,7 @@
   --spacing-62: 248px;
 
   --shadow-custom-1: 0 5px 10px 0 rgba(0, 0, 0, 0.15);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #282628;
-    --foreground: #ffffff;
-    --surface: #383838;
-  }
+  --shadow-custom-2: 0 0 25px 0 rgba(0, 0, 0, 0.1);
 }
 
 body {
@@ -75,3 +86,15 @@ input:-webkit-autofill {
     @apply text-red-500 text-sm;
   }
 }
+
+/* @layer components {
+  .custom-table {
+
+  }
+  .custom-table-td {
+    
+  }
+  .custom-table-th {
+
+  }
+} */

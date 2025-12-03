@@ -16,8 +16,6 @@ const Sidebar: FC<SidebarT> = () => {
     isExpand: false,
   });
 
-  console.log({ expand });
-
   return (
     <nav className="h-full bg-surface" aria-label="primary">
       <div className="h-17 border-b border-white-700 flex justify-center items-center">
@@ -45,7 +43,7 @@ const Sidebar: FC<SidebarT> = () => {
                     {route.icon && <route.icon />} {route.title}
                   </span>
                   <ArrowIcon
-                    className={`w-5 h-5 ${expand.index === idx && expand.isExpand && 'rotate-180'}`}
+                    className={`w-5 h-5 transition-transform ${expand.index === idx && expand.isExpand ? 'rotate-0' : 'rotate-180'}`}
                   />
                 </button>
               ) : (
@@ -82,7 +80,7 @@ const Sidebar: FC<SidebarT> = () => {
           <p className="text-sm font-medium text-neutral-100">USERS</p>
           <Link
             className="flex gap-2 text-neutral-300 hover:text-primary-500 font-medium p-1.5"
-            to="/orders"
+            to="/role"
           >
             <RoleIcon /> Role
           </Link>

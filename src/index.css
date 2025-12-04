@@ -8,6 +8,7 @@
   --background: #f3f3f3;
   --foreground: #282628;
   --surface: #ffffff;
+  --border: #ebebeb;
 
   color-scheme: light dark;
   font-synthesis: none;
@@ -20,6 +21,7 @@
   --background: #282628;
   --foreground: #ffffff;
   --surface: #383838;
+  --border: #6f6e6f;
   color-scheme: dark;
 }
 
@@ -30,6 +32,7 @@
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-surface: var(--surface);
+  --color-border-default: var(--border);
 
   --color-primary-50: #e9eff6;
   --color-primary-500: #1f5da0;
@@ -47,6 +50,16 @@
 
   --color-danger-50: #fbe7e7;
   --color-danger-500: #d71110;
+
+  --color-black-100: #bcbcbc;
+  --color-black-200: #9c9b9c;
+  --color-black-300: #6f6e6f;
+  --color-black-400: #383838;
+  --color-black-500: #282628;
+  --color-black-600: #242324;
+  --color-black-700: #1c1b1c;
+  --color-black-800: #161516;
+  --color-black-900: #111011;
 
   --color-white-700: #ebebeb;
 
@@ -86,15 +99,3 @@ input:-webkit-autofill {
     @apply text-red-500 text-sm;
   }
 }
-
-/* @layer components {
-  .custom-table {
-
-  }
-  .custom-table-td {
-    
-  }
-  .custom-table-th {
-
-  }
-} */

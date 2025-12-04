@@ -8,7 +8,7 @@ const Status = ({ status }: { status: StatusT }) => {
 
   return (
     <p
-      className={`w-fit capitalize text-sm font-medium px-5 py-1.5 rounded-lg ${className[status]}`}
+      className={`w-fit capitalize text-sm font-medium px-3 py-0.5 rounded-md ${className[status]}`}
     >
       {status}
     </p>

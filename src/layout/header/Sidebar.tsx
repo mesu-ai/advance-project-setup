@@ -18,7 +18,7 @@ const Sidebar: FC<SidebarT> = () => {
 
   return (
     <nav className="h-full bg-surface" aria-label="primary">
-      <div className="h-17 border-b border-white-700 flex justify-center items-center">
+      <div className="h-17 border-b border-white-700 dark:border-black-300 flex justify-center items-center">
         <Image src={logo} alt="brand-logo" height={35} width={190} />
       </div>
       <div className="px-5 space-y-5 mt-5">

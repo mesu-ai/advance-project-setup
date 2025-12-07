@@ -15,12 +15,12 @@ const DataTable: FC<TablePropsT> = ({ tableId, header, children }) => {
       <thead className="bg-white-700 dark:bg-black-500 whitespace-nowrap">
         <tr>
           {header &&
-            header.map((h_item, idx) => (
+            header.map((item_col, idx) => (
               <th key={idx} className="text-start px-5 py-3">
-                {h_item}
+                {item_col}
               </th>
             ))}
-          {/* <th className="text-start px-5 py-3">Name</th>
+          {/*<th className="text-start px-5 py-3">Name</th>
             <th className="text-start px-5 py-3">Email</th>
             <th className="text-start px-5 py-3">Role</th>
             <th className="text-start px-5 py-3">Status</th>

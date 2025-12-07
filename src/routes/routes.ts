@@ -11,7 +11,9 @@ const ApprovedProduct = lazy(() => import('../pages/products/approved/ApprovedPr
 const RejectedProduct = lazy(() => import('../pages/products/rejected/RejectedProductPage'));
 const LowStockProduct = lazy(() => import('../pages/products/low-stock/LowStockProductPage'));
 const Orders = lazy(() => import('../pages/orders/index'));
-const Role = lazy(() => import('../pages/role/index'));
+const AccessControl = lazy(() => import('../pages/access-control/index'));
+const EmployeeList = lazy(() => import('../pages/access-control/employee-list/index'));
+const RolePermission = lazy(() => import('../pages/access-control/roles-permissions/index'));
 
 const Login = lazy(() => import('../pages/login/index'));
 const Register = lazy(() => import('../pages/register/index'));
@@ -42,7 +44,6 @@ export const appRoutes: AppRouteProps[] = [
   //protected route:
   { index: true, Component: Home },
   { path: 'contact', Component: Contact },
-  { path: 'role', Component: Role },
   {
     path: 'products',
     children: [
@@ -63,6 +64,14 @@ export const appRoutes: AppRouteProps[] = [
       { path: 'approved', Component: ApprovedProduct },
       { path: 'return', Component: RejectedProduct },
       { path: 'cancel', Component: LowStockProduct },
+    ],
+  },
+  {
+    path: 'access-control',
+    children: [
+      { index: true, Component: AccessControl },
+      { path: 'employee-list', Component: EmployeeList },
+      { path: 'roles-permissions', Component: RolePermission },
     ],
   },
 ];

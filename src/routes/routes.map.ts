@@ -15,5 +15,13 @@ export const routerPermissionMap: Record<string, RoutePermissionT> = {
   '/products/low-stock': { page: 'products.low-stock', actions: ['update', 'delete'] },
   '/products/rejected': { page: 'products.rejected', actions: ['update', 'delete'] },
 
-  '/role': { page: 'role.index', actions: ['create', 'update', 'delete'] },
+  '/access-control': { page: 'access-control.index', actions: ['create', 'update', 'delete'] },
+  '/access-control/employee-list': {
+    page: 'access-control.employee-list',
+    actions: ['create', 'update', 'delete'],
+  },
+  '/access-control/roles-permissions': {
+    page: 'access-control.roles-permissions',
+    actions: ['create', 'update', 'delete'],
+  },
 };

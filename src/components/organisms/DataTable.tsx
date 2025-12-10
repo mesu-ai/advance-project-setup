@@ -1,16 +1,16 @@
 import { type FC, type ReactNode } from 'react';
 
-interface TablePropsT {
+interface TableProps {
   tableId?: string;
   header?: string[];
   children: ReactNode;
 }
 
-const DataTable: FC<TablePropsT> = ({ tableId, header, children }) => {
+const DataTable: FC<TableProps> = ({ tableId, header, children }) => {
   return (
     <table
       id={tableId}
-      className="w-full table-auto border-b border-border-default border-collapse text-sm"
+      className="w-full table-auto border-b border-border border-collapse text-sm"
     >
       <thead className="bg-white-700 dark:bg-black-500 whitespace-nowrap">
         <tr>

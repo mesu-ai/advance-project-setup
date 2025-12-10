@@ -1,6 +1,6 @@
 import React from 'react';
 
-type ImageProps = {
+interface ImageProps {
   src: string;
   alt: string;
   width?: number | string;
@@ -9,7 +9,7 @@ type ImageProps = {
   fit?: 'cover' | 'contain' | 'fill' | 'none' | 'scale-down';
   loading?: 'lazy' | 'eager';
   fallbackSrc?: string;
-};
+}
 
 const Image: React.FC<ImageProps> = ({
   src,

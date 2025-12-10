@@ -1,22 +1,22 @@
-import type { ButtonHTMLAttributes, FC } from 'react';
+import type { ButtonHTMLAttributes, FC, ReactNode } from 'react';
 
-type variants = 'add' | 'edit' | 'delete' | 'update' | 'cancel' | 'view';
+type ButtonVariantT = 'add' | 'edit' | 'delete' | 'update' | 'cancel' | 'view';
 
-interface ButtonPropsT extends ButtonHTMLAttributes<HTMLButtonElement> {
-  title: string;
+interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
+  children: ReactNode;
+  variant: ButtonVariantT;
   className?: string;
-  variant: variants;
 }
 
-const Button: FC<ButtonPropsT> = ({
-  title,
+const Button: FC<ButtonProps> = ({
+  children,
   type = 'button',
   variant,
   className,
   disabled,
   ...rest
 }) => {
-  const variantStyles: Record<variants, string> = {
+  const variantStyles: Record<ButtonVariantT, string> = {
     add: 'px-5 py-2 bg-primary-500 hover:bg-primary-600 text-white',
     edit: 'bg-secondary-500 text-white hover:bg-secondary-600',
     delete: 'bg-danger-500 text-white hover:bg-danger-600',
@@ -32,7 +32,7 @@ const Button: FC<ButtonPropsT> = ({
       className={`cursor-pointer rounded-lg font-semibold ${variantStyles[variant]} ${className}`}
       {...rest}
     >
-      {title}
+      {children}
     </button>
   );
 };

@@ -159,7 +159,7 @@ const RolePermissionPage = () => {
         magnam fugiat voluptatem nisi.
       </div>
       {isOpen && (
-        <Modal title="Add New Employee" open={isOpen} onOpen={setOpen}>
+        <Modal title="Add New Employee" isOpen={isOpen} onClose={setOpen}>
           <p>
             Lorem, ipsum dolor sit amet consectetur adipisicing elit. Consequatur quos rerum veniam
             at reprehenderit accusamus! Velit sint beatae mollitia inventore deserunt cum voluptatum
@@ -184,6 +184,31 @@ const RolePermissionPage = () => {
             ducimus cum magni aspernatur impedit, accusamus voluptates reprehenderit atque beatae
             alias numquam. Pariatur perferendis omnis qui autem unde cum culpa dignissimos
             distinctio itaque aperiam? Eum.
+          </p>
+          <p>
+            Lorem ipsum dolor sit amet consectetur adipisicing elit. Delectus libero officiis
+            accusantium qui laborum quaerat iste dolor incidunt saepe id? Expedita maiores
+            temporibus facere ipsum quidem tenetur veritatis, voluptatum, molestias iusto nihil odit
+            harum dolor enim facilis minima quasi. Maxime explicabo consectetur unde molestiae
+            corrupti quae quia hic excepturi cum accusantium ullam consequatur voluptatibus
+            reiciendis accusamus, error illum corporis voluptate. Officia ullam dicta provident
+            atque quas, praesentium ab maxime amet optio harum consequatur quae debitis error dolore
+            adipisci, neque quasi perspiciatis accusantium dignissimos beatae, suscipit cum! Rem
+            labore error ad sequi eius non provident tempore ullam numquam asperiores voluptatibus
+            eveniet enim molestias id, dolor porro placeat eligendi sapiente architecto cum nam.
+            Eligendi, non repellendus consectetur corporis amet suscipit, deleniti assumenda itaque
+            ipsa adipisci quod modi provident fugit soluta placeat temporibus. Impedit qui nihil
+            explicabo vitae quae commodi assumenda temporibus itaque distinctio, praesentium aliquid
+            inventore aperiam tempora corporis corrupti sit quaerat placeat. Suscipit soluta
+            perferendis cumque sapiente quae asperiores quas, nesciunt voluptatibus at debitis,
+            minus, harum minima nostrum laudantium! Voluptatem possimus ducimus dicta deleniti
+            aperiam aliquid aut, reiciendis ipsam recusandae id cum praesentium veniam veritatis
+            officia reprehenderit molestiae quasi! Natus minus laudantium, fugit fuga deserunt quo
+            velit delectus tempore quaerat architecto, doloribus error cupiditate odio corporis
+            voluptate est! Doloremque facilis aspernatur laboriosam libero quia? Odit vel quam
+            aliquam nisi blanditiis, ut tempore mollitia dolor. Officia cum labore id qui similique
+            voluptatem molestiae alias quibusdam architecto? Hic ipsum, facilis deleniti nisi
+            aliquid blanditiis ea ratione nam tempora magnam officiis repellat atque. Delectus.
           </p>
         </Modal>
       )}

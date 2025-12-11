@@ -1,54 +1,71 @@
 import CloseIcon from '@/assets/svg/CloseIcon';
-import { useEffect, useState, type FC, type MouseEvent, type ReactNode } from 'react';
+import { useEffect, useRef, useState, type FC, type MouseEvent, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 
 interface ModalProps {
   title?: string;
-  open: boolean;
-  onOpen: (value: boolean) => void;
+  isOpen: boolean;
+  onClose: (value: boolean) => void;
   children: ReactNode;
   className?: string;
 }
 
-const Modal: FC<ModalProps> = ({ title, open, onOpen, children, className = 'max-w-3xl' }) => {
-  const [shouldRender, setShouldRender] = useState(open);
+const Modal: FC<ModalProps> = ({ title, isOpen, onClose, children, className = 'max-w-3xl' }) => {
+  const [shouldRender, setShouldRender] = useState(isOpen);
   const [isVisible, setVisible] = useState(false);
 
-  const handleClose = () => onOpen(false);
+  const modalRef = useRef<HTMLDivElement | null>(null);
+
+  const handleClose = () => onClose(false);
 
   const handleBackdrop = (e: MouseEvent<HTMLDivElement>) => {
-    if (e.target === e.currentTarget) onOpen(false);
+    if (modalRef.current && !modalRef.current.contains(e.target as Node)) {
+      onClose(false);
+    }
   };
 
   useEffect(() => {
-    if (open) {
+    if (isOpen) {
       setShouldRender(true);
       requestAnimationFrame(() => setVisible(true));
+      window.history.pushState(null, '');
     } else {
       setVisible(false);
       const timeout = setTimeout(() => setShouldRender(false), 200);
       return () => clearTimeout(timeout);
     }
-  }, [open]);
+  }, [isOpen]);
 
   useEffect(() => {
-    const handler = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onOpen(false);
+    const handleEsc = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && isOpen) onClose(false);
     };
-    document.addEventListener('keydown', handler);
-    return () => document.removeEventListener('keydown', handler);
-  }, [onOpen]);
+    document.addEventListener('keydown', handleEsc);
+    return () => document.removeEventListener('keydown', handleEsc);
+  }, [isOpen, onClose]);
 
   useEffect(() => {
-    if (open) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = 'unset';
+    const handlePopstate = () => {
+      if (isOpen) onClose(false);
+    };
+    window.addEventListener('popstate', handlePopstate);
+
+    return () => window.removeEventListener('popstate', handlePopstate);
+  }, [isOpen, onClose]);
+
+  useEffect(() => {
+    const body = document.body;
+    const scrollbarWidth = window.innerWidth - body.clientWidth;
+
+    if (isOpen) {
+      body.style.overflowY = 'hidden';
+      body.style.paddingRight = `${scrollbarWidth}px`;
     }
     return () => {
-      document.body.style.overflow = 'unset';
+      document.body.style.overflowY = 'auto';
+      body.style.paddingRight = '0';
     };
-  }, [open]);
+  }, [isOpen]);
 
   if (!shouldRender) return null;
 
@@ -60,7 +77,8 @@ const Modal: FC<ModalProps> = ({ title, open, onOpen, children, className = 'max
       className={`z-50 fixed inset-0 flex justify-center items-center transition-opacity duration-200 ${isVisible ? 'bg-black-500/70 opacity-100' : 'bg-black/0 opacity-0'}`}
     >
       <div
-        className={`rounded-xl bg-surface transform transition-all duration-200 ${isVisible ? 'opacity-100 scale-100 translate-y-0' : 'opacity-0 scale-95 translate-y-2'} ${className}`}
+        ref={modalRef}
+        className={`rounded-xl bg-surface transform transition-all duration-200 ${isVisible ? 'opacity-100 scale-100 translate-y-0' : 'opacity-0 scale-95 translate-y-2 pointer-events-none'} ${className}`}
       >
         <div className="flex justify-between items-center px-5 py-4 border-b border-border">
           <h2 className="text-lg font-bold">{title}</h2>

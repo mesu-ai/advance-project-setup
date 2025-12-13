@@ -5,7 +5,7 @@ import DataTable from '@/components/organisms/DataTable';
 import Button from '@/components/atoms/Button';
 import SearchBar from '@/components/molecules/SearchBar';
 import ActionButtons, { type ActionItemProps } from '@/components/molecules/ActionButtons';
-import Modal from '@/components/organisms/Modal';
+import Modal from '@/components/organisms/Modal/Modal';
 
 const RolePermissionPage = () => {
   const [currPage, setCurrPage] = useState<number>(1);

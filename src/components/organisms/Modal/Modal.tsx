@@ -62,7 +62,7 @@ const Modal: FC<ModalProps> = ({ title, isOpen, onClose, children, className = '
       body.style.paddingRight = `${scrollbarWidth}px`;
     }
     return () => {
-      document.body.style.overflowY = 'auto';
+      body.style.overflowY = 'auto';
       body.style.paddingRight = '0';
     };
   }, [isOpen]);

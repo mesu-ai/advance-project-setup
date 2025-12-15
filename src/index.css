@@ -99,7 +99,7 @@ input:-webkit-autofill {
 }
 
 @layer components {
-  .input-class {
+  .input-field {
     @apply w-full border border-neutral-300 text-sm rounded-lg p-2 outline-none focus-within:border-primary-500;
   }
 

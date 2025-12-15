@@ -4,16 +4,20 @@ import { lazy } from 'react';
 
 const Home = lazy(() => import('../pages/home/index'));
 const Contact = lazy(() => import('../pages/contact/index'));
+
 const Products = lazy(() => import('../pages/products/index'));
 const CreateProduct = lazy(() => import('../pages/products/create/CreateProductPage'));
 const PendingProduct = lazy(() => import('../pages/products/pending/PendingProductPage'));
 const ApprovedProduct = lazy(() => import('../pages/products/approved/ApprovedProductPage'));
 const RejectedProduct = lazy(() => import('../pages/products/rejected/RejectedProductPage'));
 const LowStockProduct = lazy(() => import('../pages/products/low-stock/LowStockProductPage'));
+
 const Orders = lazy(() => import('../pages/orders/index'));
+
 const AccessControl = lazy(() => import('../pages/access-control/index'));
 const EmployeeList = lazy(() => import('../pages/access-control/employee-list/index'));
 const RolePermission = lazy(() => import('../pages/access-control/roles-permissions/index'));
+const CreateRole = lazy(() => import('../pages/access-control/roles-permissions/create/index'));
 
 const Login = lazy(() => import('../pages/login/index'));
 const Register = lazy(() => import('../pages/register/index'));
@@ -71,7 +75,13 @@ export const appRoutes: AppRouteProps[] = [
     children: [
       { index: true, Component: AccessControl },
       { path: 'employee-list', Component: EmployeeList },
-      { path: 'roles-permissions', Component: RolePermission },
+      {
+        path: 'roles-permissions',
+        children: [
+          { index: true, Component: RolePermission },
+          { path: 'create', Component: CreateRole },
+        ],
+      },
     ],
   },
 ];

@@ -24,4 +24,8 @@ export const routerPermissionMap: Record<string, RoutePermissionT> = {
     page: 'access-control.roles-permissions',
     actions: ['create', 'update', 'delete'],
   },
+  '/access-control/roles-permissions/create': {
+    page: 'access-control.roles-permissions.create',
+    actions: ['create', 'update', 'delete'],
+  },
 };

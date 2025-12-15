@@ -9,7 +9,7 @@ export const hasPermission = (user: UserT | null, key: string): boolean => {
   return user.permissions.includes(key);
 };
 
-export const checkPageAction = (pathname: string, action: string) => {
+export const checkPageAction = (pathname: string, actionName: string) => {
   const normalizedPath = normalizePath(pathname);
   const routeInfo = routerPermissionMap[normalizedPath];
   if (!routeInfo || !routeInfo.actions) return false;
@@ -17,6 +17,6 @@ export const checkPageAction = (pathname: string, action: string) => {
   const { user } = store.getState().auth;
 
   const pageKey = routeInfo.page;
-  const actionKey = `${pageKey}.${action}`;
+  const actionKey = `${pageKey}.${actionName}.action`;
   return hasPermission(user, actionKey);
 };

@@ -111,7 +111,7 @@ const LoginPage = () => {
             <div className="space-y-5">
               <div>
                 <label className="block">Username</label>
-                <div className="input-class flex justify-between">
+                <div className="input-field flex justify-between">
                   <input
                     type="text"
                     placeholder="Enter Your Username"
@@ -127,7 +127,7 @@ const LoginPage = () => {
 
               <div>
                 <label className="block">Password</label>
-                <div className="input-class flex justify-between">
+                <div className="input-field flex justify-between">
                   <input
                     type={show ? 'text' : 'password'}
                     placeholder="Enter Your Pasword"

@@ -18,7 +18,7 @@ const HomePage = () => {
   };
 
   console.log('action permission-view:', checkPageAction(pathname, 'view'));
-  console.log('action permission:-edit: ', checkPageAction(pathname, 'delete'));
+  console.log('action permission:-delete: ', checkPageAction(pathname, 'delete'));
 
   return (
     <div>

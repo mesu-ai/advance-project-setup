@@ -4,6 +4,7 @@ import { Outlet } from 'react-router';
 import Navbar from './header/Navbar';
 import Sidebar from './header/Sidebar';
 import { useState } from 'react';
+import Footer from './footer/Footer';
 
 const RootLayout = () => {
   const [showSidebar, setShowSidebar] = useState<boolean>(true);
@@ -31,9 +32,7 @@ const RootLayout = () => {
           <Outlet />
         </main>
 
-        <footer className="px-7.5 bg-red-500 text-center py-3.5 text-sm">
-          © SaRa Lifestyle Ltd. All rights reserved.
-        </footer>
+        <Footer />
       </div>
     </div>
   );

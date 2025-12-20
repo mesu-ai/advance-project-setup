@@ -1,25 +1,54 @@
 import { type FC, type ReactNode } from 'react';
 
+interface TableHeaderProps {
+  label: string;
+  rowSpan?: number;
+  colSpan?: number;
+  className?: string;
+}
+
 interface TableProps {
   tableId?: string;
-  header?: string[];
+  header?: (string | TableHeaderProps)[];
+  stripped?: boolean;
+  hoverable?: boolean;
+  className?: string;
   children: ReactNode;
 }
 
-const DataTable: FC<TableProps> = ({ tableId, header, children }) => {
+const DataTable: FC<TableProps> = ({
+  tableId,
+  header,
+  stripped = false,
+  hoverable = false,
+  className = 'border-b border-border border-collapse',
+  children,
+}) => {
   return (
-    <table
-      id={tableId}
-      className="w-full table-auto border-b border-border border-collapse text-sm"
-    >
+    <table id={tableId} className={`w-full table-auto text-sm ${className}`}>
       <thead className="bg-white-700 dark:bg-black-500 whitespace-nowrap">
         <tr>
           {header &&
-            header.map((item_col, idx) => (
-              <th key={idx} className="text-start px-5 py-3">
-                {item_col}
-              </th>
-            ))}
+            header.map((item_col, idx) => {
+              if (typeof item_col === 'string') {
+                return (
+                  <th key={idx} className="text-start px-5 py-3">
+                    {item_col}
+                  </th>
+                );
+              }
+
+              return (
+                <th
+                  key={idx}
+                  colSpan={item_col?.colSpan}
+                  rowSpan={item_col?.rowSpan}
+                  className={`text-start px-5 py-3 ${item_col?.className}`}
+                >
+                  {item_col.label}
+                </th>
+              );
+            })}
           {/*<th className="text-start px-5 py-3">Name</th>
             <th className="text-start px-5 py-3">Email</th>
             <th className="text-start px-5 py-3">Role</th>
@@ -27,7 +56,11 @@ const DataTable: FC<TableProps> = ({ tableId, header, children }) => {
             <th className="text-start px-5 py-3">Action</th> */}
         </tr>
       </thead>
-      <tbody className="divide-y divide-white-700 dark:divide-black-300">
+      <tbody
+        className={`divide-y divide-white-700 dark:divide-black-300 
+          ${stripped && '[&>tr:nth-child(even)]:bg-white-700/30 dark:[&>tr:nth-child(even)]:bg-black-500/30'} 
+          ${hoverable && '[&>tr]:hover:bg-yellow-50 dark:[&>tr]:hover:bg-black-500/50 [&>tr]:transition-colors'}`}
+      >
         {children}
         {/* <tr>
             <td className="px-5 py-3">01</td>

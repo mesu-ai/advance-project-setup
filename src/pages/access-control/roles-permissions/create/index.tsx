@@ -4,7 +4,7 @@ import Switch from '@/components/atoms/Switch';
 import DataTable from '@/components/organisms/DataTable';
 import { productRoutePermissions } from '@/routes/routes.map';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useState } from 'react';
+import { useMemo, useState, type ChangeEvent } from 'react';
 import { useForm } from 'react-hook-form';
 import * as z from 'zod';
 
@@ -13,34 +13,109 @@ const roleSchema = z.object({
   permission: z.array(z.string()),
 });
 
-type RoleFormDataT = z.infer<typeof roleSchema>;
+type RoleFormData = z.infer<typeof roleSchema>;
+
+type ModuleRoutePermissionT = {
+  path: string;
+  page: string;
+  actions: readonly string[];
+};
+
+type ModuleKeyT = 'isProductsEnabled' | 'isOrdersEnabled';
+type EnableModuleT = Record<ModuleKeyT, boolean>;
 
 const pageName = (page: string) => page.split('.').slice(-2).join(' ');
 
+const getModulePermissions = (module: ModuleRoutePermissionT[]) => {
+  const allPerms: string[] = [];
+  module.forEach((row) => {
+    allPerms.push(row?.page);
+    row?.actions.forEach((action) => allPerms.push(`${row.page}.${action}.action`));
+  });
+  return allPerms;
+};
+
 const CreateNewRole = () => {
-  const [isEnabled, setIsEnabled] = useState<boolean>(false);
+  const [isSelectAll, setSelectAll] = useState<boolean>(false);
+
+  const [enabledModules, setEnabledModules] = useState<EnableModuleT>({
+    isProductsEnabled: false,
+    isOrdersEnabled: false,
+  });
 
   const {
     register,
     handleSubmit,
+    setValue,
     watch,
     formState: { isSubmitting, errors },
-  } = useForm<RoleFormDataT>({
+  } = useForm<RoleFormData>({
     resolver: zodResolver(roleSchema),
     defaultValues: { permission: [] },
   });
 
-  const permissions = watch('permission') || [];
+  const watchedPermissions = watch('permission');
+  const permissions = useMemo(() => watchedPermissions || [], [watchedPermissions]);
 
-  const onSubmit = async (data: RoleFormDataT) => {
+  const onSubmit = async (data: RoleFormData) => {
     console.log({ data });
   };
 
-  const productPermissionRows = Object.entries(productRoutePermissions).map(
-    ([path, permission]) => ({ path, page: permission.page, actions: permission.actions ?? [] })
-  );
+  const productPermissionRows: ModuleRoutePermissionT[] = Object.entries(
+    productRoutePermissions
+  ).map(([path, permission]) => ({
+    path,
+    page: permission.page,
+    actions: permission.actions ?? [],
+  }));
 
-  // console.log(productPermissionRows);
+  const handleModuleToggle = (module: ModuleRoutePermissionT[], enabled: ModuleKeyT) => {
+    const productsPermissions = getModulePermissions(module);
+
+    if (enabledModules[enabled]) {
+      //deselect all and remove products permission
+      const newPermissions = permissions.filter((perm) => !productsPermissions.includes(perm));
+      setValue('permission', newPermissions);
+      setEnabledModules((prev) => ({
+        ...prev,
+        [enabled]: false,
+      }));
+    } else {
+      //select all and push products permission
+      const newPermissions = [...new Set([...permissions, ...productsPermissions])];
+      setValue('permission', newPermissions);
+      setEnabledModules((prev) => ({
+        ...prev,
+        [enabled]: true,
+      }));
+    }
+  };
+
+  const handlePageToggle = (e: ChangeEvent<HTMLInputElement>, row: ModuleRoutePermissionT) => {
+    const isChecked = e.target.checked;
+    const pagePermission: string[] = [];
+    pagePermission.push(row.page);
+    row.actions.forEach((action) => pagePermission.push(`${row.page}.${action}.action`));
+
+    if (isChecked) {
+      const newPermissions = [...new Set([...permissions, ...pagePermission])];
+      setValue('permission', newPermissions);
+    } else {
+      const newPermissions = permissions.filter((perm) => !pagePermission.includes(perm));
+      setValue('permission', newPermissions);
+    }
+  };
+
+  const handleActionToggle = (e: ChangeEvent<HTMLInputElement>, action: string) => {
+    const isChecked = e.target.checked;
+    if (isChecked) {
+      const newPermission = [...new Set([...permissions, action])];
+      setValue('permission', newPermission);
+    } else {
+      const newPermission = permissions.filter((perms) => perms !== action);
+      setValue('permission', newPermission);
+    }
+  };
 
   return (
     <div>
@@ -50,7 +125,7 @@ const CreateNewRole = () => {
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <div>
             <label htmlFor="role">Role Name</label>
-            <div className="input-field max-w-xl">
+            <div className="input-field max-w-1/2">
               <input
                 type="text"
                 id="role"
@@ -66,15 +141,18 @@ const CreateNewRole = () => {
             <p className="font-bold">Role Permission</p>
             <div className="flex items-center gap-3">
               <p className="font-medium text-primary-500">Select All</p>
-              <Switch isEnabled={isEnabled} onEnabled={() => setIsEnabled((prev) => !prev)} />
+              <Switch isEnabled={isSelectAll} onEnabled={() => setSelectAll((prev) => !prev)} />
             </div>
           </div>
 
           <div>
             <div className="rounded-lg border border-border">
-              <div className="bg-white-700 dark:bg-black-500 rounded-t-lg px-4 py-3 flex items-center gap-3">
+              <div className="bg-white dark:bg-black-500 rounded-t-lg px-4 py-3 flex items-center gap-3">
                 <p className="font-bold">Products</p>
-                <Switch isEnabled={isEnabled} onEnabled={() => setIsEnabled((prev) => !prev)} />
+                <Switch
+                  isEnabled={enabledModules?.isProductsEnabled}
+                  onEnabled={() => handleModuleToggle(productPermissionRows, 'isProductsEnabled')}
+                />
               </div>
 
               <DataTable
@@ -87,8 +165,9 @@ const CreateNewRole = () => {
                       <Checkbox2
                         label={pageName(row.page)}
                         value={row.page}
-                        {...register('permission')}
-                        className="font-medium text-black-300"
+                        checked={permissions.includes(row.page)}
+                        onChange={(e) => handlePageToggle(e, row)}
+                        // {...register('permission')}
                       />
                     </td>
 
@@ -98,7 +177,9 @@ const CreateNewRole = () => {
                           label={action}
                           value={`${row.page}.${action}.action`}
                           disabled={!permissions.includes(row.page)}
-                          {...register('permission')}
+                          checked={permissions.includes(`${row.page}.${action}.action`)}
+                          // {...register('permission')}
+                          onChange={(e) => handleActionToggle(e, `${row.page}.${action}.action`)}
                         />
                       </td>
                     ))}

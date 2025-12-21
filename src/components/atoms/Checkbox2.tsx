@@ -1,21 +1,25 @@
 import SwitchIcon from '@/assets/svg/SwitchIcon';
-import { useState, type ChangeEvent, type ComponentPropsWithRef } from 'react';
+import { useEffect, useState, type ChangeEvent, type ComponentPropsWithRef } from 'react';
 
 interface CheckboxProps extends ComponentPropsWithRef<'input'> {
   label?: string;
 }
 
-const Checkbox2 = ({ label, className, onChange, ...props }: CheckboxProps) => {
-  const [isChecked, setChecked] = useState<boolean>(false);
+const Checkbox2 = ({ label, className, checked, onChange, ...props }: CheckboxProps) => {
+  const [isChecked, setChecked] = useState<boolean>(checked || false);
 
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
     setChecked(e.target.checked);
     onChange?.(e);
   };
 
+  useEffect(() => {
+    if (checked !== undefined) setChecked(checked);
+  }, [checked]);
+
   return (
     <label
-      className={`transition-colors duration-200 ease-in-out select-none capitalize ${className}`}
+      className={` transition-colors duration-200 ease-in-out select-none capitalize ${className}`}
     >
       {label}
       <input

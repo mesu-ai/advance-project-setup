@@ -8,7 +8,7 @@ const Checkbox = ({ label, className, ...props }: CheckboxProps) => {
   return (
     <label className={`capitalize select-none flex items-center gap-2 ${className}`}>
       <input type="checkbox" className="accent-primary-500 cursor-pointer w-4 h-4" {...props} />
-      <span className="font-medium text-black-300"> {label}</span>
+      <span className=""> {label}</span>
     </label>
   );
 };

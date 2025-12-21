@@ -1,4 +1,4 @@
-interface RoutePermissionT {
+export interface RoutePermissionT {
   page: string;
   actions?: readonly string[];
 }

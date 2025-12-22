@@ -7,8 +7,6 @@ export interface AppRouteProps {
   layout?: LazyExoticComponent<ComponentType<unknown>> | (() => ReactNode);
   middleware?: [];
   children?: AppRouteProps[];
-  // action?: ActionFunction;
-  // loader?: LoaderFunction;
 }
 
 export interface SideRouteProps {

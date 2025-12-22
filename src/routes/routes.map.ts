@@ -3,7 +3,9 @@ export interface RoutePermissionT {
   actions?: readonly string[];
 }
 
-const productRoutePermissions: Record<string, RoutePermissionT> = {
+export type RoutePermissionMapT = Record<string, RoutePermissionT>;
+
+const productRoutePermissions: RoutePermissionMapT = {
   '/products': { page: 'products.index' },
   '/products/create': { page: 'products.create', actions: ['edit', 'view'] },
   '/products/pending': { page: 'products.pending', actions: ['update', 'delete'] },
@@ -12,11 +14,11 @@ const productRoutePermissions: Record<string, RoutePermissionT> = {
   '/products/rejected': { page: 'products.rejected', actions: ['update', 'delete'] },
 } as const;
 
-const orderRoutePermissions: Record<string, RoutePermissionT> = {
+const orderRoutePermissions: RoutePermissionMapT = {
   '/orders': { page: 'orders.index' },
 } as const;
 
-const accessRoutePermissions: Record<string, RoutePermissionT> = {
+const accessRoutePermissions: RoutePermissionMapT = {
   '/access-control': { page: 'access-control.index', actions: ['create', 'update', 'delete'] },
   '/access-control/employee-list': {
     page: 'access-control.employee-list',
@@ -32,7 +34,7 @@ const accessRoutePermissions: Record<string, RoutePermissionT> = {
   },
 } as const;
 
-export const routerPermissionMap: Record<string, RoutePermissionT> = Object.freeze({
+export const routerPermissionMap: RoutePermissionMapT = Object.freeze({
   '/': { page: 'dashboard.index', actions: ['view', 'delete'] },
   ...productRoutePermissions,
   ...orderRoutePermissions,

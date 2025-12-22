@@ -5,7 +5,7 @@ interface CheckboxProps extends ComponentPropsWithRef<'input'> {
   label?: string;
 }
 
-const Checkbox2 = ({ label, className, checked, onChange, ...props }: CheckboxProps) => {
+const Checkbox2 = ({ label, className = '', checked, onChange, ...props }: CheckboxProps) => {
   const [isChecked, setChecked] = useState<boolean>(checked || false);
 
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {

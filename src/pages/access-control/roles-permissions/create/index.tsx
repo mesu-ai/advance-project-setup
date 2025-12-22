@@ -2,10 +2,15 @@ import Checkbox from '@/components/atoms/Checkbox';
 import Checkbox2 from '@/components/atoms/Checkbox2';
 import Switch from '@/components/atoms/Switch';
 import DataTable from '@/components/organisms/DataTable';
-import { productRoutePermissions } from '@/routes/routes.map';
+import {
+  accessRoutePermissions,
+  productRoutePermissions,
+  type RoutePermissionMapT,
+} from '@/routes/routes.map';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useMemo, useState, type ChangeEvent } from 'react';
-import { useForm } from 'react-hook-form';
+import { useMemo, type ChangeEvent } from 'react';
+import { useForm, useWatch } from 'react-hook-form';
+import { Link } from 'react-router';
 import * as z from 'zod';
 
 const roleSchema = z.object({
@@ -14,19 +19,16 @@ const roleSchema = z.object({
 });
 
 type RoleFormData = z.infer<typeof roleSchema>;
-
-type ModuleRoutePermissionT = {
+type ModulePermissionT = {
   path: string;
   page: string;
   actions: readonly string[];
 };
-
-type ModuleKeyT = 'isProductsEnabled' | 'isOrdersEnabled';
-type EnableModuleT = Record<ModuleKeyT, boolean>;
+type ModuleT = { name: string; isEnabled: boolean; data: ModulePermissionT[] };
 
 const pageName = (page: string) => page.split('.').slice(-2).join(' ');
 
-const getModulePermissions = (module: ModuleRoutePermissionT[]) => {
+const getModulePermissions = (module: ModulePermissionT[]) => {
   const allPerms: string[] = [];
   module.forEach((row) => {
     allPerms.push(row?.page);
@@ -35,87 +37,108 @@ const getModulePermissions = (module: ModuleRoutePermissionT[]) => {
   return allPerms;
 };
 
+const modulePermissionRows = (moduleRoutes: RoutePermissionMapT) =>
+  Object.entries(moduleRoutes).map(([path, permission]) => ({
+    path,
+    page: permission.page,
+    actions: permission.actions ?? [],
+  }));
+
+const isModuleEnabled = (moduleRows: ModulePermissionT[], permissions: Set<string>): boolean => {
+  const modulePerms = getModulePermissions(moduleRows);
+  return modulePerms.every((p) => permissions.has(p));
+};
+
 const CreateNewRole = () => {
-  const [isSelectAll, setSelectAll] = useState<boolean>(false);
-
-  const [enabledModules, setEnabledModules] = useState<EnableModuleT>({
-    isProductsEnabled: false,
-    isOrdersEnabled: false,
-  });
-
   const {
     register,
     handleSubmit,
     setValue,
-    watch,
+    control,
     formState: { isSubmitting, errors },
   } = useForm<RoleFormData>({
     resolver: zodResolver(roleSchema),
     defaultValues: { permission: [] },
   });
 
-  const watchedPermissions = watch('permission');
-  const permissions = useMemo(() => watchedPermissions || [], [watchedPermissions]);
+  const watchedPermissions = useWatch({ control, name: 'permission', defaultValue: [] });
+  const permissions = useMemo(() => new Set(watchedPermissions ?? []), [watchedPermissions]);
 
   const onSubmit = async (data: RoleFormData) => {
     console.log({ data });
   };
 
-  const productPermissionRows: ModuleRoutePermissionT[] = Object.entries(
-    productRoutePermissions
-  ).map(([path, permission]) => ({
-    path,
-    page: permission.page,
-    actions: permission.actions ?? [],
-  }));
+  const productPermissionRows: ModulePermissionT[] = useMemo(
+    () => modulePermissionRows(productRoutePermissions),
+    []
+  );
 
-  const handleModuleToggle = (module: ModuleRoutePermissionT[], enabled: ModuleKeyT) => {
-    const productsPermissions = getModulePermissions(module);
+  const accessPermissionRows: ModulePermissionT[] = useMemo(
+    () => modulePermissionRows(accessRoutePermissions),
+    []
+  );
 
-    if (enabledModules[enabled]) {
-      //deselect all and remove products permission
-      const newPermissions = permissions.filter((perm) => !productsPermissions.includes(perm));
-      setValue('permission', newPermissions);
-      setEnabledModules((prev) => ({
-        ...prev,
-        [enabled]: false,
-      }));
-    } else {
-      //select all and push products permission
-      const newPermissions = [...new Set([...permissions, ...productsPermissions])];
-      setValue('permission', newPermissions);
-      setEnabledModules((prev) => ({
-        ...prev,
-        [enabled]: true,
-      }));
-    }
+  const allPermissions = useMemo(
+    () => [
+      ...getModulePermissions(productPermissionRows),
+      ...getModulePermissions(accessPermissionRows),
+    ],
+    [productPermissionRows, accessPermissionRows]
+  );
+
+  const isSelectAll = useMemo(
+    () => allPermissions.every((p) => permissions.has(p)),
+    [allPermissions, permissions]
+  );
+
+  const handleSelectAll = () => setValue('permission', isSelectAll ? [] : allPermissions);
+
+  const handleModuleToggle = (module: ModulePermissionT[]) => {
+    const modulePermissions = getModulePermissions(module);
+    const next = new Set(permissions);
+
+    const isEnabled = modulePermissions.every((p) => next.has(p));
+    modulePermissions.forEach((perm) => (isEnabled ? next.delete(perm) : next.add(perm)));
+
+    setValue('permission', Array.from(next));
   };
 
-  const handlePageToggle = (e: ChangeEvent<HTMLInputElement>, row: ModuleRoutePermissionT) => {
+  const handlePageToggle = (e: ChangeEvent<HTMLInputElement>, row: ModulePermissionT) => {
     const isChecked = e.target.checked;
-    const pagePermission: string[] = [];
-    pagePermission.push(row.page);
-    row.actions.forEach((action) => pagePermission.push(`${row.page}.${action}.action`));
+    const pagePermission: string[] = [
+      row.page,
+      ...row.actions.map((a) => `${row.page}.${a}.action`),
+    ];
+    const next = new Set(permissions);
+    pagePermission.forEach((perm) => (isChecked ? next.add(perm) : next.delete(perm)));
 
-    if (isChecked) {
-      const newPermissions = [...new Set([...permissions, ...pagePermission])];
-      setValue('permission', newPermissions);
-    } else {
-      const newPermissions = permissions.filter((perm) => !pagePermission.includes(perm));
-      setValue('permission', newPermissions);
-    }
+    setValue('permission', Array.from(next));
   };
 
   const handleActionToggle = (e: ChangeEvent<HTMLInputElement>, action: string) => {
     const isChecked = e.target.checked;
+    const next = new Set(permissions);
     if (isChecked) {
-      const newPermission = [...new Set([...permissions, action])];
-      setValue('permission', newPermission);
+      next.add(action);
     } else {
-      const newPermission = permissions.filter((perms) => perms !== action);
-      setValue('permission', newPermission);
+      next.delete(action);
     }
+    setValue('permission', Array.from(next));
   };
+
+  const isProductsEnabled = useMemo(
+    () => isModuleEnabled(productPermissionRows, permissions),
+    [permissions, productPermissionRows]
+  );
+  const isRolesEnabled = useMemo(
+    () => isModuleEnabled(accessPermissionRows, permissions),
+    [permissions, accessPermissionRows]
+  );
+
+  const modules: ModuleT[] = [
+    { name: 'Products', isEnabled: isProductsEnabled, data: productPermissionRows },
+    { name: 'Roles & Permissions', isEnabled: isRolesEnabled, data: accessPermissionRows },
+  ];
 
   return (
     <div>
@@ -141,63 +164,65 @@ const CreateNewRole = () => {
             <p className="font-bold">Role Permission</p>
             <div className="flex items-center gap-3">
               <p className="font-medium text-primary-500">Select All</p>
-              <Switch isEnabled={isSelectAll} onEnabled={() => setSelectAll((prev) => !prev)} />
+              <Switch isEnabled={isSelectAll} onEnabled={handleSelectAll} />
             </div>
           </div>
 
-          <div>
-            <div className="rounded-lg border border-border">
-              <div className="bg-white dark:bg-black-500 rounded-t-lg px-4 py-3 flex items-center gap-3">
-                <p className="font-bold">Products</p>
-                <Switch
-                  isEnabled={enabledModules?.isProductsEnabled}
-                  onEnabled={() => handleModuleToggle(productPermissionRows, 'isProductsEnabled')}
-                />
-              </div>
+          <div className="space-y-4">
+            {modules.map((module, index) => (
+              <div key={index} className="rounded-lg border border-border">
+                <div className="bg-surface rounded-t-lg px-4 py-3 flex items-center gap-3">
+                  <p className="font-bold">{module?.name}</p>
+                  <Switch
+                    isEnabled={module?.isEnabled}
+                    onEnabled={() => handleModuleToggle(module?.data)}
+                  />
+                </div>
 
-              <DataTable
-                header={['Pages', { label: 'Actions', colSpan: 4 }]}
-                className="border-none"
-              >
-                {productPermissionRows.map((row, index) => (
-                  <tr key={index}>
-                    <td className="px-5 py-3">
-                      <Checkbox2
-                        label={pageName(row.page)}
-                        value={row.page}
-                        checked={permissions.includes(row.page)}
-                        onChange={(e) => handlePageToggle(e, row)}
-                        // {...register('permission')}
-                      />
-                    </td>
-
-                    {row?.actions.map((action) => (
-                      <td className="px-5 py-3" key={action}>
-                        <Checkbox
-                          label={action}
-                          value={`${row.page}.${action}.action`}
-                          disabled={!permissions.includes(row.page)}
-                          checked={permissions.includes(`${row.page}.${action}.action`)}
-                          // {...register('permission')}
-                          onChange={(e) => handleActionToggle(e, `${row.page}.${action}.action`)}
+                <DataTable
+                  header={['Pages', { label: 'Actions', colSpan: 4 }]}
+                  className="border-none"
+                >
+                  {module?.data.map((row) => (
+                    <tr key={row.page}>
+                      <td className="px-5 py-3">
+                        <Checkbox2
+                          label={pageName(row.page)}
+                          value={row.page}
+                          checked={permissions.has(row.page)}
+                          onChange={(e) => handlePageToggle(e, row)}
                         />
                       </td>
-                    ))}
-                  </tr>
-                ))}
-              </DataTable>
-            </div>
+
+                      {row?.actions.map((action) => (
+                        <td className="px-5 py-3" key={action}>
+                          <Checkbox
+                            label={action}
+                            value={`${row.page}.${action}.action`}
+                            disabled={!permissions.has(row.page)}
+                            checked={permissions.has(`${row.page}.${action}.action`)}
+                            onChange={(e) => handleActionToggle(e, `${row.page}.${action}.action`)}
+                          />
+                        </td>
+                      ))}
+                    </tr>
+                  ))}
+                </DataTable>
+              </div>
+            ))}
           </div>
 
           <div className="flex justify-end gap-4">
-            <button
-              className="w-full max-w-[180px] rounded-lg py-2.5 bg-danger-500 hover:bg-danger-600 font-semibold text-white"
-              type="submit"
+            <Link
+              to="/access-control/roles-permissions"
+              className="text-center cursor-pointer w-full max-w-[180px] rounded-lg py-2.5 bg-danger-500 hover:bg-danger-600 font-semibold text-white"
+              type="button"
             >
               Cancel
-            </button>
+            </Link>
+
             <button
-              className="w-full max-w-[180px] rounded-lg py-2.5 bg-primary-500 hover:bg-primary-600 font-semibold text-white"
+              className="cursor-pointer w-full max-w-[180px] rounded-lg py-2.5 bg-primary-500 hover:bg-primary-600 font-semibold text-white"
               type="submit"
             >
               {isSubmitting ? 'Saving...' : 'Save'}

@@ -4,78 +4,80 @@ import { useState } from 'react';
 import DataTable from '@/components/organisms/DataTable';
 import Button from '@/components/atoms/Button';
 import SearchBar from '@/components/molecules/SearchBar';
-import ActionButtons, { type ActionItemProps } from '@/components/molecules/ActionButtons';
+import ActionButtons from '@/components/molecules/ActionButtons';
 import { useNavigate } from 'react-router';
+import { useGetRolesQuery } from '@/store/api/endpoints/roleEndpoints';
+import PageSection from '@/components/templates/PageSection';
+
+export interface RoleT {
+  id: number;
+  role: string;
+  status: boolean;
+}
 
 const RolePermissionPage = () => {
   const [currPage, setCurrPage] = useState<number>(1);
   const navigate = useNavigate();
 
-  console.log({ currPage });
+  const { data: roles } = useGetRolesQuery('Roles');
 
-  const handleView = () => {};
-  const handleEdit = () => {};
-  const handleDelete = () => {};
+  console.log({ currPage, roles });
 
-  const actionItems: ActionItemProps[] = [
-    {
-      label: 'View',
-      onClick: handleView,
-    },
-    {
-      label: 'Edit',
-      onClick: handleEdit,
-    },
-    {
-      label: 'Delete',
-      onClick: handleDelete,
-    },
-  ];
+  const handleView = (id: number) => {
+    console.log(id);
+  };
+  const handleEdit = (id: number) => {
+    navigate(`/access-control/roles-permissions/${id}/edit`);
+  };
+  const handleDelete = (id: number) => {
+    console.log(id);
+  };
 
   return (
-    <div>
-      <h2 className="heading-2">Employee Permission List</h2>
+    <PageSection title="Employee Permission List">
+      <div className="flex justify-between px-5 py-4">
+        <SearchBar />
+        <Button variant="add" onClick={() => navigate('/access-control/roles-permissions/create')}>
+          Add New Role
+        </Button>
+      </div>
 
-      <div className="bg-surface mt-3 rounded-xl border border-border">
-        <div className="flex justify-between px-5 py-4">
-          <SearchBar />
-          <Button
-            variant="add"
-            onClick={() => navigate('/access-control/roles-permissions/create')}
-          >
-            Add New Role
-          </Button>
-        </div>
-
-        <div className="w-full overflow-x-auto">
-          <DataTable header={['SL No', 'Role Name', 'Status', 'Action']}>
-            <tr>
-              <td className="px-5 py-3">01</td>
-              <td className="px-5 py-3">Tester</td>
-              <td className="px-5 py-3">
-                <Status status="active" />
-              </td>
-              <td className="px-5 py-3">
-                <ActionButtons actions={actionItems} />
-              </td>
-            </tr>
-            <tr>
-              <td className="px-5 py-3">01</td>
-              <td className="px-5 py-3">Tester</td>
-              <td className="px-5 py-3">
-                <Status status="inactive" />
-              </td>
-              <td className="px-5 py-3">
-                <ActionButtons actions={actionItems} />
-              </td>
-            </tr>
-          </DataTable>
-          <div className="text-center py-5">
-            <Pagination totalPage={12} currentPage={5} setCurrentPage={setCurrPage} />
-          </div>
+      <div className="w-full overflow-x-auto">
+        <DataTable header={['SL No', 'Role Name', 'Status', 'Action']}>
+          {roles &&
+            roles?.data.map((role: RoleT) => (
+              <tr key={role?.id}>
+                <td className="px-5 py-3">{role.id}</td>
+                <td className="px-5 py-3">{role.role}</td>
+                <td className="px-5 py-3">
+                  <Status status={role.status ? 'active' : 'inactive'} />
+                </td>
+                <td className="px-5 py-3">
+                  <ActionButtons
+                    actions={[
+                      {
+                        label: 'View',
+                        onClick: () => handleView(role.id),
+                      },
+                      {
+                        label: 'Edit',
+                        onClick: () => handleEdit(role.id),
+                      },
+                      {
+                        label: 'Delete',
+                        onClick: () => handleDelete(role.id),
+                      },
+                    ]}
+                  />
+                </td>
+              </tr>
+            ))}
+        </DataTable>
+        <div className="text-center py-5">
+          <Pagination totalPage={12} currentPage={5} setCurrentPage={setCurrPage} />
         </div>
       </div>
-    </div>
+    </PageSection>
   );
 };
 

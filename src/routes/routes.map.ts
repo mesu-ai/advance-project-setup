@@ -1,9 +1,4 @@
-export interface RoutePermissionT {
-  page: string;
-  actions?: readonly string[];
-}
-
-export type RoutePermissionMapT = Record<string, RoutePermissionT>;
+import type { RoutePermissionMapT } from '@/types';
 
 const productRoutePermissions: RoutePermissionMapT = {
   '/products': { page: 'products.index' },
@@ -30,6 +25,10 @@ const accessRoutePermissions: RoutePermissionMapT = {
   },
   '/access-control/roles-permissions/create': {
     page: 'access-control.roles-permissions.create',
+    actions: ['create', 'update', 'delete'],
+  },
+  '/access-control/roles-permissions/:roleId/edit': {
+    page: 'access-control.roles-permissions.edit',
     actions: ['create', 'update', 'delete'],
   },
 } as const;

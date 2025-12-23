@@ -15,3 +15,10 @@ export interface SideRouteProps {
   icon?: ComponentType<SVGProps<SVGSVGElement>>;
   children?: SideRouteProps[];
 }
+
+export interface RoutePermissionT {
+  page: string;
+  actions?: readonly string[];
+}
+
+export type RoutePermissionMapT = Record<string, RoutePermissionT>;

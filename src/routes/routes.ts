@@ -18,6 +18,7 @@ const AccessControl = lazy(() => import('../pages/access-control/index'));
 const EmployeeList = lazy(() => import('../pages/access-control/employee-list/index'));
 const RolePermission = lazy(() => import('../pages/access-control/roles-permissions/index'));
 const CreateRole = lazy(() => import('../pages/access-control/roles-permissions/create/index'));
+const EditRole = lazy(() => import('../pages/access-control/roles-permissions/edit/index'));
 
 const Login = lazy(() => import('../pages/login/index'));
 const Register = lazy(() => import('../pages/register/index'));
@@ -80,6 +81,7 @@ export const appRoutes: AppRouteProps[] = [
         children: [
           { index: true, Component: RolePermission },
           { path: 'create', Component: CreateRole },
+          { path: ':roleId/edit', Component: EditRole },
         ],
       },
     ],

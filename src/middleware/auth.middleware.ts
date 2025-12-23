@@ -1,9 +1,9 @@
 import { store } from '@/store/store';
 import { redirect } from 'react-router';
 import { authApi } from '@/store/api/endpoints/authEndpoints';
-import { routerPermissionMap } from '@/routes/routes.map';
 import { normalizePath } from '@/utils/normalizePath';
 import { publicRoutes } from '@/routes/routes';
+import { routePermission } from '@/utils/permission';
 
 export async function authMiddleware({ request }: { request: Request }) {
   const url = new URL(request.url);
@@ -12,7 +12,7 @@ export async function authMiddleware({ request }: { request: Request }) {
 
   const isPublic = publicRoutes.some((p) => pathname.startsWith(p));
   const normalizedPath = normalizePath(pathname);
-  const pagePermission = routerPermissionMap[normalizedPath]?.page;
+  const pagePermission = routePermission(normalizedPath)?.page;
 
   const state = store.getState().auth;
   const { user } = state;
@@ -33,7 +33,12 @@ export async function authMiddleware({ request }: { request: Request }) {
     throw redirect(`/auth/login?callbackUrl=${encodeURIComponent(callbackUrl)}`);
   }
 
-  if (!isPublic && isAuthenticated && !user?.permissions.includes(pagePermission)) {
+  if (
+    !isPublic &&
+    isAuthenticated &&
+    pagePermission &&
+    !user?.permissions.includes(pagePermission)
+  ) {
     // console.log('page permission', !user?.permissions.includes(pagePermission));
     throw redirect('/auth/403');
   }

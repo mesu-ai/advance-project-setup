@@ -6,122 +6,92 @@ import { useState } from 'react';
 import DataTable from '@/components/organisms/DataTable';
 import Button from '@/components/atoms/Button';
 import SearchBar from '@/components/molecules/SearchBar';
-import ActionButtons, { type ActionItemProps } from '@/components/molecules/ActionButtons';
-import Modal from '@/components/organisms/Modal/Modal';
+import ActionButtons from '@/components/molecules/ActionButtons';
+// import Modal from '@/components/organisms/Modal/Modal';
 import PageSection from '@/components/templates/PageSection';
+import { useNavigate } from 'react-router';
+import type { EmployeeT } from '@/types';
+import { useGetEmployeesQuery } from '@/store/api/endpoints/employeeEndpoints';
 
 const EmployeeListPage = () => {
-  const [isOpen, setOpen] = useState<boolean>(false);
+  // const [isOpen, setOpen] = useState<boolean>(false);
   const [currPage, setCurrPage] = useState<number>(1);
 
-  console.log({ currPage });
+  const navigate = useNavigate();
 
-  const handleView = () => {};
-  const handleEdit = () => {};
-  const handleDelete = () => {};
+  const { data: employees } = useGetEmployeesQuery('Employees');
 
-  const actionItems: ActionItemProps[] = [
-    {
-      label: 'View',
-      onClick: handleView,
-    },
-    {
-      label: 'Edit',
-      onClick: handleEdit,
-    },
-    {
-      label: 'Delete',
-      onClick: handleDelete,
-    },
-  ];
+  console.log({ currPage, employees });
+
+  const handleView = (id: number) => {
+    console.log(id);
+  };
+
+  const handleEdit = (id: number) => {
+    navigate(`/access-control/employees/${id}/edit`);
+  };
+  const handleDelete = (id: number) => {
+    console.log(id);
+  };
 
   return (
     <PageSection title="All Employee List">
       <div className="flex justify-between px-5 py-4">
         <SearchBar />
 
-        <Button variant="add" onClick={() => setOpen(true)}>
+        {/* <Button variant="add" onClick={() => setOpen(true)}>
+          Add New Employee
+        </Button> */}
+
+        <Button variant="add" onClick={() => navigate('/access-control/employees/create')}>
           Add New Employee
         </Button>
       </div>
 
       <div className="w-full overflow-x-auto">
         <DataTable header={['SL No', 'Name', 'Email', 'Role', 'Status', 'Action']}>
-          <tr>
-            <td className="px-5 py-3">01</td>
-            <td className="px-5 py-3">
-              <div className="flex gap-2 items-center">
-                <Image src={avatar} width={28} height={28} alt="default-avater" />
-                <p>Md Abdullah Al Momin</p>
-              </div>
-            </td>
-            <td className="px-5 py-3">momin@hotmail.com</td>
-            <td className="px-5 py-3">Tester</td>
-            <td className="px-5 py-3">
-              <Status status="inactive" />
-            </td>
-            <td className="px-5 py-3">
-              <ActionButtons actions={actionItems} />
-            </td>
-          </tr>
-          <tr>
-            <td className="px-5 py-3">01</td>
-            <td className="px-5 py-3">
-              <div className="flex gap-2 items-center">
-                <Image src={avatar} width={28} height={28} alt="default-avater" />
-                <p>Md Abdullah Al Momin</p>
-              </div>
-            </td>
-            <td className="px-5 py-3">momin@hotmail.com</td>
-            <td className="px-5 py-3">Tester</td>
-            <td className="px-5 py-3">
-              <Status status="inactive" />
-            </td>
-            <td className="px-5 py-3">
-              <ActionButtons actions={actionItems} />
-            </td>
-          </tr>
-          <tr>
-            <td className="px-5 py-3">01</td>
-            <td className="px-5 py-3">
-              <div className="flex gap-2 items-center">
-                <Image src={avatar} width={28} height={28} alt="default-avater" />
-                <p>Md Abdullah Al Momin</p>
-              </div>
-            </td>
-            <td className="px-5 py-3">momin@hotmail.com</td>
-            <td className="px-5 py-3">Tester</td>
-            <td className="px-5 py-3">
-              <Status status="inactive" />
-            </td>
-            <td className="px-5 py-3">
-              <ActionButtons actions={actionItems} />
-            </td>
-          </tr>
-          <tr>
-            <td className="px-5 py-3">01</td>
-            <td className="px-5 py-3">
-              <div className="flex gap-2 items-center">
-                <Image src={avatar} width={28} height={28} alt="default-avater" />
-                <p>Md Abdullah Al Momin</p>
-              </div>
-            </td>
-            <td className="px-5 py-3">momin@hotmail.com</td>
-            <td className="px-5 py-3">Tester</td>
-            <td className="px-5 py-3">
-              <Status status="inactive" />
-            </td>
-            <td className="px-5 py-3">
-              <ActionButtons actions={actionItems} />
-            </td>
-          </tr>
+          {employees?.data &&
+            employees?.data.map((employee: EmployeeT, index: number) => (
+              <tr key={employee.id}>
+                <td className="px-5 py-3">{index + 1}</td>
+                <td className="px-5 py-3">
+                  <div className="flex gap-2 items-center">
+                    <Image src={avatar} width={28} height={28} alt="default-avater" />
+                    <p>{}</p>
+                  </div>
+                </td>
+                <td className="px-5 py-3">{employee.email}</td>
+                <td className="px-5 py-3">{employee.role}</td>
+                <td className="px-5 py-3">
+                  <Status status={employee.status} />
+                </td>
+                <td className="px-5 py-3">
+                  <ActionButtons
+                    actions={[
+                      {
+                        label: 'View',
+                        onClick: () => handleView(employee.id),
+                      },
+                      {
+                        label: 'Edit',
+                        onClick: () => handleEdit(employee.id),
+                      },
+                      {
+                        label: 'Delete',
+                        onClick: () => handleDelete(employee.id),
+                      },
+                    ]}
+                  />
+                </td>
+              </tr>
+            ))}
         </DataTable>
         <div className="text-center py-5">
           <Pagination totalPage={12} currentPage={5} setCurrentPage={setCurrPage} />
         </div>
       </div>
 
-      {isOpen && (
+      {/* {isOpen && (
         <Modal title="Add New Employee" isOpen={isOpen} onClose={setOpen}>
           <p>
             Lorem, ipsum dolor sit amet consectetur adipisicing elit. Consequatur quos rerum veniam
@@ -174,7 +144,7 @@ const EmployeeListPage = () => {
             aliquid blanditiis ea ratione nam tempora magnam officiis repellat atque. Delectus.
           </p>
         </Modal>
-      )}
+      )} */}
     </PageSection>
   );
 };

@@ -1,8 +1,8 @@
 import Checkbox from '@/components/atoms/Checkbox';
 import Checkbox2 from '@/components/atoms/Checkbox2';
+import Input from '@/components/atoms/Input';
 import Switch from '@/components/atoms/Switch';
 import DataTable from '@/components/organisms/DataTable';
-import PageSection from '@/components/templates/PageSection';
 import { accessRoutePermissions, productRoutePermissions } from '@/routes/routes.map';
 import type { RoutePermissionMapT } from '@/types';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -12,6 +12,7 @@ import { Link } from 'react-router';
 import * as z from 'zod';
 
 const roleSchema = z.object({
+  status: z.string().min(1, 'Status is required'),
   role: z.string().min(1, 'Role can not empty'),
   permission: z.array(z.string()),
 });
@@ -63,7 +64,7 @@ const RoleForm = ({ mode, initialValue, onSubmit }: RoleFormProps) => {
     formState: { isSubmitting, errors },
   } = useForm<RoleFormData>({
     resolver: zodResolver(roleSchema),
-    defaultValues: initialValue ?? { role: '', permission: [] },
+    defaultValues: initialValue ?? { role: '', status: 'Y', permission: [] },
   });
 
   const watchedPermissions = useWatch({ control, name: 'permission' });
@@ -154,92 +155,90 @@ const RoleForm = ({ mode, initialValue, onSubmit }: RoleFormProps) => {
   ];
 
   return (
-    <PageSection title="Add New Role" className="px-5 py-4">
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-        <div>
-          <label htmlFor="role">Role Name</label>
-          <div className="input-field max-w-1/2">
-            <input
-              type="text"
-              id="role"
-              placeholder="Enter Role Name"
-              className="outline-none w-full"
-              {...register('role')}
-            />
-          </div>
-          <p className="input-error">{errors.role?.message}</p>
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+      <div className="grid grid-cols-2 gap-4">
+        <Input
+          label="Role Name"
+          placeholder="Enter Role Name"
+          error={errors.role?.message}
+          {...register('role')}
+        />
+
+        <div className="w-1/2">
+          <label htmlFor="status">Status</label>
+          <select id="status" className="input-field" {...register('status')}>
+            <option value="Y">Active</option>
+            <option value="N">Inactive</option>
+          </select>
         </div>
+      </div>
 
-        <div className="flex justify-between">
-          <p className="font-bold">Role Permission</p>
-          <div className="flex items-center gap-3">
-            <p className="font-medium text-primary-500">Select All</p>
-            <Switch isEnabled={isSelectAll} onEnabled={handleSelectAll} />
-          </div>
+      <div className="flex justify-between">
+        <p className="font-bold">Role Permission</p>
+        <div className="flex items-center gap-3">
+          <p className="font-medium text-primary-500">Select All</p>
+          <Switch isEnabled={isSelectAll} onEnabled={handleSelectAll} />
         </div>
+      </div>
 
-        <div className="space-y-4">
-          {modules.map((module, index) => (
-            <div key={index} className="rounded-lg border border-border">
-              <div className="bg-surface rounded-t-lg px-4 py-3 flex items-center gap-3">
-                <p className="font-bold">{module?.name}</p>
-                <Switch
-                  isEnabled={module?.isEnabled}
-                  onEnabled={() => handleModuleToggle(module?.data)}
-                />
-              </div>
+      <div className="space-y-4">
+        {modules.map((module, index) => (
+          <div key={index} className="rounded-lg border border-border">
+            <div className="bg-surface rounded-t-lg px-4 py-3 flex items-center gap-3">
+              <p className="font-bold">{module?.name}</p>
+              <Switch
+                isEnabled={module?.isEnabled}
+                onEnabled={() => handleModuleToggle(module?.data)}
+              />
+            </div>
 
-              <DataTable
-                header={['Pages', { label: 'Actions', colSpan: 4 }]}
-                className="border-none"
-              >
-                {module?.data.map((row) => (
-                  <tr key={row.page}>
-                    <td className="px-5 py-3">
-                      <Checkbox2
-                        label={pageName(row.page)}
-                        value={row.page}
-                        checked={permissions.has(row.page)}
-                        onChange={(e) => handlePageToggle(e, row)}
+            <DataTable header={['Pages', { label: 'Actions', colSpan: 4 }]} className="border-none">
+              {module?.data.map((row) => (
+                <tr key={row.page}>
+                  <td className="px-5 py-3">
+                    <Checkbox2
+                      label={pageName(row.page)}
+                      value={row.page}
+                      checked={permissions.has(row.page)}
+                      onChange={(e) => handlePageToggle(e, row)}
+                    />
+                  </td>
+
+                  {row?.actions.map((action) => (
+                    <td className="px-5 py-3" key={action}>
+                      <Checkbox
+                        label={action}
+                        value={`${row.page}.${action}.action`}
+                        disabled={!permissions.has(row.page)}
+                        checked={permissions.has(`${row.page}.${action}.action`)}
+                        onChange={(e) => handleActionToggle(e, `${row.page}.${action}.action`)}
                       />
                     </td>
+                  ))}
+                </tr>
+              ))}
+            </DataTable>
+          </div>
+        ))}
+      </div>
 
-                    {row?.actions.map((action) => (
-                      <td className="px-5 py-3" key={action}>
-                        <Checkbox
-                          label={action}
-                          value={`${row.page}.${action}.action`}
-                          disabled={!permissions.has(row.page)}
-                          checked={permissions.has(`${row.page}.${action}.action`)}
-                          onChange={(e) => handleActionToggle(e, `${row.page}.${action}.action`)}
-                        />
-                      </td>
-                    ))}
-                  </tr>
-                ))}
-              </DataTable>
-            </div>
-          ))}
-        </div>
+      <div className="flex justify-end gap-4">
+        <Link
+          to="/access-control/roles"
+          className="text-center cursor-pointer w-full max-w-[180px] rounded-lg py-2.5 bg-danger-500 hover:bg-danger-600 font-semibold text-white"
+          type="button"
+        >
+          Cancel
+        </Link>
 
-        <div className="flex justify-end gap-4">
-          <Link
-            to="/access-control/roles-permissions"
-            className="text-center cursor-pointer w-full max-w-[180px] rounded-lg py-2.5 bg-danger-500 hover:bg-danger-600 font-semibold text-white"
-            type="button"
-          >
-            Cancel
-          </Link>
-
-          <button
-            className="cursor-pointer w-full max-w-[180px] rounded-lg py-2.5 bg-primary-500 hover:bg-primary-600 font-semibold text-white"
-            type="submit"
-          >
-            {submitLabel}
-          </button>
-        </div>
-      </form>
-    </PageSection>
+        <button
+          className="cursor-pointer w-full max-w-[180px] rounded-lg py-2.5 bg-primary-500 hover:bg-primary-600 font-semibold text-white"
+          type="submit"
+        >
+          {submitLabel}
+        </button>
+      </div>
+    </form>
   );
 };
 

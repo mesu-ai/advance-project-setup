@@ -5,6 +5,7 @@ import { lazy } from 'react';
 const Home = lazy(() => import('../pages/home/index'));
 const Contact = lazy(() => import('../pages/contact/index'));
 
+// products
 const Products = lazy(() => import('../pages/products/index'));
 const CreateProduct = lazy(() => import('../pages/products/create/CreateProductPage'));
 const PendingProduct = lazy(() => import('../pages/products/pending/PendingProductPage'));
@@ -14,12 +15,16 @@ const LowStockProduct = lazy(() => import('../pages/products/low-stock/LowStockP
 
 const Orders = lazy(() => import('../pages/orders/index'));
 
+// access control
 const AccessControl = lazy(() => import('../pages/access-control/index'));
-const EmployeeList = lazy(() => import('../pages/access-control/employee-list/index'));
-const RolePermission = lazy(() => import('../pages/access-control/roles-permissions/index'));
-const CreateRole = lazy(() => import('../pages/access-control/roles-permissions/create/index'));
-const EditRole = lazy(() => import('../pages/access-control/roles-permissions/edit/index'));
+const EmployeeList = lazy(() => import('../pages/access-control/employees/index'));
+const CreateEmployee = lazy(() => import('../pages/access-control/employees/create/index'));
+const EditEmployee = lazy(() => import('../pages/access-control/employees/edit/index'));
+const RolePermission = lazy(() => import('../pages/access-control/roles/index'));
+const CreateRole = lazy(() => import('../pages/access-control/roles/create/index'));
+const EditRole = lazy(() => import('../pages/access-control/roles/edit/index'));
 
+// auth
 const Login = lazy(() => import('../pages/login/index'));
 const Register = lazy(() => import('../pages/register/index'));
 const Forgot = lazy(() => import('../pages/forgot/index'));
@@ -75,9 +80,16 @@ export const appRoutes: AppRouteProps[] = [
     path: 'access-control',
     children: [
       { index: true, Component: AccessControl },
-      { path: 'employee-list', Component: EmployeeList },
       {
-        path: 'roles-permissions',
+        path: 'employees',
+        children: [
+          { index: true, Component: EmployeeList },
+          { path: 'create', Component: CreateEmployee },
+          { path: ':employeeId/edit', Component: EditEmployee },
+        ],
+      },
+      {
+        path: 'roles',
         children: [
           { index: true, Component: RolePermission },
           { path: 'create', Component: CreateRole },

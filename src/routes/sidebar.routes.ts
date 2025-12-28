@@ -40,8 +40,8 @@ export const sidebarUserRoutes: SideRouteProps[] = [
     path: 'access-control',
     icon: RoleIcon,
     children: [
-      { title: 'Employee List', path: 'employee-list' },
-      { title: 'Roles & Permissions', path: 'roles-permissions' },
+      { title: 'Employee List', path: 'employees' },
+      { title: 'Roles & Permissions', path: 'roles' },
     ],
   },
 ];

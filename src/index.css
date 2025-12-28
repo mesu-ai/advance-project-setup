@@ -100,7 +100,7 @@ input:-webkit-autofill {
 
 @layer components {
   .input-field {
-    @apply w-full border border-neutral-300 text-sm rounded-lg p-2 outline-none focus-within:border-primary-500;
+    @apply mt-1 w-full border border-neutral-300 text-sm rounded-lg p-2 outline-none focus-within:border-primary-500;
   }
 
   .input-error {

@@ -1,3 +1,4 @@
+import type { RoleResponseT } from '@/types';
 import { baseApi } from '../baseApi';
 
 export const roleApi = baseApi.injectEndpoints({
@@ -9,7 +10,13 @@ export const roleApi = baseApi.injectEndpoints({
       }),
       providesTags: ['Roles'],
     }),
+    getRoleById: build.query<RoleResponseT, string>({
+      query: (id) => ({
+        url: `roles/${id}`,
+        method: 'GET',
+      }),
+    }),
   }),
 });
 
-export const { useGetRolesQuery } = roleApi;
+export const { useGetRolesQuery, useGetRoleByIdQuery } = roleApi;

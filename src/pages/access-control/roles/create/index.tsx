@@ -1,7 +1,7 @@
 import RoleForm, { type RoleFormData } from '@/components/molecules/forms/RoleForm';
 import PageSection from '@/components/templates/PageSection';
 
-const CreateNewRolePage = () => {
+const CreateRolePage = () => {
   const onSubmit = async (data: RoleFormData) => {
     console.log({ data });
   };
@@ -13,4 +13,4 @@ const CreateNewRolePage = () => {
   );
 };
 
-export default CreateNewRolePage;
+export default CreateRolePage;

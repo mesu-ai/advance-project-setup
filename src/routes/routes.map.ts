@@ -15,20 +15,28 @@ const orderRoutePermissions: RoutePermissionMapT = {
 
 const accessRoutePermissions: RoutePermissionMapT = {
   '/access-control': { page: 'access-control.index', actions: ['create', 'update', 'delete'] },
-  '/access-control/employee-list': {
-    page: 'access-control.employee-list',
+  '/access-control/employees': {
+    page: 'access-control.employees',
     actions: ['create', 'update', 'delete'],
   },
-  '/access-control/roles-permissions': {
-    page: 'access-control.roles-permissions',
+  '/access-control/employees/create': {
+    page: 'access-control.employees.create',
     actions: ['create', 'update', 'delete'],
   },
-  '/access-control/roles-permissions/create': {
-    page: 'access-control.roles-permissions.create',
+  '/access-control/employees/:employeeId/edit': {
+    page: 'access-control.employees.edit',
     actions: ['create', 'update', 'delete'],
   },
-  '/access-control/roles-permissions/:roleId/edit': {
-    page: 'access-control.roles-permissions.edit',
+  '/access-control/roles': {
+    page: 'access-control.roles',
+    actions: ['create', 'update', 'delete'],
+  },
+  '/access-control/roles/create': {
+    page: 'access-control.roles.create',
+    actions: ['create', 'update', 'delete'],
+  },
+  '/access-control/roles/:roleId/edit': {
+    page: 'access-control.roles.edit',
     actions: ['create', 'update', 'delete'],
   },
 } as const;

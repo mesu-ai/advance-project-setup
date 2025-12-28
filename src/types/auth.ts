@@ -1,7 +1,7 @@
 export interface UserT {
   id: number;
   name: string;
-  role: 'admin' | 'vendor' | 'support' | 'not defined';
+  role: string;
   // token: { access: string; refresh: string };
   permissions: string[]; // e.g., ['products.read', 'users.create']
 }

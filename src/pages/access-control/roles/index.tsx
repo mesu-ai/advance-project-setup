@@ -8,12 +8,7 @@ import ActionButtons from '@/components/molecules/ActionButtons';
 import { useNavigate } from 'react-router';
 import { useGetRolesQuery } from '@/store/api/endpoints/roleEndpoints';
 import PageSection from '@/components/templates/PageSection';
-
-export interface RoleT {
-  id: number;
-  role: string;
-  status: boolean;
-}
+import type { RoleT } from '@/types';
 
 const RolePermissionPage = () => {
   const [currPage, setCurrPage] = useState<number>(1);
@@ -27,7 +22,7 @@ const RolePermissionPage = () => {
     console.log(id);
   };
   const handleEdit = (id: number) => {
-    navigate(`/access-control/roles-permissions/${id}/edit`);
+    navigate(`/access-control/roles/${id}/edit`);
   };
   const handleDelete = (id: number) => {
     console.log(id);
@@ -37,7 +32,7 @@ const RolePermissionPage = () => {
     <PageSection title="Employee Permission List">
       <div className="flex justify-between px-5 py-4">
         <SearchBar />
-        <Button variant="add" onClick={() => navigate('/access-control/roles-permissions/create')}>
+        <Button variant="add" onClick={() => navigate('/access-control/roles/create')}>
           Add New Role
         </Button>
       </div>
@@ -50,7 +45,7 @@ const RolePermissionPage = () => {
                 <td className="px-5 py-3">{role.id}</td>
                 <td className="px-5 py-3">{role.role}</td>
                 <td className="px-5 py-3">
-                  <Status status={role.status ? 'active' : 'inactive'} />
+                  <Status status={role.status} />
                 </td>
                 <td className="px-5 py-3">
                   <ActionButtons

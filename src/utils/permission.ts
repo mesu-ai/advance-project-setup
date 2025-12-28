@@ -47,7 +47,6 @@ export const hasPermission = (user: UserT | null, key: string): boolean => {
 export const checkPageAction = (pathname: string, actionName: string) => {
   const normalizedPath = normalizePath(pathname);
   const routeInfo = routePermission(normalizedPath);
-  // const routeInfo = routerPermissionMap[normalizedPath];
   if (!routeInfo || !routeInfo.actions) return false;
 
   const { user } = store.getState().auth;

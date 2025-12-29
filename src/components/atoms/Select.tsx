@@ -24,10 +24,12 @@ const Select = <T extends OptionType>({
   const generatedId = useId();
   return (
     <div className={className}>
-      <label htmlFor={generatedId}>{label}</label>
+      <label className="input-label" htmlFor={generatedId}>
+        {label}
+      </label>
       <div className="relative">
         <select id={generatedId} className="input-field appearance-none peer" {...props}>
-          <option className="text-red-500 font-medium" value="">
+          <option className="text-black-500 font-medium" value="">
             {placeholder}
           </option>
           {options?.map((option, index) => (

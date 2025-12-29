@@ -13,7 +13,7 @@ const Radio = ({ label, options, error, ...props }: RadioProps) => {
 
   return (
     <div>
-      <label>{label}</label>
+      <label className="input-label">{label}</label>
       <div className="space-x-4 mt-1">
         {options.map((option, index) => (
           <label key={index} htmlFor={`${generatedId}-${index}`} className="capitalize space-x-1.5">

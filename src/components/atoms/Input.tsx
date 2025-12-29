@@ -10,7 +10,9 @@ const Input = ({ label, className = '', type = 'text', error, ...props }: InputP
 
   return (
     <div>
-      <label htmlFor={generatedId}>{label}</label>
+      <label className="input-label" htmlFor={generatedId}>
+        {label}
+      </label>
       <div className={`input-field ${className}`}>
         <input
           type={type}

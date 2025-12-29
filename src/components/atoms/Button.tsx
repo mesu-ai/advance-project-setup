@@ -20,8 +20,8 @@ const Button: FC<ButtonProps> = ({
     add: 'px-5 py-2 bg-primary-500 hover:bg-primary-600 text-white',
     edit: 'bg-secondary-500 text-white hover:bg-secondary-600',
     delete: 'bg-danger-500 text-white hover:bg-danger-600',
-    update: 'bg-danger-500 text-white hover:bg-danger-600',
-    cancel: 'bg-danger-500 text-white hover:bg-danger-600',
+    update: 'py-2 bg-primary-500 text-white hover:bg-primary-600 w-full max-w-[180px]',
+    cancel: 'py-2 bg-danger-500 text-white hover:bg-danger-600 w-full max-w-[180px]',
     view: 'bg-danger-500 text-white hover:bg-danger-600',
   };
 

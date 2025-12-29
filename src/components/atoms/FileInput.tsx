@@ -1,5 +1,5 @@
 import UploadIcon from '@/assets/svg/UploadIcon';
-import { useId, type ChangeEvent, type ComponentPropsWithRef } from 'react';
+import { useId, useState, type ChangeEvent, type ComponentPropsWithRef } from 'react';
 
 interface FileInputProps extends Omit<ComponentPropsWithRef<'input'>, 'type'> {
   label: string;
@@ -14,18 +14,24 @@ const FileInput = ({
   onChange,
   ...props
 }: FileInputProps) => {
+  const [file, setFile] = useState<string>('');
   const generatedId = useId();
 
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    console.log(file);
+    setFile(file?.name ?? '');
     onChange?.(e);
   };
 
   return (
     <div>
-      <label htmlFor={generatedId}>{label}</label>
+      <label className="input-label" htmlFor={generatedId}>
+        {label}
+      </label>
 
       <label htmlFor={generatedId} className={`input-field flex items-center ${className}`}>
-        <span>{placeholder}</span>
+        <span>{file || placeholder}</span>
         <UploadIcon className="w-5 h-5 ms-auto" />
         <input
           type="file"

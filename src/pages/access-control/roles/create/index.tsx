@@ -1,4 +1,4 @@
-import RoleForm, { type RoleFormData } from '@/components/molecules/forms/RoleForm';
+import RoleForm1, { type RoleFormData } from '@/components/molecules/forms/RoleForm1';
 import PageSection from '@/components/templates/PageSection';
 
 const CreateRolePage = () => {
@@ -8,7 +8,7 @@ const CreateRolePage = () => {
 
   return (
     <PageSection title="Add New Role" className="px-5 py-4">
-      <RoleForm mode="create" onSubmit={onSubmit} />
+      <RoleForm1 mode="create" onSubmit={onSubmit} />
     </PageSection>
   );
 };

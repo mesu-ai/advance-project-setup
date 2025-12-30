@@ -1,5 +1,6 @@
 import Button from '@/components/atoms/Button';
 import Input from '@/components/atoms/Input';
+import Select from '@/components/atoms/Select';
 import PermissionTable from '@/components/organisms/PermissionTable';
 import { submitLabel } from '@/constants/buttonLabel';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -9,7 +10,7 @@ import { useNavigate } from 'react-router';
 import * as z from 'zod';
 
 const roleSchema = z.object({
-  status: z.string().min(1, 'Status is required'),
+  status: z.enum(['Y', 'N'], 'Status is required'),
   role: z.string().min(1, 'Role can not empty'),
   permissions: z.array(z.string()),
 });
@@ -50,11 +51,14 @@ const RoleForm1 = ({ mode, initialValue, onSubmit }: RoleFormProps) => {
         />
 
         <div className="w-1/2">
-          <label htmlFor="status">Status</label>
-          <select id="status" className="input-field" {...register('status')}>
-            <option value="Y">Active</option>
-            <option value="N">Inactive</option>
-          </select>
+          <Select
+            label="Status"
+            options={[
+              { label: 'Active', value: 'Y' },
+              { label: 'Inactive', value: 'N' },
+            ]}
+            {...register('status')}
+          />
         </div>
       </div>
 

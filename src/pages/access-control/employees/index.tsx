@@ -23,14 +23,15 @@ const EmployeeListPage = () => {
 
   console.log({ currPage, employees });
 
-  const handleView = (id: number) => {
+  const handleView = (id: string) => {
     console.log(id);
   };
 
-  const handleEdit = (id: number) => {
+  const handleEdit = (id: string) => {
     navigate(`/access-control/employees/${id}/edit`);
   };
-  const handleDelete = (id: number) => {
+
+  const handleDelete = (id: string) => {
     console.log(id);
   };
 
@@ -52,7 +53,7 @@ const EmployeeListPage = () => {
         <DataTable header={['SL No', 'Name', 'Email', 'Role', 'Status', 'Action']}>
           {employees?.data &&
             employees?.data.map((employee: EmployeeT, index: number) => (
-              <tr key={employee.id}>
+              <tr key={employee.employeeId}>
                 <td className="px-5 py-3">{index + 1}</td>
                 <td className="px-5 py-3">
                   <div className="flex gap-2 items-center">
@@ -70,15 +71,15 @@ const EmployeeListPage = () => {
                     actions={[
                       {
                         label: 'View',
-                        onClick: () => handleView(employee.id),
+                        onClick: () => handleView(employee.employeeId),
                       },
                       {
                         label: 'Edit',
-                        onClick: () => handleEdit(employee.id),
+                        onClick: () => handleEdit(employee.employeeId),
                       },
                       {
                         label: 'Delete',
-                        onClick: () => handleDelete(employee.id),
+                        onClick: () => handleDelete(employee.employeeId),
                       },
                     ]}
                   />

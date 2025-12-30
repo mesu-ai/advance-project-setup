@@ -1,6 +1,9 @@
 export interface UserT {
-  id: number;
   name: string;
+  employeeId: string;
+  mobileNo: string;
+  email: string;
+  photo: File | string;
   role: string;
   // token: { access: string; refresh: string };
   permissions: string[]; // e.g., ['products.read', 'users.create']

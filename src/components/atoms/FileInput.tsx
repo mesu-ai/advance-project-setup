@@ -1,9 +1,10 @@
 import UploadIcon from '@/assets/svg/UploadIcon';
-import { useId, useState, type ChangeEvent, type ComponentPropsWithRef } from 'react';
+import { useId, type ComponentPropsWithRef } from 'react';
 
-interface FileInputProps extends Omit<ComponentPropsWithRef<'input'>, 'type'> {
+interface FileInputProps extends Omit<ComponentPropsWithRef<'input'>, 'type' | 'value'> {
   label: string;
   error?: string;
+  value?: File | string;
 }
 
 const FileInput = ({
@@ -11,18 +12,19 @@ const FileInput = ({
   className = '',
   placeholder = 'Upload Photo',
   error,
-  onChange,
+  value,
   ...props
 }: FileInputProps) => {
-  const [file, setFile] = useState<string>('');
   const generatedId = useId();
 
-  const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    console.log(file);
-    setFile(file?.name ?? '');
-    onChange?.(e);
-  };
+  // const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
+  //   const selectedFile = e.target.files?.[0];
+  //   if (selectedFile) setFileName(selectedFile?.name);
+  //   onChange?.(e);
+  // };
+
+  const fileName =
+    value instanceof File ? value.name : typeof value === 'string' ? value.split('/').pop() : '';
 
   return (
     <div>
@@ -31,7 +33,7 @@ const FileInput = ({
       </label>
 
       <label htmlFor={generatedId} className={`input-field flex items-center ${className}`}>
-        <span>{file || placeholder}</span>
+        <span>{fileName || placeholder}</span>
         <UploadIcon className="w-5 h-5 ms-auto" />
         <input
           type="file"
@@ -39,7 +41,6 @@ const FileInput = ({
           aria-invalid={!!error}
           aria-describedby={error ? `${generatedId}-error` : undefined}
           className="hidden"
-          onChange={handleChange}
           {...props}
         />
       </label>

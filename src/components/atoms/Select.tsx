@@ -28,8 +28,12 @@ const Select = <T extends OptionType>({
         {label}
       </label>
       <div className="relative">
-        <select id={generatedId} className="input-field appearance-none peer" {...props}>
-          <option className="text-black-500 font-medium" value="">
+        <select
+          id={generatedId}
+          className="input-field appearance-none peer capitalize bg-surface"
+          {...props}
+        >
+          <option className="text-neutral-300 font-medium" value="">
             {placeholder}
           </option>
           {options?.map((option, index) => (

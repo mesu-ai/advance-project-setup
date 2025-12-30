@@ -1,8 +1,14 @@
-export interface EmployeeT {
-  id: number;
-  name: string;
-  role: string;
-  email: string;
+import type { UserT } from './auth';
+
+export interface EmployeeT extends UserT {
+  nid: string;
+  depertment: string;
+  gender: 'femele' | 'male';
   status: 'Y' | 'N';
-  permissions: string[];
+}
+
+export interface EmployeeResponseT {
+  success: boolean;
+  message: string;
+  data: EmployeeT;
 }

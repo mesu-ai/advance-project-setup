@@ -43,7 +43,7 @@ const RolePermissionPage = () => {
             roles?.data.map((role: RoleT) => (
               <tr key={role?.id}>
                 <td className="px-5 py-3">{role.id}</td>
-                <td className="px-5 py-3">{role.role}</td>
+                <td className="px-5 py-3 capitalize">{role.role}</td>
                 <td className="px-5 py-3">
                   <Status status={role.status} />
                 </td>

@@ -35,6 +35,9 @@ const employeeSchema = z.object({
   photo: z
     .union([z.string().min(1), z.instanceof(File)])
     .optional()
+    // .refine((val) => val !== undefined && val !== null && val !== '', {
+    //   message: 'Upload a photo',
+    // })
     .refine((val) => {
       if (val instanceof File) {
         return val.size <= 5_000_000;
@@ -128,6 +131,7 @@ const EmployeeForm = ({ mode, initialValues, onSubmit }: EmployeeFormProps) => {
         <FileInput
           label="Photo"
           error={errors.photo?.message}
+          errorSameRow={errors.role?.message || errors.depertment?.message}
           accept="image/png,image/jpeg"
           value={watchedPhoto}
           onChange={(e) => {

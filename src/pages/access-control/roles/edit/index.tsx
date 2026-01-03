@@ -14,15 +14,15 @@ const EditRolePage = () => {
   if (isLoading) return <div>Loading...</div>;
   if (!data?.data) return <div>Role not found</div>;
 
-  const defaultPermissions: RoleFormData = {
-    status: data.data.status,
+  const defaultValues: RoleFormData = {
+    status: data.data.status as 'Y' | 'N',
     role: data.data.role,
     permissions: data.data.permissions,
   };
 
   return (
     <PageSection title="Edit Role" className="px-5 py-4">
-      <RoleForm1 mode="edit" initialValue={defaultPermissions} onSubmit={onSubmit} />
+      <RoleForm1 mode="edit" initialValue={defaultValues} onSubmit={onSubmit} />
     </PageSection>
   );
 };

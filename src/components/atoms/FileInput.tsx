@@ -1,9 +1,11 @@
+import { baseURL } from '@/apis/config/baseURL';
 import UploadIcon from '@/assets/svg/UploadIcon';
-import { useId, type ComponentPropsWithRef } from 'react';
+import { useEffect, useId, useState, type ComponentPropsWithRef } from 'react';
 
 interface FileInputProps extends Omit<ComponentPropsWithRef<'input'>, 'type' | 'value'> {
   label: string;
   error?: string;
+  errorSameRow?: string;
   value?: File | string;
 }
 
@@ -12,37 +14,48 @@ const FileInput = ({
   className = '',
   placeholder = 'Upload Photo',
   error,
+  errorSameRow,
   value,
   ...props
 }: FileInputProps) => {
+  const [preview, setPreview] = useState<string | null>(null);
   const generatedId = useId();
 
-  // const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
-  //   const selectedFile = e.target.files?.[0];
-  //   if (selectedFile) setFileName(selectedFile?.name);
-  //   onChange?.(e);
-  // };
+  // const fileName =
+  //   value instanceof File ? value.name : typeof value === 'string' ? value.split('/').pop() : '';
 
-  const fileName =
-    value instanceof File ? value.name : typeof value === 'string' ? value.split('/').pop() : '';
+  useEffect(() => {
+    if (!value) return;
+    if (value instanceof File) {
+      const objectUrl = URL.createObjectURL(value);
+      setPreview(objectUrl);
+      return () => URL.revokeObjectURL(objectUrl);
+    }
+    if (typeof value === 'string') {
+      const imageUrl = `${baseURL}${value}`;
+      setPreview(imageUrl);
+    }
+  }, [value]);
 
   return (
-    <div>
+    <div className={`row-span-2 ${className}`}>
       <label className="input-label" htmlFor={generatedId}>
         {label}
       </label>
 
-      <label htmlFor={generatedId} className={`input-field flex items-center ${className}`}>
-        <span>{fileName || placeholder}</span>
-        <UploadIcon className="w-5 h-5 ms-auto" />
-        <input
-          type="file"
-          id={generatedId}
-          aria-invalid={!!error}
-          aria-describedby={error ? `${generatedId}-error` : undefined}
-          className="hidden"
-          {...props}
-        />
+      <label
+        htmlFor={generatedId}
+        className={`${errorSameRow ? 'h-[calc(100%-48px)]' : 'h-[calc(100%-28px)]'} input-field border-dashed hover:border-primary-500 flex items-center justify-center gap-x-2`}
+      >
+        {preview ? (
+          <img src={preview} alt="preview-image" className="h-24 w-auto" />
+        ) : (
+          <>
+            <span className="text-neutral-300 select-none">{placeholder}</span>
+            <UploadIcon className="w-5 h-5 " />
+          </>
+        )}
+        <input type="file" id={generatedId} className="hidden" {...props} />
       </label>
 
       {error && (

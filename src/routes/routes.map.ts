@@ -1,7 +1,7 @@
 import type { RoutePermissionMapT } from '@/types';
 
 const productRoutePermissions: RoutePermissionMapT = {
-  '/products': { page: 'products.index' },
+  '/products': { page: 'products.index', showInTable: false },
   '/products/create': { page: 'products.create', actions: ['edit', 'view'] },
   '/products/pending': { page: 'products.pending', actions: ['update', 'delete'] },
   '/products/approved': { page: 'products.approved', actions: ['update', 'delete'] },
@@ -14,7 +14,7 @@ const orderRoutePermissions: RoutePermissionMapT = {
 } as const;
 
 const accessRoutePermissions: RoutePermissionMapT = {
-  '/access-control': { page: 'access-control.index', actions: ['create', 'update', 'delete'] },
+  '/access-control': { page: 'access-control.index', showInTable: false },
   '/access-control/employees': {
     page: 'access-control.employees',
     actions: ['create', 'update', 'delete'],

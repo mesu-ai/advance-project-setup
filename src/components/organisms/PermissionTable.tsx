@@ -27,11 +27,13 @@ const getModulePermissions = (module: ModulePermissionT[]) => {
 };
 
 const modulePermissionRows = (moduleRoutes: RoutePermissionMapT) =>
-  Object.entries(moduleRoutes).map(([path, permission]) => ({
-    path,
-    page: permission.page,
-    actions: permission.actions ?? [],
-  }));
+  Object.entries(moduleRoutes)
+    .filter(([, permission]) => permission.showInTable !== false)
+    .map(([path, permission]) => ({
+      path,
+      page: permission.page,
+      actions: permission.actions ?? [],
+    }));
 
 const isModuleEnabled = (moduleRows: ModulePermissionT[], permissions: Set<string>): boolean => {
   const modulePerms = getModulePermissions(moduleRows);

@@ -100,8 +100,9 @@ input:-webkit-autofill {
 
 @layer components {
   .input-label {
-    @apply text-sm font-medium;
+    @apply text-sm font-medium w-fit h-fit;
   }
+
   .input-field {
     @apply mt-1 w-full border border-neutral-300 text-sm rounded-lg px-2 py-[7px] outline-none focus-within:border-primary-500;
   }

@@ -19,6 +19,7 @@ export interface SideRouteProps {
 export interface RoutePermissionT {
   page: string;
   actions?: readonly string[];
+  showInTable?: boolean;
 }
 
 export type RoutePermissionMapT = Record<string, RoutePermissionT>;

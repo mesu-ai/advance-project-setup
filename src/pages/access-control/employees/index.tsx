@@ -13,9 +13,13 @@ import { useNavigate } from 'react-router';
 import type { EmployeeT } from '@/types';
 import { useGetEmployeesQuery } from '@/store/api/endpoints/employeeEndpoints';
 import ProfileImage from '@/assets/images/employee1.png';
+import ConfirmModal from '@/components/molecules/modal/ConfirmModal';
 
 const EmployeeListPage = () => {
-  const [open, setOpen] = useState<boolean>(false);
+  const [isViewOpen, setIsViewOpen] = useState(false);
+  const [isDeactiveOpen, setIsDeactiveOpen] = useState(false);
+  const [confirmAction, setConfirmAction] = useState<(() => void) | null>(null);
+
   const [selectedEmp, setSelectedEmp] = useState<EmployeeT>();
   const [currPage, setCurrPage] = useState<number>(1);
 
@@ -27,15 +31,24 @@ const EmployeeListPage = () => {
 
   const handleView = (empToView: EmployeeT) => {
     setSelectedEmp(empToView);
-    setOpen(true);
+    setIsViewOpen(true);
   };
 
   const handleEdit = (id: string) => {
     navigate(`/access-control/employees/${id}/edit`);
   };
 
-  const handleDelete = (id: string) => {
-    console.log(id);
+  const handleDeactivate = (id: string) => {
+    setConfirmAction(() => () => {
+      console.log('deactive id:', id);
+    });
+    setIsDeactiveOpen(true);
+  };
+
+  const handleConfirm = () => {
+    confirmAction?.();
+    setConfirmAction(null);
+    setIsDeactiveOpen(false);
   };
 
   return (
@@ -57,7 +70,6 @@ const EmployeeListPage = () => {
                 <td className="px-5 py-3">
                   <div className="flex gap-2 items-center">
                     <Image src={avatar} width={28} height={28} alt="default-avater" />
-                    <p>{}</p>
                   </div>
                 </td>
                 <td className="px-5 py-3">{employee.email}</td>
@@ -77,8 +89,8 @@ const EmployeeListPage = () => {
                         onClick: () => handleEdit(employee.employeeId),
                       },
                       {
-                        label: 'Delete',
-                        onClick: () => handleDelete(employee.employeeId),
+                        label: 'Deactivate',
+                        onClick: () => handleDeactivate(employee.employeeId),
                       },
                     ]}
                   />
@@ -91,8 +103,8 @@ const EmployeeListPage = () => {
         </div>
       </div>
 
-      {open && selectedEmp && (
-        <Modal title="View Employee" isOpen={open} onClose={setOpen}>
+      {isViewOpen && selectedEmp && (
+        <Modal title="View Employee" isOpen={isViewOpen} onClose={setIsViewOpen}>
           <div className="flex gap-4 items-center">
             <div className="ring-2 ring-primary-500 rounded-full p-2.5">
               <Image src={ProfileImage} className="rounded-full" width={162} height={162} />
@@ -134,6 +146,15 @@ const EmployeeListPage = () => {
             </div>
           </div>
         </Modal>
+      )}
+
+      {isDeactiveOpen && (
+        <ConfirmModal
+          title="Deactivate Employee"
+          isOpen={isDeactiveOpen}
+          onClose={setIsDeactiveOpen}
+          onConfirm={handleConfirm}
+        />
       )}
     </PageSection>
   );

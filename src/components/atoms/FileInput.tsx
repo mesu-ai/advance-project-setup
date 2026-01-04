@@ -45,7 +45,7 @@ const FileInput = ({
 
       <label
         htmlFor={generatedId}
-        className={`${errorSameRow ? 'h-[calc(100%-48px)]' : 'h-[calc(100%-28px)]'} input-field border-dashed hover:border-primary-500 flex items-center justify-center gap-x-2`}
+        className={`${errorSameRow ? 'h-[calc(100%-48px)]' : 'h-[calc(100%-28px)]'} input-field border-dashed flex items-center justify-center gap-x-2`}
       >
         {preview ? (
           <img src={preview} alt="preview-image" className="h-24 w-auto" />

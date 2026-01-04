@@ -1,37 +1,35 @@
-import React from 'react';
+import React, { type ImgHTMLAttributes } from 'react';
 
-interface ImageProps {
-  src: string;
-  alt: string;
+type ObjectFit = 'cover' | 'contain' | 'fill' | 'none' | 'scale-down';
+
+interface ImageProps extends Omit<ImgHTMLAttributes<HTMLImageElement>, 'width' | 'height'> {
   width?: number | string;
   height?: number | string;
-  className?: string;
-  fit?: 'cover' | 'contain' | 'fill' | 'none' | 'scale-down';
-  loading?: 'lazy' | 'eager';
+  fit?: ObjectFit;
   fallbackSrc?: string;
 }
 
-const Image: React.FC<ImageProps> = ({
+const Image = ({
   src,
-  alt,
   width = '100%',
   height = 'auto',
   className = '',
   fit = 'cover',
   loading = 'lazy',
   fallbackSrc = '/assets/images/fallback.png',
-}) => {
-  const [error, setError] = React.useState(false);
+  ...props
+}: ImageProps) => {
+  const [hasError, setHasError] = React.useState(false);
 
   return (
     <img
-      src={error ? fallbackSrc : src}
-      alt={alt}
       width={width}
       height={height}
       loading={loading}
-      onError={() => setError(true)}
+      onError={() => setHasError(true)}
+      src={hasError ? fallbackSrc : src}
       className={`object-${fit} ${className}`}
+      {...props}
     />
   );
 };

@@ -7,11 +7,11 @@ const Contact = lazy(() => import('../pages/contact/index'));
 
 // products
 const Products = lazy(() => import('../pages/products/index'));
-const CreateProduct = lazy(() => import('../pages/products/create/CreateProductPage'));
-const PendingProduct = lazy(() => import('../pages/products/pending/PendingProductPage'));
-const ApprovedProduct = lazy(() => import('../pages/products/approved/ApprovedProductPage'));
-const RejectedProduct = lazy(() => import('../pages/products/rejected/RejectedProductPage'));
-const LowStockProduct = lazy(() => import('../pages/products/low-stock/LowStockProductPage'));
+const CreateProduct = lazy(() => import('../pages/products/create'));
+const PendingProduct = lazy(() => import('../pages/products/pending'));
+const ApprovedProduct = lazy(() => import('../pages/products/approved'));
+const RejectedProduct = lazy(() => import('../pages/products/rejected'));
+const LowStockProduct = lazy(() => import('../pages/products/low-stock'));
 
 const Orders = lazy(() => import('../pages/orders/index'));
 
@@ -21,7 +21,7 @@ const EmployeeList = lazy(() => import('../pages/access-control/employees/index'
 const CreateEmployee = lazy(() => import('../pages/access-control/employees/create/index'));
 const EditEmployee = lazy(() => import('../pages/access-control/employees/edit/index'));
 const RolePermission = lazy(() => import('../pages/access-control/roles/index'));
-const CreateRole = lazy(() => import('../pages/access-control/roles/create/index'));
+const CreateRole = lazy(() => import('../pages/access-control/roles/create/'));
 const EditRole = lazy(() => import('../pages/access-control/roles/edit/index'));
 
 // auth

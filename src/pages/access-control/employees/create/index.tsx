@@ -4,6 +4,10 @@ import PageSection from '@/components/templates/PageSection';
 const CreateEmployeePage = () => {
   const onSubmit = async (data: EmployeeFormData) => {
     console.log(data);
+    // await fetch('http://localhost:4000/api/v1', {
+    //   method: 'POST',
+    //   body: JSON.stringify(data),
+    // });
   };
 
   return (

@@ -1,4 +1,4 @@
-import RoleForm1, { type RoleFormData } from '@/components/molecules/forms/RoleForm1';
+import RoleForm, { type RoleFormData } from '@/components/molecules/forms/RoleForm';
 import PageSection from '@/components/templates/PageSection';
 import { useGetRoleByIdQuery } from '@/store/api/endpoints/roleEndpoints';
 import { useParams } from 'react-router';
@@ -22,7 +22,7 @@ const EditRolePage = () => {
 
   return (
     <PageSection title="Edit Role" className="px-5 py-4">
-      <RoleForm1 mode="edit" initialValue={defaultValues} onSubmit={onSubmit} />
+      <RoleForm mode="edit" initialValue={defaultValues} onSubmit={onSubmit} />
     </PageSection>
   );
 };

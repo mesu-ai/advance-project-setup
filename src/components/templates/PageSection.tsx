@@ -7,7 +7,7 @@ const PageSection: FC<{ title?: string; className?: string; children: ReactNode 
 }) => {
   return (
     <div>
-      <h2 className="heading-2">{title}</h2>
+      <h1 className="heading-1">{title}</h1>
       <div className={`bg-surface mt-3 rounded-xl border border-border ${className}`}>
         {children}
       </div>

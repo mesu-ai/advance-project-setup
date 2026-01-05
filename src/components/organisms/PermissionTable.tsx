@@ -43,11 +43,13 @@ const isModuleEnabled = (moduleRows: ModulePermissionT[], permissions: Set<strin
 type PermissionTableProps<T extends FieldValues & { permissions: string[] }> = {
   permissions: Set<string>;
   setValue: UseFormSetValue<T>;
+  error?: string;
 };
 
 const PermissionTable = <T extends FieldValues & { permissions: string[] }>({
   permissions,
   setValue,
+  error,
 }: PermissionTableProps<T>) => {
   const productPermissionRows: ModulePermissionT[] = useMemo(
     () => modulePermissionRows(productRoutePermissions),
@@ -126,7 +128,12 @@ const PermissionTable = <T extends FieldValues & { permissions: string[] }>({
   return (
     <>
       <div className="flex justify-between">
-        <p className="font-bold">Role Permission</p>
+        <div>
+          <p className="font-bold">Role Permission</p>
+          <p className="input-error" role="alert">
+            {error}
+          </p>
+        </div>
         <div className="flex items-center gap-3">
           <p className="font-medium text-primary-500">Select All</p>
           <Switch isEnabled={isSelectAll} onEnabled={handleSelectAll} />

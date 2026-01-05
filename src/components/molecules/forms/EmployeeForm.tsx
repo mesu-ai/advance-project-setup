@@ -5,7 +5,7 @@ import Radio from '@/components/atoms/Radio';
 import Select from '@/components/atoms/Select';
 import PermissionTable from '@/components/organisms/PermissionTable';
 import { submitLabel } from '@/constants/buttonLabel';
-import { BD_NID_REGEX, EMAIL_REGEX, PHONE_REGEX } from '@/constants/regex';
+import { BD_NID_REGEX, PHONE_REGEX } from '@/constants/regex';
 import { useGetRolesQuery } from '@/store/api/endpoints/roleEndpoints';
 import type { RoleT } from '@/types';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -25,11 +25,11 @@ const employeeSchema = z.object({
   name: z.string().min(3, 'Invalid name'),
   employeeId: z.string().min(5, 'Invalid employee ID'),
   mobileNo: z.string().regex(PHONE_REGEX, 'Invalid mobile no.'),
-  email: z.string().regex(EMAIL_REGEX, 'Invalid email address'),
+  email: z.email(),
   nid: z.string().regex(BD_NID_REGEX, 'Invalid Bangladesh NID number'),
   depertment: z.string().min(1, 'Department is required'),
   role: z.string().min(1, 'Role is required'),
-  gender: z.enum(['femele', 'male'], { message: 'Gender is required' }),
+  gender: z.enum(['men', 'female']).nullable(),
   status: z.enum(['Y', 'N'], { message: 'Status is required' }),
   permissions: z.array(z.string()),
   photo: z
@@ -73,7 +73,7 @@ const EmployeeForm = ({ mode, initialValues, onSubmit }: EmployeeFormProps) => {
     formState: { errors, isSubmitting },
   } = useForm<EmployeeFormData>({
     resolver: zodResolver(employeeSchema),
-    defaultValues: initialValues ?? {},
+    defaultValues: initialValues ?? { status: 'Y' },
   });
 
   const watchedPhoto = useWatch({ control, name: 'photo' });
@@ -160,9 +160,10 @@ const EmployeeForm = ({ mode, initialValues, onSubmit }: EmployeeFormProps) => {
         <Radio
           label="Gender"
           options={[
-            { label: 'Femele', value: 'femele' },
+            { label: 'Female', value: 'female' },
             { label: 'Male', value: 'male' },
           ]}
+          required={false}
           error={errors.gender?.message}
           {...register('gender')}
         />

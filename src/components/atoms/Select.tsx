@@ -19,13 +19,14 @@ const Select = <T extends OptionType>({
   className = '',
   optionKeys,
   placeholder = 'Select an option',
+  required = true,
   ...props
 }: SelectProps<T>) => {
   const generatedId = useId();
   return (
     <div className={className}>
       <label className="input-label" htmlFor={generatedId}>
-        {label}
+        {label} {required && <span className="text-danger-500">*</span>}
       </label>
       <div className="relative">
         <select

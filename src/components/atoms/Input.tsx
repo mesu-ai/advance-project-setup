@@ -5,13 +5,20 @@ interface InputProps extends ComponentPropsWithRef<'input'> {
   error?: string;
 }
 
-const Input = ({ label, className = '', type = 'text', error, ...props }: InputProps) => {
+const Input = ({
+  label,
+  className = '',
+  type = 'text',
+  error,
+  required = true,
+  ...props
+}: InputProps) => {
   const generatedId = useId();
 
   return (
     <div>
       <label className="input-label" htmlFor={generatedId}>
-        {label}
+        {label} {required && <span className="text-danger-500">*</span>}
       </label>
       <div className={`input-field ${className}`}>
         <input

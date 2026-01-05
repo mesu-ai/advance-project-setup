@@ -8,12 +8,15 @@ interface RadioProps extends Omit<ComponentPropsWithRef<'input'>, 'type'> {
   options: OptionType[];
 }
 
-const Radio = ({ label, options, error, ...props }: RadioProps) => {
+const Radio = ({ label, options, error, required = true, ...props }: RadioProps) => {
   const generatedId = useId();
 
   return (
-    <div>
-      <label className="input-label">{label}</label>
+    <fieldset>
+      <legend className="input-label">
+        {label} {required && <span className="text-danger-500">*</span>}
+      </legend>
+
       <div className="space-x-4 mt-1">
         {options.map((option, index) => (
           <label key={index} htmlFor={`${generatedId}-${index}`} className="capitalize space-x-1.5">
@@ -33,7 +36,7 @@ const Radio = ({ label, options, error, ...props }: RadioProps) => {
           {error}
         </p>
       )}
-    </div>
+    </fieldset>
   );
 };
 

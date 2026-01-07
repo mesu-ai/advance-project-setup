@@ -1,6 +1,6 @@
 import { routerPermissionMap } from '@/routes/routes.map';
 import { store } from '@/store/store';
-import type { RoutePermissionT, UserT } from '@/types';
+import type { ModulePermissionT, RoutePermissionMapT, RoutePermissionT, UserT } from '@/types';
 import { normalizePath } from './normalizePath';
 
 const staticRoutes = new Map<string, RoutePermissionT>();
@@ -54,4 +54,23 @@ export const checkPageAction = (pathname: string, actionName: string) => {
   const pageKey = routeInfo.page;
   const actionKey = `${pageKey}.${actionName}.action`;
   return hasPermission(user, actionKey);
+};
+
+export const modulePermissionRows = (moduleRoutes: RoutePermissionMapT) =>
+  Object.entries(moduleRoutes)
+    .filter(([, permission]) => permission.showInTable !== false)
+    .map(([path, permission]) => ({
+      path,
+      page: permission.page,
+      actions: permission.actions ?? [],
+      pageLabel: permission.pageLabel,
+    }));
+
+export const getModulePermissions = (module: ModulePermissionT[]) => {
+  const allPerms: string[] = [];
+  module.forEach((row) => {
+    allPerms.push(row?.page);
+    row?.actions.forEach((action) => allPerms.push(`${row.page}.${action}.action`));
+  });
+  return allPerms;
 };

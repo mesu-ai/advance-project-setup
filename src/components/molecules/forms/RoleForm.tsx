@@ -12,7 +12,7 @@ import * as z from 'zod';
 const roleSchema = z.object({
   status: z.enum(['Y', 'N'], { message: 'Status is required' }),
   role: z.string().min(1, 'Role can not empty'),
-  permissions: z.array(z.string()),
+  permissions: z.array(z.string()).nonempty('Select at least one permission'),
 });
 
 export type RoleFormData = z.infer<typeof roleSchema>;
@@ -31,10 +31,11 @@ const RoleForm = ({ mode, initialValue, onSubmit }: RoleFormProps) => {
     handleSubmit,
     setValue,
     control,
+    trigger,
     formState: { isSubmitting, errors },
   } = useForm<RoleFormData>({
     resolver: zodResolver(roleSchema),
-    defaultValues: initialValue ?? { status: 'Y' },
+    defaultValues: initialValue ?? { status: 'Y', permissions: [] },
   });
 
   const watchedPermissions = useWatch({ control, name: 'permissions' });
@@ -57,14 +58,19 @@ const RoleForm = ({ mode, initialValue, onSubmit }: RoleFormProps) => {
               { label: 'Active', value: 'Y' },
               { label: 'Inactive', value: 'N' },
             ]}
-            placeholder="Select Role"
+            placeholder="Select Status"
             error={errors.status?.message}
             {...register('status')}
           />
         </div>
       </div>
 
-      <PermissionTable permissions={permissions} setValue={setValue} />
+      <PermissionTable
+        permissions={permissions}
+        setValue={setValue}
+        trigger={trigger}
+        error={errors.permissions?.message}
+      />
 
       <div className="flex justify-end gap-4">
         <Button variant="cancel" onClick={() => navigate('/access-control/roles')}>

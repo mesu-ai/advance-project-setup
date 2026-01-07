@@ -3,37 +3,18 @@ import Checkbox from '../atoms/Checkbox';
 import Checkbox2 from '../atoms/Checkbox2';
 import Switch from '../atoms/Switch';
 import DataTable from './DataTable';
-import type { RoutePermissionMapT } from '@/types';
-import { accessRoutePermissions, productRoutePermissions } from '@/routes/routes.map';
-import type { FieldValues, Path, UseFormSetValue } from 'react-hook-form';
-
-type ModulePermissionT = {
-  path: string;
-  page: string;
-  actions: readonly string[];
-};
+import type { ModulePermissionT } from '@/types';
+import {
+  accessRoutePermissions,
+  orderRoutePermissions,
+  productRoutePermissions,
+} from '@/routes/routes.map';
+import type { FieldValues, Path, UseFormSetValue, UseFormTrigger } from 'react-hook-form';
+import { getModulePermissions, modulePermissionRows } from '@/utils/permission';
 
 type ModuleT = { name: string; isEnabled: boolean; data: ModulePermissionT[] };
 
 const pageName = (page: string) => page.split('.').slice(-2).join(' ');
-
-const getModulePermissions = (module: ModulePermissionT[]) => {
-  const allPerms: string[] = [];
-  module.forEach((row) => {
-    allPerms.push(row?.page);
-    row?.actions.forEach((action) => allPerms.push(`${row.page}.${action}.action`));
-  });
-  return allPerms;
-};
-
-const modulePermissionRows = (moduleRoutes: RoutePermissionMapT) =>
-  Object.entries(moduleRoutes)
-    .filter(([, permission]) => permission.showInTable !== false)
-    .map(([path, permission]) => ({
-      path,
-      page: permission.page,
-      actions: permission.actions ?? [],
-    }));
 
 const isModuleEnabled = (moduleRows: ModulePermissionT[], permissions: Set<string>): boolean => {
   const modulePerms = getModulePermissions(moduleRows);
@@ -43,16 +24,23 @@ const isModuleEnabled = (moduleRows: ModulePermissionT[], permissions: Set<strin
 type PermissionTableProps<T extends FieldValues & { permissions: string[] }> = {
   permissions: Set<string>;
   setValue: UseFormSetValue<T>;
+  trigger?: UseFormTrigger<T>;
   error?: string;
 };
 
 const PermissionTable = <T extends FieldValues & { permissions: string[] }>({
   permissions,
   setValue,
+  trigger,
   error,
 }: PermissionTableProps<T>) => {
   const productPermissionRows: ModulePermissionT[] = useMemo(
     () => modulePermissionRows(productRoutePermissions),
+    []
+  );
+
+  const orderPermissionRows: ModulePermissionT[] = useMemo(
+    () => modulePermissionRows(orderRoutePermissions),
     []
   );
 
@@ -65,8 +53,9 @@ const PermissionTable = <T extends FieldValues & { permissions: string[] }>({
     () => [
       ...getModulePermissions(productPermissionRows),
       ...getModulePermissions(accessPermissionRows),
+      ...getModulePermissions(orderPermissionRows),
     ],
-    [productPermissionRows, accessPermissionRows]
+    [productPermissionRows, orderPermissionRows, accessPermissionRows]
   );
 
   const isSelectAll = useMemo(
@@ -74,10 +63,12 @@ const PermissionTable = <T extends FieldValues & { permissions: string[] }>({
     [allPermissions, permissions]
   );
 
-  const handleSelectAll = () =>
+  const handleSelectAll = async () => {
     setValue('permissions' as Path<T>, (isSelectAll ? [] : allPermissions) as never);
+    if (trigger) await trigger('permissions' as Path<T>);
+  };
 
-  const handleModuleToggle = (module: ModulePermissionT[]) => {
+  const handleModuleToggle = async (module: ModulePermissionT[]) => {
     const modulePermissions = getModulePermissions(module);
     const next = new Set(permissions);
 
@@ -85,9 +76,10 @@ const PermissionTable = <T extends FieldValues & { permissions: string[] }>({
     modulePermissions.forEach((perm) => (isEnabled ? next.delete(perm) : next.add(perm)));
 
     setValue('permissions' as Path<T>, Array.from(next) as never);
+    if (trigger) await trigger('permissions' as Path<T>);
   };
 
-  const handlePageToggle = (e: ChangeEvent<HTMLInputElement>, row: ModulePermissionT) => {
+  const handlePageToggle = async (e: ChangeEvent<HTMLInputElement>, row: ModulePermissionT) => {
     const isChecked = e.target.checked;
     const pagePermission: string[] = [
       row.page,
@@ -97,6 +89,7 @@ const PermissionTable = <T extends FieldValues & { permissions: string[] }>({
     pagePermission.forEach((perm) => (isChecked ? next.add(perm) : next.delete(perm)));
 
     setValue('permissions' as Path<T>, Array.from(next) as never);
+    if (trigger) await trigger('permissions' as Path<T>);
   };
 
   const handleActionToggle = (e: ChangeEvent<HTMLInputElement>, action: string) => {
@@ -115,6 +108,11 @@ const PermissionTable = <T extends FieldValues & { permissions: string[] }>({
     [permissions, productPermissionRows]
   );
 
+  const isOrdersEnabled = useMemo(
+    () => isModuleEnabled(orderPermissionRows, permissions),
+    [permissions, orderPermissionRows]
+  );
+
   const isRolesEnabled = useMemo(
     () => isModuleEnabled(accessPermissionRows, permissions),
     [permissions, accessPermissionRows]
@@ -122,6 +120,7 @@ const PermissionTable = <T extends FieldValues & { permissions: string[] }>({
 
   const modules: ModuleT[] = [
     { name: 'Products', isEnabled: isProductsEnabled, data: productPermissionRows },
+    { name: 'Orders', isEnabled: isOrdersEnabled, data: orderPermissionRows },
     { name: 'Roles & Permissions', isEnabled: isRolesEnabled, data: accessPermissionRows },
   ];
 
@@ -129,10 +128,14 @@ const PermissionTable = <T extends FieldValues & { permissions: string[] }>({
     <>
       <div className="flex justify-between">
         <div>
-          <p className="font-bold">Role Permission</p>
-          <p className="input-error" role="alert">
-            {error}
+          <p className="font-bold">
+            Role Permission <span className="text-danger-500">*</span>
           </p>
+          {error && (
+            <p className="input-error" role="alert">
+              {error}
+            </p>
+          )}
         </div>
         <div className="flex items-center gap-3">
           <p className="font-medium text-primary-500">Select All</p>
@@ -156,7 +159,7 @@ const PermissionTable = <T extends FieldValues & { permissions: string[] }>({
                 <tr key={row.page}>
                   <td className="px-5 py-3">
                     <Checkbox2
-                      label={pageName(row.page)}
+                      label={row.pageLabel ?? pageName(row.page)}
                       value={row.page}
                       checked={permissions.has(row.page)}
                       onChange={(e) => handlePageToggle(e, row)}

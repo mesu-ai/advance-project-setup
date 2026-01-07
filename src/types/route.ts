@@ -19,6 +19,7 @@ export interface SideRouteProps {
 export interface RoutePermissionT {
   page: string;
   actions?: readonly string[];
+  pageLabel?: string;
   showInTable?: boolean;
 }
 

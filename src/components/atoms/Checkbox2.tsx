@@ -18,9 +18,7 @@ const Checkbox2 = ({ label, className = '', checked, onChange, ...props }: Check
   }, [checked]);
 
   return (
-    <label
-      className={` transition-colors duration-200 ease-in-out select-none capitalize ${className}`}
-    >
+    <label className={`transition-colors duration-200 ease-in-out select-none ${className}`}>
       {label}
       <input
         type="checkbox"

@@ -1,5 +1,4 @@
 //sidebar.routes.ts
-
 import type { SideRouteProps } from '@/types';
 import ProductIcon from '@/assets/svg/ProductIcon';
 import OrderIcon from '@/assets/svg/OrderIcon';
@@ -14,10 +13,7 @@ export const sidebarGenRoutes: SideRouteProps[] = [
     icon: ProductIcon,
     children: [
       { title: 'Create Product', path: 'create' },
-      { title: 'Pending Product', path: 'pending' },
-      { title: 'Approved Product', path: 'approved' },
-      { title: 'Rejected Product', path: 'rejected' },
-      { title: 'Low Stock', path: 'low-stock' },
+      { title: 'Manage Product', path: 'manage' },
     ],
   },
   {
@@ -25,11 +21,9 @@ export const sidebarGenRoutes: SideRouteProps[] = [
     path: 'orders',
     icon: OrderIcon,
     children: [
-      { title: 'Create Product', path: 'create' },
-      { title: 'Pending Product', path: 'pending' },
-      { title: 'Approved Product', path: 'approved' },
-      { title: 'Rejected Product', path: 'rejected' },
-      { title: 'Low Stock', path: 'low-stock' },
+      { title: 'Create Order', path: 'create' },
+      { title: 'Manage Order', path: 'manage' },
+      { title: 'Cancel Order', path: 'cancel' },
     ],
   },
 ];

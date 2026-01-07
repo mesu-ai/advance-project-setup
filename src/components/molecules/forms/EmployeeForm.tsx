@@ -29,9 +29,9 @@ const employeeSchema = z.object({
   nid: z.string().regex(BD_NID_REGEX, 'Invalid Bangladesh NID number'),
   depertment: z.string().min(1, 'Department is required'),
   role: z.string().min(1, 'Role is required'),
-  gender: z.enum(['men', 'female']).nullable(),
+  gender: z.enum(['male', 'female']).nullable(),
   status: z.enum(['Y', 'N'], { message: 'Status is required' }),
-  permissions: z.array(z.string()),
+  permissions: z.array(z.string()).nonempty('Select at least one permission'),
   photo: z
     .union([z.string().min(1), z.instanceof(File)])
     .optional()
@@ -69,6 +69,7 @@ const EmployeeForm = ({ mode, initialValues, onSubmit }: EmployeeFormProps) => {
     handleSubmit,
     register,
     setValue,
+    trigger,
     control,
     formState: { errors, isSubmitting },
   } = useForm<EmployeeFormData>({
@@ -87,7 +88,8 @@ const EmployeeForm = ({ mode, initialValues, onSubmit }: EmployeeFormProps) => {
     if (!selectedRole?.permissions) return;
 
     setValue('permissions', selectedRole.permissions);
-  }, [watchedRole, roles, setValue]);
+    if (trigger) trigger('permissions');
+  }, [watchedRole, roles, setValue, trigger]);
 
   if (isLoading) return <div>Loading...</div>;
 
@@ -160,8 +162,8 @@ const EmployeeForm = ({ mode, initialValues, onSubmit }: EmployeeFormProps) => {
         <Radio
           label="Gender"
           options={[
-            { label: 'Female', value: 'female' },
             { label: 'Male', value: 'male' },
+            { label: 'Female', value: 'female' },
           ]}
           required={false}
           error={errors.gender?.message}
@@ -188,11 +190,16 @@ const EmployeeForm = ({ mode, initialValues, onSubmit }: EmployeeFormProps) => {
           >
             {isExpand ? 'Collapse Permisssions' : 'View Permissions'}
           </button>
+          {errors.permissions?.message && (
+            <p className="input-error" role="alert">
+              {errors.permissions?.message}
+            </p>
+          )}
           <div
             className={`grid transition-[grid-template-rows] duration-300 ease-in-out ${isExpand ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'}`}
           >
             <div className="overflow-hidden">
-              <PermissionTable permissions={permissions} setValue={setValue} />
+              <PermissionTable permissions={permissions} setValue={setValue} trigger={trigger} />
             </div>
           </div>
         </>

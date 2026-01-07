@@ -10,3 +10,10 @@ export interface RoleResponseT {
   message: string;
   data: RoleT;
 }
+
+export interface ModulePermissionT {
+  path: string;
+  page: string;
+  actions: readonly string[];
+  pageLabel?: string;
+}

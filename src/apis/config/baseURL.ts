@@ -1,1 +1,1 @@
-export const baseURL = 'https://prod.saralifestyle.com';
+export const baseURL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:4000';

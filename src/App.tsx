@@ -4,6 +4,7 @@ import { router } from './routes/router.config';
 import { store } from './store/store';
 import { Provider } from 'react-redux';
 import { Toaster } from 'react-hot-toast';
+import 'textcrafter/dist/styles.min.css';
 
 function App() {
   return (

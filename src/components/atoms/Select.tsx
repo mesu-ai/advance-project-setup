@@ -28,6 +28,7 @@ const Select = <T extends OptionType>({
       <label className="input-label" htmlFor={generatedId}>
         {label} {required && <span className="text-danger-500">*</span>}
       </label>
+
       <div className="relative">
         <select
           id={generatedId}

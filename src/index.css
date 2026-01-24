@@ -10,6 +10,14 @@
   --surface: #ffffff;
   --border: #ebebeb;
 
+  /* text-editor variable */
+  --textcrafter-button-bg: #ffffff;
+  --textcrafter-button-bg-hover: #e0e0e0;
+  --textcrafter-button-secondary-bg: #f2f2f2;
+  --textcrafter-button-secondary-bg-hover: #f0f7ff;
+  --textcrafter-dropdown-bg: #ffffff;
+  --textcrafter-border: #ddd;
+
   color-scheme: light;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
@@ -22,6 +30,15 @@
   --foreground: #ffffff;
   --surface: #383838;
   --border: #6f6e6f;
+
+  /* text-editor variable */
+  --textcrafter-button-bg: #2d2d2d;
+  --textcrafter-button-bg-hover: #383838;
+  --textcrafter-button-secondary-bg: #323232;
+  --textcrafter-button-secondary-bg-hover: #213547;
+  --textcrafter-dropdown-bg: #383838;
+  --textcrafter-border: #6f6e6f;
+
   color-scheme: dark;
 }
 
@@ -43,6 +60,7 @@
 
   --color-neutral-50: #f2f2f2;
   --color-neutral-100: #d8d8d8;
+  --color-neutral-200: #c4c4c4;
   --color-neutral-300: #ababab;
 
   --color-success-50: #eaf8f1;
@@ -62,6 +80,7 @@
   --color-black-800: #161516;
   --color-black-900: #111011;
 
+  --color-white-600: #f3f3f3;
   --color-white-700: #ebebeb;
 
   --spacing-7.5: 30px;
@@ -109,5 +128,25 @@ input:-webkit-autofill {
 
   .input-error {
     @apply text-red-500 text-sm;
+  }
+}
+
+@layer components {
+  /* Customize editor appearance */
+  .custom-editor {
+    padding: 10px;
+    border-radius: 8px;
+    background-color: var(--surface);
+    border: 1px solid var(--color-neutral-300);
+    &:hover {
+      border: 1px solid var(--color-primary-500);
+    }
+  }
+
+  .custom-toolbar {
+    background-color: var(--background);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   }
 }

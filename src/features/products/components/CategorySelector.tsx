@@ -1,0 +1,416 @@
+import ArrowIcon from '@/assets/svg/ArrowIcon';
+import Button from '@/components/atoms/Button';
+import Radio from '@/components/atoms/Radio';
+import SelectSearch from '@/components/atoms/SelectSearch';
+import SearchBar from '@/components/molecules/SearchBar';
+import useSearch from '@/hooks/useSearch';
+import { useGetCategoriesQuery } from '@/store/api/endpoints/categoryEndpoints';
+import type { CategoryT, FirstChildT, SecondChildT, ThirdChildT } from '@/types/categories';
+import { useMemo, type ChangeEvent } from 'react';
+
+interface CategotyLayerT {
+  base: string;
+  first?: string;
+  second?: string;
+  third?: string;
+}
+
+interface SelectedCategoryT {
+  id: number | null;
+  name: string;
+  layer: CategotyLayerT;
+}
+
+const recentUsed: SelectedCategoryT[] = [
+  {
+    id: 4,
+    name: 'Mens Panjabi',
+    layer: {
+      base: 'Clothing & Fashion',
+      first: 'Mens',
+      second: 'Mens Top Wear',
+      third: 'Mens Panjabi',
+    },
+  },
+  {
+    id: 6,
+    name: 'Mens Casual Shirt',
+    layer: {
+      base: 'Clothing & Fashion',
+      first: 'Mens',
+      second: 'Mens Top Wear',
+      third: 'Mens Casual Shirt',
+    },
+  },
+  {
+    id: 531,
+    name: 'Mens Jacket',
+    layer: {
+      base: 'Clothing & Fashion',
+      first: 'Mens',
+      second: 'Mens Top Wear',
+      third: 'Mens Jacket',
+    },
+  },
+  {
+    id: 39,
+    name: 'Saree',
+    layer: {
+      base: 'Clothing & Fashion',
+      first: 'Womens',
+      second: 'Womens Top Wear',
+      third: 'Saree',
+    },
+  },
+  {
+    id: 446,
+    name: 'Western',
+    layer: {
+      base: 'Clothing & Fashion',
+      first: 'Womens',
+      second: 'Western',
+    },
+  },
+];
+
+const categorySuggessions: SelectedCategoryT[] = [
+  {
+    id: 13,
+    name: 'Clothing & Fashion > Mens > Mens Bottom Wear > Mens Formal Pant',
+    layer: {
+      base: 'Clothing & Fashion',
+      first: 'Mens',
+      second: 'Mens Bottom Wear',
+      third: 'Mens Formal Pant',
+    },
+  },
+  {
+    id: 174,
+    name: 'Lifestyle Accessories > Watch & Accessories > Smart Watches',
+    layer: {
+      base: 'Lifestyle Accessories',
+      first: 'Watch & Accessories',
+      second: 'Smart Watches',
+    },
+  },
+];
+
+interface CategorySelectorProps {
+  //   value: number;
+  selected: SelectedCategoryT;
+  onSelected: (category: SelectedCategoryT) => void;
+  onConfirm: (category: SelectedCategoryT) => void;
+}
+
+const CategorySelector = ({ onConfirm, selected, onSelected }: CategorySelectorProps) => {
+  //   const [selected, onSelected] = useState<SelectedCategoryT>({
+  //     id: null,
+  //     name: '',
+  //     layer: {
+  //       base: '',
+  //       first: '',
+  //       second: '',
+  //       third: '',
+  //     },
+  //   });
+
+  const { data: categoies, isLoading } = useGetCategoriesQuery('Categories');
+
+  //   const {
+  //     register,
+  //     setValue,
+  //     handleSubmit,
+  //     trigger,
+  //     control,
+  //     formState: { errors, isSubmitting },
+  //   } = useForm<ProductFormData>({ resolver: zodResolver(productSchema) });
+
+  //   const watchedCategory = useWatch({ control, name: 'categoryId' });
+  //   console.log({watchedCategory})
+
+  const derivedChildren = useMemo(() => {
+    if (!categoies?.data || !selected?.id) {
+      return { first: [], second: [], third: [] };
+    }
+
+    const base = categoies?.data?.find((c: CategoryT) => c.categoryName === selected.layer.base);
+
+    if (!base) return { first: [], second: [], third: [] };
+
+    console.log('now for first');
+
+    const first = base?.firstChildren?.find(
+      (c: FirstChildT) => c.categoryName === selected.layer.first
+    );
+
+    // if (!first) return { first: base?.firstChildren, second: [], third: [] };
+
+    console.log('now for second');
+
+    const second = first?.secondChildren?.find(
+      (c: SecondChildT) => c.categoryName === selected.layer.second
+    );
+
+    return {
+      first: base?.firstChildren ?? [],
+      second: first?.secondChildren ?? [],
+      third: second?.thirdChild ?? [],
+    };
+  }, [categoies?.data, selected]);
+
+  const firstChild = derivedChildren.first;
+  const secondChild = derivedChildren.second;
+  const thirdChild = derivedChildren.third;
+
+  const baseSearch = useSearch<CategoryT>(categoies?.data, (c) => c.categoryName, 200);
+  const firstSearch = useSearch<FirstChildT>(firstChild, (c) => c.categoryName, 200);
+  const secondSearch = useSearch<SecondChildT>(secondChild, (c) => c.categoryName, 200);
+  const thirdSearch = useSearch<ThirdChildT>(thirdChild, (c) => c.categoryName, 200);
+
+  // console.log({ categoies, baseCategories, isLoading });
+
+  const handleBaseCategory = (category: CategoryT) => {
+    onSelected({
+      id: category.categoryId,
+      name: category.categoryName,
+      layer: {
+        base: category.categoryName,
+        first: '',
+        second: '',
+        third: '',
+      },
+    });
+  };
+
+  const handleFirstChild = (category: FirstChildT) => {
+    onSelected({
+      ...selected,
+      id: category.categoryId,
+      name: category.categoryName,
+      layer: {
+        ...selected.layer,
+        first: category.categoryName,
+        second: '',
+        third: '',
+      },
+    });
+  };
+
+  const handleSecondChild = (category: SecondChildT) => {
+    onSelected({
+      ...selected,
+      id: category.categoryId,
+      name: category.categoryName,
+      layer: {
+        ...selected.layer,
+        second: category.categoryName,
+        third: '',
+      },
+    });
+  };
+
+  const handleThirdChild = (category: ThirdChildT) => {
+    onSelected({
+      ...selected,
+      id: category.categoryId,
+      name: category.categoryName,
+      layer: {
+        ...selected.layer,
+        third: category.categoryName,
+      },
+    });
+  };
+
+  const handleCategorySelected = (category: SelectedCategoryT, setState = false) => {
+    onConfirm(category);
+    // setValue('categoryId', );
+    // trigger('categoryId');
+    if (setState) onSelected(category);
+  };
+
+  //   const onSubmit = (data: ProductFormData) => {
+  //     console.log({ data });
+  //   };
+
+  const handleSuggestCategory = (e: ChangeEvent<HTMLInputElement>) => {
+    const suggestedCategory = categorySuggessions.find((c) => c.id === Number(e.target.value));
+    if (suggestedCategory) handleCategorySelected(suggestedCategory, true);
+  };
+
+  return (
+    <div>
+      <div className="mt-3 space-y-4">
+        <div className="text-sm flex items-center gap-4">
+          <p>Recently Used:</p>
+          <ul className="text-neutral-300 flex gap-4">
+            {recentUsed.map((item) => (
+              <li
+                key={item?.id}
+                role="button"
+                onClick={() => handleCategorySelected(item, true)}
+                className="cursor-pointer rounded px-2 py-0.5 bg-white-600 w-fit hover:bg-secondary-50 hover:text-secondary-500"
+              >
+                {item.name}
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        <div className="bg-background p-4 rounded-lg">
+          <p className="mb-1">Category Suggessions</p>
+          <Radio
+            name="suggestedCatId"
+            options={categorySuggessions}
+            optionKeys={{ label: 'name', value: 'id' }}
+            onChange={handleSuggestCategory}
+            className="flex-col gap-y-2 text-neutral-300"
+            required={false}
+          />
+        </div>
+      </div>
+
+      <div className="mt-3 border border-neutral-300 p-5 rounded-xl space-y-4">
+        <div>
+          <SelectSearch />
+        </div>
+        <div className="text-sm flex items-center gap-4">
+          <p>Recently Used:</p>
+          <ul className="text-neutral-300 flex gap-4">
+            {recentUsed.map((item) => (
+              <li
+                key={item?.id}
+                role="button"
+                onClick={() => handleCategorySelected(item, true)}
+                className="cursor-pointer rounded px-2 py-0.5 bg-white-600 w-fit hover:bg-secondary-50 hover:text-secondary-500"
+              >
+                {item.name}
+              </li>
+            ))}
+          </ul>
+        </div>
+        <div className="text-sm border border-neutral-300 rounded-lg grid grid-cols-4 divide-x divide-neutral-300">
+          <div>
+            <SearchBar
+              onSearch={baseSearch.setKeyword}
+              className="rounded-none rounded-tl-lg border-0 border-b border-neutral-300"
+            />
+            <ul className="max-h-[320px] overflow-y-auto">
+              {!isLoading &&
+                baseSearch?.result?.map((category: CategoryT) => {
+                  const isSelected = selected.layer?.base === category.categoryName;
+
+                  return (
+                    <li
+                      role="button"
+                      key={category.categoryId}
+                      onClick={() => handleBaseCategory(category)}
+                      className={`cursor-default flex justify-between py-1.5 px-3 hover:bg-primary-50 hover:text-primary-500 ${isSelected && 'bg-primary-50 text-primary-500'}`}
+                    >
+                      {category?.categoryName} <ArrowIcon className="w-4 h-4 rotate-90" />
+                    </li>
+                  );
+                })}
+            </ul>
+          </div>
+          <div>
+            <SearchBar
+              disabled={!firstChild.length}
+              onSearch={firstSearch.setKeyword}
+              className="rounded-none border-0 border-b border-neutral-300"
+            />
+            <ul className="max-h-[320px] overflow-y-auto">
+              {firstSearch?.result?.map((category: FirstChildT) => {
+                const isSelected = selected.layer?.first === category.categoryName;
+                return (
+                  <li
+                    role="button"
+                    key={category.categoryId}
+                    onClick={() => handleFirstChild(category)}
+                    className={`cursor-default flex justify-between py-1.5 px-3 hover:bg-primary-50 hover:text-primary-500 ${isSelected && 'bg-primary-50 text-primary-500'}`}
+                  >
+                    {category?.categoryName}
+                    {category.secondChildren.length > 0 && (
+                      <ArrowIcon className="w-4 h-4 rotate-90" />
+                    )}
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
+          <div>
+            <SearchBar
+              disabled={!secondChild.length}
+              onSearch={secondSearch?.setKeyword}
+              className="rounded-none border-0 border-b border-neutral-300"
+            />
+            <ul className="max-h-[320px] overflow-y-auto">
+              {secondSearch?.result?.map((category: SecondChildT) => {
+                const isSelected = selected.layer?.second === category.categoryName;
+                return (
+                  <li
+                    role="button"
+                    key={category.categoryId}
+                    onClick={() => handleSecondChild(category)}
+                    className={`cursor-default flex justify-between py-1.5 px-3 hover:bg-primary-50 hover:text-primary-500 ${isSelected && 'bg-primary-50 text-primary-500'}`}
+                  >
+                    {category?.categoryName}{' '}
+                    {category.thirdChild.length > 0 && <ArrowIcon className="w-4 h-4 rotate-90" />}
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
+          <div>
+            <SearchBar
+              disabled={!thirdChild.length}
+              onSearch={thirdSearch.setKeyword}
+              className="rounded-none rounded-tr-lg border-0 border-b border-neutral-300"
+            />
+            <ul className="max-h-[320px] overflow-y-auto">
+              {thirdSearch?.result?.map((category: ThirdChildT) => {
+                const isSelected = selected.layer?.third === category.categoryName;
+                return (
+                  <li
+                    role="button"
+                    key={category.categoryId}
+                    onClick={() => handleThirdChild(category)}
+                    className={`cursor-default flex justify-between py-1.5 px-3 hover:bg-primary-50 hover:text-primary-500 ${isSelected && 'bg-primary-50 text-primary-500'}`}
+                  >
+                    {category?.categoryName}
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
+        </div>
+        <div>
+          <p>
+            Selected Category :{' '}
+            {selected.layer?.base ? (
+              <span className="px-2.5 py-1 rounded bg-secondary-500 text-white text-sm">
+                {selected.layer?.base && `${selected.layer?.base}`}{' '}
+                {selected.layer?.first && `> ${selected.layer?.first}`}{' '}
+                {selected.layer?.second && `> ${selected.layer?.second}`}{' '}
+                {selected.layer?.third && `> ${selected.layer?.third}`}
+              </span>
+            ) : (
+              '---'
+            )}
+          </p>
+        </div>
+        <div className="flex justify-end gap-4">
+          <Button variant="cancel">Cancel</Button>
+          <Button
+            variant="confirm"
+            disabled={!selected.layer?.base}
+            onClick={() => handleCategorySelected(selected)}
+          >
+            Confirm
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default CategorySelector;

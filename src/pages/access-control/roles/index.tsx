@@ -31,7 +31,7 @@ const RolePermissionPage = () => {
   return (
     <PageSection title="Employee Permission List">
       <div className="flex justify-between px-5 py-4">
-        <SearchBar className="max-w-[350px]" />
+        <SearchBar className="max-w-[350px]" onSearch={(keyword) => console.log(keyword)} />
         <Button variant="add" onClick={() => navigate('/access-control/roles/create')}>
           Add New Role
         </Button>

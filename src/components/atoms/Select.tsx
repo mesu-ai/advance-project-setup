@@ -1,10 +1,10 @@
 import ArrowIcon from '@/assets/svg/ArrowIcon';
 import { useId, type ComponentPropsWithRef } from 'react';
 
-type OptionType = Record<string, unknown>;
+type OptionType = Record<string, string | number>;
 type OptionKeys<T> = { label: keyof T; value: keyof T };
 
-interface SelectProps<T = OptionType> extends ComponentPropsWithRef<'select'> {
+interface SelectProps<T extends OptionType> extends ComponentPropsWithRef<'select'> {
   label: string;
   options: T[];
   error?: string;

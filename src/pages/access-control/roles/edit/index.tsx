@@ -1,4 +1,4 @@
-import RoleForm, { type RoleFormData } from '@/components/molecules/forms/RoleForm';
+import RoleForm, { type RoleFormData } from '@/features/roles/components/RoleForm';
 import PageSection from '@/components/templates/PageSection';
 import { useGetRoleByIdQuery } from '@/store/api/endpoints/roleEndpoints';
 import { useParams } from 'react-router';

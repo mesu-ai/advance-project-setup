@@ -1,4 +1,4 @@
-import EmployeeForm, { type EmployeeFormData } from '@/components/molecules/forms/EmployeeForm';
+import EmployeeForm, { type EmployeeFormData } from '@/features/employees/components/EmployeeForm';
 import PageSection from '@/components/templates/PageSection';
 import { useGetEmployeeByIdQuery } from '@/store/api/endpoints/employeeEndpoints';
 import { useParams } from 'react-router';

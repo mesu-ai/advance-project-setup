@@ -1,33 +1,59 @@
 import { useId, type ComponentPropsWithRef } from 'react';
 
-type OptionType = { label: string; value: string };
+type OptionType = Record<string, string | number> | object;
+type OptionKeys<T> = { label: keyof T; value: keyof T };
 
-interface RadioProps extends Omit<ComponentPropsWithRef<'input'>, 'type'> {
-  label: string;
+interface RadioProps<T extends OptionType> extends Omit<ComponentPropsWithRef<'input'>, 'type'> {
+  label?: string;
+  options: T[];
   error?: string;
-  options: OptionType[];
+  optionKeys?: OptionKeys<T>;
 }
 
-const Radio = ({ label, options, error, required = true, ...props }: RadioProps) => {
+const Radio = <T extends OptionType>({
+  label,
+  options,
+  error,
+  required = true,
+  optionKeys,
+  className,
+  ...props
+}: RadioProps<T>) => {
   const generatedId = useId();
 
   return (
     <fieldset>
-      <legend className="input-label">
-        {label} {required && <span className="text-danger-500">*</span>}
-      </legend>
+      {label && (
+        <legend className="input-label">
+          {label} {required && <span className="text-danger-500">*</span>}
+        </legend>
+      )}
 
-      <div className="space-x-4 mt-1">
+      <div className={`flex gap-x-4 mt-1 ${className}`}>
         {options.map((option, index) => (
-          <label key={index} htmlFor={`${generatedId}-${index}`} className="capitalize space-x-1.5">
+          <label
+            key={index}
+            htmlFor={`${generatedId}-${index}`}
+            className=" flex items-center gap-1.5 w-fit capitalize"
+          >
             <input
               type="radio"
-              value={option.value}
+              value={String(
+                optionKeys
+                  ? option[optionKeys.value]
+                  : (option as Record<string, string | number>).value
+              )}
               id={`${generatedId}-${index}`}
               className="accent-primary-500"
               {...props}
             />
-            <span>{option.label}</span>
+            <span className="text-sm leading-[17px]">
+              {String(
+                optionKeys
+                  ? option[optionKeys.label]
+                  : (option as Record<string, string | number>).label
+              )}
+            </span>
           </label>
         ))}
       </div>

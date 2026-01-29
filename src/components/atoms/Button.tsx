@@ -1,6 +1,15 @@
 import type { ButtonHTMLAttributes, FC, ReactNode } from 'react';
 
-type ButtonVariantT = 'add' | 'edit' | 'delete' | 'update' | 'cancel' | 'view' | 'confirm';
+type ButtonVariantT =
+  | 'add'
+  | 'edit'
+  | 'delete'
+  | 'update'
+  | 'cancel'
+  | 'view'
+  | 'confirm'
+  | 'draft'
+  | 'submit';
 
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   children: ReactNode;
@@ -24,6 +33,8 @@ const Button: FC<ButtonProps> = ({
     cancel: 'py-2 bg-danger-500 text-white hover:bg-danger-600 w-full max-w-[180px]',
     update: 'py-2 bg-primary-500 text-white hover:bg-primary-600 w-full max-w-[180px]',
     confirm: 'py-2 bg-primary-500 text-white hover:bg-primary-600 w-full max-w-[180px]',
+    draft: 'py-2 bg-primary-500 text-white hover:bg-primary-600 w-full max-w-[180px]',
+    submit: 'py-2 bg-success-500 text-white hover:bg-success-600 w-full max-w-[180px]',
   };
 
   return (

@@ -1,25 +1,22 @@
 import ArrowIcon from '@/assets/svg/ArrowIcon';
 import Button from '@/components/atoms/Button';
 import Radio from '@/components/atoms/Radio';
-import SelectSearch from '@/components/atoms/SelectSearch';
-import SearchBar from '@/components/molecules/SearchBar';
-import useSearch from '@/hooks/useSearch';
-import { useGetCategoriesQuery } from '@/store/api/endpoints/categoryEndpoints';
-import type { CategoryT, FirstChildT, SecondChildT, ThirdChildT } from '@/types/categories';
-import { useMemo, type ChangeEvent } from 'react';
-
-interface CategotyLayerT {
-  base: string;
-  first?: string;
-  second?: string;
-  third?: string;
-}
-
-interface SelectedCategoryT {
-  id: number | null;
-  name: string;
-  layer: CategotyLayerT;
-}
+import SearchBar from '@/components/atoms/Search';
+import SearchSelect from '@/components/molecules/SearchSelect';
+import useLocalSearch from '@/hooks/useLocalSearch';
+import useSearchKeyword from '@/hooks/useSearchKeyword';
+import {
+  useGetCategoriesQuery,
+  useGetCategoryBySearchQuery,
+} from '@/store/api/endpoints/categoryEndpoints';
+import type {
+  CategoryT,
+  FirstChildT,
+  SecondChildT,
+  SelectedCategoryT,
+  ThirdChildT,
+} from '@/types/categories';
+import { useCallback, useMemo, type ChangeEvent } from 'react';
 
 const recentUsed: SelectedCategoryT[] = [
   {
@@ -96,37 +93,21 @@ const categorySuggessions: SelectedCategoryT[] = [
 ];
 
 interface CategorySelectorProps {
-  //   value: number;
+  isOpen?: boolean;
+  onClose?: () => void;
   selected: SelectedCategoryT;
   onSelected: (category: SelectedCategoryT) => void;
   onConfirm: (category: SelectedCategoryT) => void;
 }
 
-const CategorySelector = ({ onConfirm, selected, onSelected }: CategorySelectorProps) => {
-  //   const [selected, onSelected] = useState<SelectedCategoryT>({
-  //     id: null,
-  //     name: '',
-  //     layer: {
-  //       base: '',
-  //       first: '',
-  //       second: '',
-  //       third: '',
-  //     },
-  //   });
-
+const CategorySelector = ({
+  isOpen,
+  onClose,
+  onConfirm,
+  selected,
+  onSelected,
+}: CategorySelectorProps) => {
   const { data: categoies, isLoading } = useGetCategoriesQuery('Categories');
-
-  //   const {
-  //     register,
-  //     setValue,
-  //     handleSubmit,
-  //     trigger,
-  //     control,
-  //     formState: { errors, isSubmitting },
-  //   } = useForm<ProductFormData>({ resolver: zodResolver(productSchema) });
-
-  //   const watchedCategory = useWatch({ control, name: 'categoryId' });
-  //   console.log({watchedCategory})
 
   const derivedChildren = useMemo(() => {
     if (!categoies?.data || !selected?.id) {
@@ -137,15 +118,11 @@ const CategorySelector = ({ onConfirm, selected, onSelected }: CategorySelectorP
 
     if (!base) return { first: [], second: [], third: [] };
 
-    console.log('now for first');
-
     const first = base?.firstChildren?.find(
       (c: FirstChildT) => c.categoryName === selected.layer.first
     );
 
     // if (!first) return { first: base?.firstChildren, second: [], third: [] };
-
-    console.log('now for second');
 
     const second = first?.secondChildren?.find(
       (c: SecondChildT) => c.categoryName === selected.layer.second
@@ -162,12 +139,22 @@ const CategorySelector = ({ onConfirm, selected, onSelected }: CategorySelectorP
   const secondChild = derivedChildren.second;
   const thirdChild = derivedChildren.third;
 
-  const baseSearch = useSearch<CategoryT>(categoies?.data, (c) => c.categoryName, 200);
-  const firstSearch = useSearch<FirstChildT>(firstChild, (c) => c.categoryName, 200);
-  const secondSearch = useSearch<SecondChildT>(secondChild, (c) => c.categoryName, 200);
-  const thirdSearch = useSearch<ThirdChildT>(thirdChild, (c) => c.categoryName, 200);
+  const getCategoryName = useCallback(
+    (c: CategoryT | FirstChildT | SecondChildT | ThirdChildT) => c.categoryName,
+    []
+  );
 
-  // console.log({ categoies, baseCategories, isLoading });
+  const baseSearch = useLocalSearch<CategoryT>(categoies?.data, getCategoryName, 200);
+  const firstSearch = useLocalSearch<FirstChildT>(firstChild, getCategoryName, 200);
+  const secondSearch = useLocalSearch<SecondChildT>(secondChild, getCategoryName, 200);
+  const thirdSearch = useLocalSearch<ThirdChildT>(thirdChild, getCategoryName, 200);
+
+  const { debouncedKeyword, setKeyword } = useSearchKeyword(500);
+
+  const { data: searchCategories } = useGetCategoryBySearchQuery(
+    { keyword: debouncedKeyword },
+    { skip: !debouncedKeyword }
+  );
 
   const handleBaseCategory = (category: CategoryT) => {
     onSelected({
@@ -223,14 +210,10 @@ const CategorySelector = ({ onConfirm, selected, onSelected }: CategorySelectorP
 
   const handleCategorySelected = (category: SelectedCategoryT, setState = false) => {
     onConfirm(category);
-    // setValue('categoryId', );
-    // trigger('categoryId');
+    onClose?.();
+
     if (setState) onSelected(category);
   };
-
-  //   const onSubmit = (data: ProductFormData) => {
-  //     console.log({ data });
-  //   };
 
   const handleSuggestCategory = (e: ChangeEvent<HTMLInputElement>) => {
     const suggestedCategory = categorySuggessions.find((c) => c.id === Number(e.target.value));
@@ -238,7 +221,7 @@ const CategorySelector = ({ onConfirm, selected, onSelected }: CategorySelectorP
   };
 
   return (
-    <div>
+    <div className="relative">
       <div className="mt-3 space-y-4">
         <div className="text-sm flex items-center gap-4">
           <p>Recently Used:</p>
@@ -269,9 +252,16 @@ const CategorySelector = ({ onConfirm, selected, onSelected }: CategorySelectorP
         </div>
       </div>
 
-      <div className="mt-3 border border-neutral-300 p-5 rounded-xl space-y-4">
+      <div
+        className={`absolute top-0 right-0 left-0 z-10 bg-surface border border-neutral-300 p-5 rounded-xl space-y-4 ${isOpen ? 'block' : 'hidden'}`}
+      >
         <div>
-          <SelectSearch />
+          <SearchSelect
+            onSelect={(c: SelectedCategoryT) => handleCategorySelected(c, true)}
+            onChange={setKeyword}
+            options={searchCategories?.data ?? []}
+            optionKeys={{ label: 'name', value: 'id' }}
+          />
         </div>
         <div className="text-sm flex items-center gap-4">
           <p>Recently Used:</p>
@@ -399,7 +389,9 @@ const CategorySelector = ({ onConfirm, selected, onSelected }: CategorySelectorP
           </p>
         </div>
         <div className="flex justify-end gap-4">
-          <Button variant="cancel">Cancel</Button>
+          <Button variant="cancel" onClick={() => onClose?.()}>
+            Cancel
+          </Button>
           <Button
             variant="confirm"
             disabled={!selected.layer?.base}

@@ -23,6 +23,8 @@ const Select = <T extends OptionType>({
   ...props
 }: SelectProps<T>) => {
   const generatedId = useId();
+
+  console.log({ error });
   return (
     <div className={className}>
       <label className="input-label" htmlFor={generatedId}>

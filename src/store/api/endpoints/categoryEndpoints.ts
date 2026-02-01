@@ -6,7 +6,14 @@ export const categoryApi = baseApi.injectEndpoints({
       query: () => '/categories',
       providesTags: ['Categories'],
     }),
+
+    getCategoryBySearch: build.query({
+      query: (params) => ({
+        url: '/categories/suggessions',
+        params,
+      }),
+    }),
   }),
 });
 
-export const { useGetCategoriesQuery } = categoryApi;
+export const { useGetCategoriesQuery, useGetCategoryBySearchQuery } = categoryApi;

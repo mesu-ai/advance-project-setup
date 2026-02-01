@@ -1,29 +1,33 @@
+import ArrowIcon from '@/assets/svg/ArrowIcon';
 import Button from '@/components/atoms/Button';
 import Input from '@/components/atoms/Input';
+import Select from '@/components/atoms/Select';
+import Select1 from '@/components/atoms/Select1';
 import CategorySelector from '@/features/products/components/CategorySelector';
-import { useGetCategoriesQuery } from '@/store/api/endpoints/categoryEndpoints';
+import type { SelectedCategoryT } from '@/types/categories';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useState } from 'react';
 import { useForm, useWatch } from 'react-hook-form';
 import Editor from 'textcrafter';
 import * as z from 'zod';
 
-interface CategotyLayerT {
-  base: string;
-  first?: string;
-  second?: string;
-  third?: string;
-}
-
-interface SelectedCategoryT {
-  id: number | null;
-  name: string;
-  layer: CategotyLayerT;
-}
+const shops = [
+  { id: 1, name: 'SaRa Lifestyle Ltd' },
+  { id: 2, name: 'SaRa Lifestyle Ltd' },
+  { id: 3, name: 'SaRa Lifestyle Ltd' },
+  { id: 4, name: 'SaRa Lifestyle Ltd' },
+  { id: 5, name: 'SaRa Lifestyle Ltd' },
+  { id: 6, name: 'SaRa Lifestyle Ltd' },
+  { id: 6, name: 'SaRa Lifestyle Ltd' },
+  { id: 6, name: 'SaRa Lifestyle Ltd' },
+  { id: 6, name: 'SaRa Lifestyle Ltd' },
+];
 
 const productSchema = z.object({
   name: z.string().min(3, 'Product name is required'),
   categoryId: z.number().min(1, 'Category is required'),
+  // unit: z.string
+  unit: z.string().min(1, 'Product unit is required'),
   description: z.string().min(3, 'Description is required'),
 });
 
@@ -31,6 +35,7 @@ type ProductFormData = z.infer<typeof productSchema>;
 
 const CreateProductPage = () => {
   const [editorContent, setEditorContent] = useState('');
+  const [isCategoryOpen, setCategoryOpen] = useState<boolean>(false);
 
   const [selectedCategory, setSelectedCategory] = useState<SelectedCategoryT>({
     id: null,
@@ -43,7 +48,7 @@ const CreateProductPage = () => {
     },
   });
 
-  const { data: categoies, isLoading } = useGetCategoriesQuery('Categories');
+  // const { data: categoies, isLoading } = useGetCategoriesQuery('Categories');
 
   const {
     register,
@@ -55,13 +60,10 @@ const CreateProductPage = () => {
   } = useForm<ProductFormData>({ resolver: zodResolver(productSchema) });
 
   const watchedCategory = useWatch({ control, name: 'categoryId' });
-  console.log({ watchedCategory });
 
   const onSubmit = (data: ProductFormData) => {
     console.log({ data });
   };
-
-  console.log(categoies, isLoading);
 
   return (
     <div>
@@ -77,19 +79,14 @@ const CreateProductPage = () => {
               {...register('name')}
             />
 
-            {/* <Select
-              label="Product Category"
-              options={[{ label: 'Shirt', value: 'shirt' }]}
-              error={errors.category?.message}
-              {...register('category')}
-            /> */}
             <div>
               <p className="input-label">
                 Product Category <span className="text-danger-500">*</span>
               </p>
               <button
                 type="button"
-                className="cursor-pointer text-start input-field text-neutral-300"
+                onClick={() => setCategoryOpen((prev) => !prev)}
+                className={`cursor-pointer text-start input-field flex justify-between items-center ${!watchedCategory && 'text-neutral-300'}`}
               >
                 {watchedCategory ? (
                   <span className="text-sm">
@@ -101,10 +98,15 @@ const CreateProductPage = () => {
                 ) : (
                   'Please Select Category or Search Here'
                 )}
+                <ArrowIcon
+                  className={`w-4 h-4 transition-transform ${isCategoryOpen ? 'rotate-0' : 'rotate-180'}`}
+                />
               </button>
               <p className="input-error">{errors.categoryId?.message}</p>
 
               <CategorySelector
+                isOpen={isCategoryOpen}
+                onClose={() => setCategoryOpen(false)}
                 selected={selectedCategory}
                 onSelected={setSelectedCategory}
                 onConfirm={(c) => {
@@ -112,6 +114,28 @@ const CreateProductPage = () => {
                   trigger('categoryId');
                 }}
               />
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <Select
+                label="Product Quantity Unit"
+                placeholder="Select Product Quantity Unit"
+                options={[
+                  { label: 'PSC', value: 'psc' },
+                  { label: 'KG', value: 'kg' },
+                ]}
+                error={errors.unit?.message}
+                {...register('unit')}
+              />
+              <div className="">
+                <Select1
+                  onSelect={(s) => console.log(s)}
+                  onChange={(e) => console.log(e)}
+                  options={shops ?? []}
+                  optionKeys={{ label: 'name', value: 'id' }}
+                  error="dldlld"
+                />
+              </div>
             </div>
 
             <div>

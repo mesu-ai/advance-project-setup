@@ -3,7 +3,7 @@ import Pagination from '@/components/molecules/Pagination';
 import { useState } from 'react';
 import DataTable from '@/components/organisms/DataTable';
 import Button from '@/components/atoms/Button';
-import SearchBar from '@/components/molecules/SearchBar';
+import SearchBar from '@/components/atoms/Search';
 import ActionButtons from '@/components/molecules/ActionButtons';
 import { useNavigate } from 'react-router';
 import { useGetRolesQuery } from '@/store/api/endpoints/roleEndpoints';

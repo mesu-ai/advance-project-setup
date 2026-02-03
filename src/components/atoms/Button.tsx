@@ -1,4 +1,4 @@
-import type { ButtonHTMLAttributes, FC, ReactNode } from 'react';
+import type { ButtonHTMLAttributes, ReactNode } from 'react';
 
 type ButtonVariantT =
   | 'add'
@@ -17,14 +17,14 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   className?: string;
 }
 
-const Button: FC<ButtonProps> = ({
+const Button = ({
   children,
   type = 'button',
   variant,
   className,
   disabled,
   ...rest
-}) => {
+}: ButtonProps) => {
   const variantStyles: Record<ButtonVariantT, string> = {
     add: 'px-5 py-2 bg-primary-500 hover:bg-primary-600 text-white',
     edit: 'bg-secondary-500 text-white hover:bg-secondary-600',

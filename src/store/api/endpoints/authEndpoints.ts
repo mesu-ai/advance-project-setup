@@ -10,7 +10,7 @@ export const authApi = baseApi.injectEndpoints({
         body,
         credentials: 'include',
       }),
-      invalidatesTags: ['Auth'],
+      // invalidatesTags: ['Auth'],
     }),
 
     refreshToken: build.mutation<RefreshTokenResponseT, void>({
@@ -27,7 +27,7 @@ export const authApi = baseApi.injectEndpoints({
         method: 'POST',
         credentials: 'include',
       }),
-      invalidatesTags: ['Auth'],
+      // invalidatesTags: ['Auth'],
     }),
   }),
 });

@@ -63,7 +63,7 @@ interface EmployeeFormProps {
 const EmployeeForm = ({ mode, initialValues, onSubmit }: EmployeeFormProps) => {
   const [isExpand, setExpand] = useState<boolean>(false);
   const navigate = useNavigate();
-  const { data: roles, isLoading } = useGetRolesQuery('Roles');
+  const { data: roles, isLoading } = useGetRolesQuery('Role');
 
   const {
     handleSubmit,

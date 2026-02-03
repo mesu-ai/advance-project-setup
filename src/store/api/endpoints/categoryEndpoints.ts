@@ -4,7 +4,7 @@ export const categoryApi = baseApi.injectEndpoints({
   endpoints: (build) => ({
     getCategories: build.query({
       query: () => '/categories',
-      providesTags: ['Categories'],
+      providesTags: ['Category'],
     }),
 
     getCategoryBySearch: build.query({

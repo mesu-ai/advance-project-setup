@@ -8,7 +8,7 @@ export const roleApi = baseApi.injectEndpoints({
         url: '/roles',
         method: 'GET',
       }),
-      providesTags: ['Roles'],
+      providesTags: ['Role'],
     }),
     getRoleById: build.query<RoleResponseT, string>({
       query: (id) => ({

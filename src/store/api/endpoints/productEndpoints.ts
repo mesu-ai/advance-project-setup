@@ -7,7 +7,7 @@ export const productApi = baseApi.injectEndpoints({
         url: '/products',
         method: 'GET',
       }),
-      providesTags: ['Products'],
+      providesTags: ['Product'],
     }),
   }),
 });

@@ -14,7 +14,7 @@ const RolePermissionPage = () => {
   const [currPage, setCurrPage] = useState<number>(1);
   const navigate = useNavigate();
 
-  const { data: roles } = useGetRolesQuery('Roles');
+  const { data: roles } = useGetRolesQuery('Role');
 
   console.log({ currPage, roles });
 

@@ -25,7 +25,7 @@ const EmployeeListPage = () => {
 
   const navigate = useNavigate();
 
-  const { data: employees } = useGetEmployeesQuery('Employees');
+  const { data: employees } = useGetEmployeesQuery('Employee');
 
   console.log({ currPage });
 

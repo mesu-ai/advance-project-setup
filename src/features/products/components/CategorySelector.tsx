@@ -70,34 +70,16 @@ const recentUsed: SelectedCategoryT[] = [
   },
 ];
 
-const categorySuggessions: SelectedCategoryT[] = [
-  {
-    id: 13,
-    name: 'Clothing & Fashion > Mens > Mens Bottom Wear > Mens Formal Pant',
-    layer: {
-      base: 'Clothing & Fashion',
-      first: 'Mens',
-      second: 'Mens Bottom Wear',
-      third: 'Mens Formal Pant',
-    },
-  },
-  {
-    id: 174,
-    name: 'Lifestyle Accessories > Watch & Accessories > Smart Watches',
-    layer: {
-      base: 'Lifestyle Accessories',
-      first: 'Watch & Accessories',
-      second: 'Smart Watches',
-    },
-  },
-];
-
 interface CategorySelectorProps {
   isOpen?: boolean;
   onClose?: () => void;
   selected: SelectedCategoryT;
   onSelected: (category: SelectedCategoryT) => void;
   onConfirm: (category: SelectedCategoryT) => void;
+  suggession?: {
+    enabled: boolean;
+    options: SelectedCategoryT[];
+  };
 }
 
 const CategorySelector = ({
@@ -106,8 +88,9 @@ const CategorySelector = ({
   onConfirm,
   selected,
   onSelected,
+  suggession,
 }: CategorySelectorProps) => {
-  const { data: categoies, isLoading } = useGetCategoriesQuery('Categories');
+  const { data: categoies, isLoading } = useGetCategoriesQuery('Category');
 
   const derivedChildren = useMemo(() => {
     if (!categoies?.data || !selected?.id) {
@@ -216,7 +199,7 @@ const CategorySelector = ({
   };
 
   const handleSuggestCategory = (e: ChangeEvent<HTMLInputElement>) => {
-    const suggestedCategory = categorySuggessions.find((c) => c.id === Number(e.target.value));
+    const suggestedCategory = suggession?.options.find((c) => c.id === Number(e.target.value));
     if (suggestedCategory) handleCategorySelected(suggestedCategory, true);
   };
 
@@ -239,17 +222,19 @@ const CategorySelector = ({
           </ul>
         </div>
 
-        <div className="bg-background p-4 rounded-lg">
-          <p className="mb-1">Category Suggessions</p>
-          <Radio
-            name="suggestedCatId"
-            options={categorySuggessions}
-            optionKeys={{ label: 'name', value: 'id' }}
-            onChange={handleSuggestCategory}
-            className="flex-col gap-y-2 text-neutral-300"
-            required={false}
-          />
-        </div>
+        {suggession?.enabled && (
+          <div className="bg-background p-4 rounded-lg">
+            <p className="mb-1">Category Suggessions</p>
+            <Radio
+              name="suggestedCatId"
+              options={suggession.options}
+              optionKeys={{ label: 'name', value: 'id' }}
+              onChange={handleSuggestCategory}
+              className="flex-col gap-y-2 text-neutral-300"
+              required={false}
+            />
+          </div>
+        )}
       </div>
 
       <div

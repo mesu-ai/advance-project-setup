@@ -46,7 +46,7 @@ const ComboBox = <T extends OptionType>({
   placeholder = 'Please Select Value or Search Here',
   addMore,
   isLoading,
-  required = true,
+  required,
 
   ...props
 }: ComboBoxProps<T>) => {

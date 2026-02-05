@@ -14,7 +14,7 @@ const Radio = <T extends OptionType>({
   label,
   options,
   error,
-  required = true,
+  required,
   optionKeys,
   className,
   ...props

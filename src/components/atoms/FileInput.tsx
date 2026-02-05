@@ -38,7 +38,7 @@ const FileInput = ({
   }, [value]);
 
   return (
-    <div className={`row-span-2 ${className}`}>
+    <div className={`${className}`}>
       <label className="input-label" htmlFor={generatedId}>
         {label}
       </label>

@@ -49,6 +49,7 @@ const RoleForm = ({ mode, initialValue, onSubmit }: RoleFormProps) => {
           placeholder="Enter Role Name"
           error={errors.role?.message}
           {...register('role')}
+          required
         />
 
         <div className="w-1/2">
@@ -61,6 +62,7 @@ const RoleForm = ({ mode, initialValue, onSubmit }: RoleFormProps) => {
             placeholder="Select Status"
             error={errors.status?.message}
             {...register('status')}
+            required
           />
         </div>
       </div>

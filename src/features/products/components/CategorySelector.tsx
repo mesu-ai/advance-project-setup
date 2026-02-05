@@ -231,7 +231,6 @@ const CategorySelector = ({
               optionKeys={{ label: 'name', value: 'id' }}
               onChange={handleSuggestCategory}
               className="flex-col gap-y-2 text-neutral-300"
-              required={false}
             />
           </div>
         )}

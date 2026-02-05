@@ -7,11 +7,14 @@ import useSearchKeyword from '@/hooks/useSearchKeyword';
 import { useGetShopsQuery } from '@/store/api/endpoints/shopEndpoints';
 import type { SelectedCategoryT } from '@/types/categories';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useState } from 'react';
+import { useState, type ChangeEvent } from 'react';
 import { Controller, useForm, useWatch } from 'react-hook-form';
 import Editor from 'textcrafter';
 import * as z from 'zod';
 import ArrowLongIcon from '@/assets/svg/ArrowLongIcon';
+import Checkbox from '@/components/atoms/Checkbox';
+import TextArea from '@/components/atoms/Textarea';
+import FileInput from '@/components/atoms/FileInput';
 
 const categorySuggessions: SelectedCategoryT[] = [
   {
@@ -38,7 +41,7 @@ const categorySuggessions: SelectedCategoryT[] = [
 const productSchema = z.object({
   productName: z.string().min(3, 'Product name is required'),
   categoryId: z.number('Product category is required'),
-  unit: z.string().min(1, 'Product unit is required'),
+  unit: z.string('Product unit is required'),
   shopId: z.number('Shop name is required'),
   displayOrder: z.string().optional(),
   brandId: z.number('Brand is required'),
@@ -46,12 +49,43 @@ const productSchema = z.object({
   fitType: z.string().optional(),
   gender: z.string().optional(),
   description: z.string().min(3, 'Description is required'),
+  specification: z.string().min(3, 'Specification is required'),
+  hasEmi: z.enum(['Y', 'N']).optional(),
+  isReturnable: z.enum(['Y', 'N']).optional(),
+  sizeChartId: z.number('Size chart is required'),
+  productUrl: z.string().min(1, 'Product url is required'),
+  videoUrl: z.string().optional(),
+  metaTitle: z.string().optional(),
+  metaKeywords: z.array(z.string()).optional(),
+  metaDescription: z.string().optional(),
+  ogType: z.string().optional(),
+  ogTitle: z.string().optional(),
+  ogUrl: z.string().optional(),
+  ogDescription: z.string().optional(),
+  ogImage: z
+    .union([z.string().min(1), z.instanceof(File)])
+    .optional()
+    // .refine((val) => val !== undefined && val !== null && val !== '', {
+    //   message: 'Upload a photo',
+    // })
+    .refine((val) => {
+      if (val instanceof File) {
+        return val.size <= 5_000_000;
+      }
+      return true;
+    }, 'Max file size is 5MB')
+    .refine((val) => {
+      if (val instanceof File) {
+        return ['image/jpeg', 'image/jpg', 'image/png'].includes(val.type);
+      }
+      return true;
+    }, 'Only .jpg, .jpeg, .png formats are supported'),
 });
 
 type ProductFormData = z.infer<typeof productSchema>;
 
 const CreateProductPage = () => {
-  const [editorContent, setEditorContent] = useState('');
+  // const [editorContent, setEditorContent] = useState('');
   const [isCategoryOpen, setCategoryOpen] = useState<boolean>(false);
   const [selectedCategory, setSelectedCategory] = useState<SelectedCategoryT>({
     id: null,
@@ -65,7 +99,6 @@ const CreateProductPage = () => {
   });
 
   const [isExpandAtt, setExpandAtt] = useState(false);
-
   const shopSearch = useSearchKeyword(500);
   const brandSearch = useSearchKeyword(500);
 
@@ -79,16 +112,27 @@ const CreateProductPage = () => {
     handleSubmit,
     trigger,
     control,
+    getValues,
     formState: { errors, isSubmitting },
   } = useForm<ProductFormData>({
     resolver: zodResolver(productSchema),
     defaultValues: {
-      // shopId: 40,
+      description: '',
+      specification: '',
     },
   });
 
   const watchedProductName = useWatch({ control, name: 'productName' });
   const watchedCategory = useWatch({ control, name: 'categoryId' });
+
+  const handleSameAsMeta = (e: ChangeEvent<HTMLInputElement>) => {
+    const isChecked = e.target.checked;
+    if (isChecked) {
+      setValue('ogTitle', getValues('metaTitle'));
+      setValue('ogUrl', getValues('productUrl'));
+      setValue('ogDescription', getValues('metaDescription'));
+    }
+  };
 
   const onSubmit = (data: ProductFormData) => {
     console.log({ data });
@@ -108,6 +152,7 @@ const CreateProductPage = () => {
                   placeholder="EX. Men's Stylish Casual Shirt"
                   error={errors.productName?.message}
                   {...register('productName')}
+                  required
                 />
 
                 <div>
@@ -166,7 +211,8 @@ const CreateProductPage = () => {
                         optionKeys={{ label: 'label', value: 'value' }}
                         onOptionSelect={(u) => onChange(u.value)}
                         placeholder="Select Product Quantity Unit"
-                        error={errors.shopId?.message}
+                        error={errors.unit?.message}
+                        required
                       />
                     )}
                   />
@@ -188,6 +234,7 @@ const CreateProductPage = () => {
                           enabled: true,
                           onSearch: shopSearch.setKeyword,
                         }}
+                        required
                       />
                     )}
                   />
@@ -196,7 +243,6 @@ const CreateProductPage = () => {
                     label="Display Order"
                     placeholder="1000000"
                     error={errors.displayOrder?.message}
-                    required={false}
                     {...register('displayOrder')}
                   />
                 </div>
@@ -218,6 +264,7 @@ const CreateProductPage = () => {
                       selectedValue={value}
                       search={{ enabled: true, onSearch: brandSearch.setKeyword }}
                       placeholder="Select/Search Brand"
+                      required
                     />
                   )}
                 />
@@ -236,6 +283,7 @@ const CreateProductPage = () => {
                       onOptionSelect={(sm) => onChange(sm.strapName)}
                       selectedValue={value}
                       placeholder="Select Strap Material"
+                      required
                     />
                   )}
                 />
@@ -297,15 +345,209 @@ const CreateProductPage = () => {
                   <p className="input-label mb-1">
                     Description <span className="text-danger-500">*</span>
                   </p>
-                  <Editor
-                    value={editorContent}
-                    onChange={setEditorContent}
-                    toolbarClassName="custom-toolbar"
-                    editorClassName="custom-editor"
+                  <Controller
+                    name="description"
+                    control={control}
+                    render={({ field: { value, onChange } }) => (
+                      <Editor
+                        value={value}
+                        onChange={onChange}
+                        toolbarClassName="custom-toolbar"
+                        editorClassName="custom-editor"
+                      />
+                    )}
+                  />
+                  <p className="input-error">{errors.description?.message}</p>
+                </div>
+                <div>
+                  <p className="input-label mb-1">
+                    Product Specification <span className="text-danger-500">*</span>
+                  </p>
+                  <Controller
+                    name="specification"
+                    control={control}
+                    render={({ field: { value, onChange } }) => (
+                      <Editor
+                        value={value}
+                        onChange={onChange}
+                        toolbarClassName="custom-toolbar"
+                        editorClassName="custom-editor"
+                      />
+                    )}
+                  />
+                  <p className="input-error">{errors.specification?.message}</p>
+                </div>
+
+                <div className="grid grid-cols-4 gap-3">
+                  <div>
+                    <p className="input-label mb-1">Has EMI?</p>
+                    <Controller
+                      name="hasEmi"
+                      control={control}
+                      render={({ field: { value, onChange } }) => (
+                        <Checkbox
+                          label="Yes"
+                          checked={value === 'Y'}
+                          onChange={(e) => onChange(e.target.checked ? 'Y' : 'N')}
+                        />
+                      )}
+                    />
+                  </div>
+                  <div>
+                    <p className="input-label mb-1">Is Returnable?</p>
+                    <Controller
+                      name="isReturnable"
+                      control={control}
+                      render={({ field: { value, onChange } }) => (
+                        <Checkbox
+                          label="Yes"
+                          checked={value === 'Y'}
+                          onChange={(e) => onChange(e.target.checked ? 'Y' : 'N')}
+                        />
+                      )}
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-surface rounded-xl border border-border px-5 py-4 space-y-4">
+              <h2 className="text-lg font-bold">Size Chart</h2>
+              <div className="grid grid-cols-2 gap-3">
+                <Controller
+                  name="sizeChartId"
+                  control={control}
+                  render={({ field: { value, onChange } }) => (
+                    <ComboBox
+                      label="Size Chart Category"
+                      options={[
+                        { label: 'Mens Formal Shirt', value: 1 },
+                        { label: 'Mens Casual Shirt', value: 2 },
+                        { label: 'Mens T-shirt', value: 3 },
+                        { label: 'Mens Panjabi Regular', value: 4 },
+                      ]}
+                      optionKeys={{ label: 'label', value: 'value' }}
+                      onOptionSelect={(ch) => onChange(Number(ch.value))}
+                      selectedValue={value}
+                      placeholder="Select a Size Chart"
+                      error={errors.sizeChartId?.message}
+                      required
+                    />
+                  )}
+                />
+                <button
+                  type="button"
+                  className="mt-[27.97px] h-[35.72px] rounded-lg text-sm font-medium text-white bg-secondary-500"
+                >
+                  Create New
+                </button>
+              </div>
+            </div>
+
+            <div className="bg-surface rounded-xl border border-border px-5 py-4 space-y-4">
+              <h2 className="text-lg font-bold">URL</h2>
+              <div className="grid grid-cols-2 gap-3">
+                <Input
+                  label="Product URL"
+                  placeholder="Enter Product URL"
+                  error={errors.productUrl?.message}
+                  {...register('productUrl')}
+                  required
+                />
+                <Input
+                  label="Video URL"
+                  placeholder="Enter Video URL"
+                  error={errors.videoUrl?.message}
+                  {...register('videoUrl')}
+                />
+              </div>
+            </div>
+
+            <div className="bg-surface rounded-xl border border-border px-5 py-4 space-y-4">
+              <h2 className="text-lg font-bold">Meta & OG Info</h2>
+
+              <div className="space-y-4">
+                <Input
+                  label="Meta Title"
+                  placeholder="Enter Meta Title"
+                  error={errors.metaTitle?.message}
+                  {...register('metaTitle')}
+                />
+                <div className="grid grid-cols-2 gap-3">
+                  <TextArea
+                    label="Meta Description"
+                    placeholder="Enter Meta Description"
+                    {...register('metaDescription')}
+                  />
+                  <TextArea
+                    label="Meta Keywords"
+                    placeholder="Enter Meta Keywords"
+                    required={false}
+                    {...register('metaKeywords')}
+                  />
+                </div>
+
+                <div>
+                  <p className="input-label mb-1">OG Same As Meta??</p>
+                  <Checkbox
+                    label="Yes"
+                    // checked={value === 'Y'}
+                    onChange={(e) => handleSameAsMeta(e)}
+                  />
+                </div>
+
+                <div className="grid grid-cols-3 gap-3">
+                  <Controller
+                    name="ogType"
+                    control={control}
+                    render={({ field: { value, onChange } }) => (
+                      <ComboBox
+                        label="OG Type"
+                        options={[
+                          { label: 'Product', value: 'product' },
+                          { label: 'Blog', value: 'blog' },
+                          { label: 'Content', value: 'content' },
+                          { label: 'Career', value: 'career' },
+                        ]}
+                        optionKeys={{ label: 'label', value: 'value' }}
+                        onOptionSelect={(ogT) => onChange(ogT.value)}
+                        selectedValue={value}
+                        placeholder="Select og type"
+                      />
+                    )}
+                  />
+                  <Input label="OG Title" placeholder="Enter OG Title" {...register('ogTitle')} />
+                  <Input label="OG Url" placeholder="Enter OG Url" {...register('ogUrl')} />
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <TextArea
+                    label="OG Description"
+                    placeholder="Enter OG Description"
+                    {...register('ogDescription')}
+                  />
+                  <Controller
+                    name="ogImage"
+                    control={control}
+                    render={({ field: { value, onChange } }) => (
+                      <FileInput
+                        label="Photo"
+                        error={errors.ogImage?.message}
+                        errorSameRow={errors.ogDescription?.message}
+                        accept="image/png,image/jpeg"
+                        value={value}
+                        className="row-span-1"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) onChange(file);
+                        }}
+                      />
+                    )}
                   />
                 </div>
               </div>
             </div>
+
             <div className="flex justify-end gap-4">
               <Button variant="draft">Save As Draft</Button>
 

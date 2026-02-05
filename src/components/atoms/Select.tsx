@@ -19,7 +19,7 @@ const Select = <T extends OptionType>({
   className = '',
   optionKeys,
   placeholder = 'Select an option',
-  required = true,
+  required,
   ...props
 }: SelectProps<T>) => {
   const generatedId = useId();

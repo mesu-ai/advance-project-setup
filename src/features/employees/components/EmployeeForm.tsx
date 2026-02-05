@@ -10,7 +10,7 @@ import { useGetRolesQuery } from '@/store/api/endpoints/roleEndpoints';
 import type { RoleT } from '@/types';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useEffect, useMemo, useState } from 'react';
-import { useForm, useWatch } from 'react-hook-form';
+import { Controller, useForm, useWatch } from 'react-hook-form';
 import { useNavigate } from 'react-router';
 import * as z from 'zod';
 
@@ -77,7 +77,7 @@ const EmployeeForm = ({ mode, initialValues, onSubmit }: EmployeeFormProps) => {
     defaultValues: initialValues ?? { status: 'Y' },
   });
 
-  const watchedPhoto = useWatch({ control, name: 'photo' });
+  // const watchedPhoto = useWatch({ control, name: 'photo' });
   const watchedRole = useWatch({ control, name: 'role' });
   const watchedPermissions = useWatch({ control, name: 'permissions' });
   const permissions = useMemo(() => new Set(watchedPermissions ?? []), [watchedPermissions]);
@@ -101,12 +101,14 @@ const EmployeeForm = ({ mode, initialValues, onSubmit }: EmployeeFormProps) => {
           placeholder="Enter Employee Name"
           error={errors.name?.message}
           {...register('name')}
+          required
         />
         <Input
           label="Employee ID"
           placeholder="Enter Employee Name"
           error={errors.employeeId?.message}
           {...register('employeeId')}
+          required
         />
 
         <Input
@@ -114,6 +116,7 @@ const EmployeeForm = ({ mode, initialValues, onSubmit }: EmployeeFormProps) => {
           placeholder="Ent Mobile No."
           error={errors.mobileNo?.message}
           {...register('mobileNo')}
+          required
         />
 
         <Input
@@ -121,6 +124,7 @@ const EmployeeForm = ({ mode, initialValues, onSubmit }: EmployeeFormProps) => {
           placeholder="Enter Email"
           error={errors.email?.message}
           {...register('email')}
+          required
         />
         <Input
           type="number"
@@ -128,18 +132,26 @@ const EmployeeForm = ({ mode, initialValues, onSubmit }: EmployeeFormProps) => {
           placeholder="Enter NID No."
           error={errors.nid?.message}
           {...register('nid')}
+          required
         />
 
-        <FileInput
-          label="Photo"
-          error={errors.photo?.message}
-          errorSameRow={errors.role?.message || errors.depertment?.message}
-          accept="image/png,image/jpeg"
-          value={watchedPhoto}
-          onChange={(e) => {
-            const file = e.target.files?.[0];
-            if (file) setValue('photo', file, { shouldValidate: true });
-          }}
+        <Controller
+          name="photo"
+          control={control}
+          render={({ field: { value, onChange } }) => (
+            <FileInput
+              label="Photo"
+              error={errors.photo?.message}
+              errorSameRow={errors.role?.message || errors.depertment?.message}
+              accept="image/png,image/jpeg"
+              value={value}
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                if (file) onChange(file);
+              }}
+              className="row-span-2"
+            />
+          )}
         />
 
         <Select
@@ -148,6 +160,7 @@ const EmployeeForm = ({ mode, initialValues, onSubmit }: EmployeeFormProps) => {
           placeholder="Select Depertment"
           error={errors.depertment?.message}
           {...register('depertment')}
+          required
         />
 
         <Select
@@ -157,6 +170,7 @@ const EmployeeForm = ({ mode, initialValues, onSubmit }: EmployeeFormProps) => {
           placeholder="Select Role"
           error={errors.role?.message}
           {...register('role')}
+          required
         />
 
         <Radio
@@ -165,7 +179,6 @@ const EmployeeForm = ({ mode, initialValues, onSubmit }: EmployeeFormProps) => {
             { label: 'Male', value: 'male' },
             { label: 'Female', value: 'female' },
           ]}
-          required={false}
           error={errors.gender?.message}
           {...register('gender')}
         />
@@ -178,6 +191,7 @@ const EmployeeForm = ({ mode, initialValues, onSubmit }: EmployeeFormProps) => {
           ]}
           error={errors.status?.message}
           {...register('status')}
+          required
         />
       </div>
 

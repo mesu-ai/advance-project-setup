@@ -5,12 +5,6 @@ export interface RoleT {
   permissions: string[];
 }
 
-export interface RoleResponseT {
-  success: boolean;
-  message: string;
-  data: RoleT;
-}
-
 export interface ModulePermissionT {
   path: string;
   page: string;

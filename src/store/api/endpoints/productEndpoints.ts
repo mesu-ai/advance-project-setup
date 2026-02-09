@@ -1,8 +1,9 @@
+import type { ApiResponseT, ProductT } from '@/types';
 import { baseApi } from '../baseApi';
 
 export const productApi = baseApi.injectEndpoints({
   endpoints: (build) => ({
-    getProducts: build.query({
+    getProducts: build.query<ApiResponseT<ProductT[]>, void>({
       query: () => ({
         url: '/products',
         method: 'GET',

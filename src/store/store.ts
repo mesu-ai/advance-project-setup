@@ -1,5 +1,5 @@
 import { configureStore, createListenerMiddleware, isAnyOf } from '@reduxjs/toolkit';
-import { baseApi } from './api/baseApi';
+import { baseApi, baseApi2 } from './api/baseApi';
 import authReducer, { loggedOut, loginSucceeded } from './slices/auth/authSlice';
 import { setupListeners } from '@reduxjs/toolkit/query';
 
@@ -35,9 +35,10 @@ export const store = configureStore({
   reducer: {
     auth: authReducer,
     [baseApi.reducerPath]: baseApi.reducer,
+    [baseApi2.reducerPath]: baseApi2.reducer,
   },
   middleware: (getDefaultMiddleware) =>
-    getDefaultMiddleware().concat(authListener.middleware, baseApi.middleware),
+    getDefaultMiddleware().concat(authListener.middleware, baseApi.middleware, baseApi2.middleware),
   preloadedState: preloadStorage(),
 });
 

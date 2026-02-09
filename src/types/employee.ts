@@ -6,9 +6,3 @@ export interface EmployeeT extends UserT {
   gender: 'femele' | 'male';
   status: 'Y' | 'N';
 }
-
-export interface EmployeeResponseT {
-  success: boolean;
-  message: string;
-  data: EmployeeT;
-}

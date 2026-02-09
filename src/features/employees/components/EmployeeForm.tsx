@@ -149,6 +149,7 @@ const EmployeeForm = ({ mode, initialValues, onSubmit }: EmployeeFormProps) => {
                 const file = e.target.files?.[0];
                 if (file) onChange(file);
               }}
+              onDrop={(e) => onChange(e)}
               className="row-span-2"
             />
           )}

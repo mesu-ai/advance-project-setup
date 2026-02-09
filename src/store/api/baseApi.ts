@@ -5,7 +5,7 @@ import { loggedOut, tokenRefreshed } from '../slices/auth/authSlice';
 import type { RefreshTokenResponseT } from '@/types';
 import { decodeJwt } from '@/utils/decodeJwt';
 import { publicRoutes } from '@/routes/routes';
-import { baseURL } from '@/apis/config/baseURL';
+import { API_BASE_URL } from '@/apis/config/baseURL';
 
 type BaseQueryFnT = BaseQueryFn<string | FetchArgs, unknown, FetchBaseQueryError>;
 
@@ -15,7 +15,7 @@ let refreshPromise: Promise<RefreshTokenResponseT | undefined> | null = null; //
 // const publicRoutes = ['/auth/403', '/auth/login', '/auth/register', '/auth/forgot'];
 
 const baseQuery = fetchBaseQuery({
-  baseUrl: `${baseURL}/api/v1`,
+  baseUrl: `${API_BASE_URL}/api/v1`,
   credentials: 'include', // required for refresh tokens in http secure cookies
   prepareHeaders: (headers, { getState }) => {
     const token = (getState() as RootState).auth.accessToken;
@@ -116,6 +116,14 @@ const baseQueryWithReauth: BaseQueryFnT = async (args, api, extraOptions) => {
 export const baseApi = createApi({
   reducerPath: 'baseApi',
   baseQuery: baseQueryWithReauth,
-  tagTypes: ['Auth', 'Product', 'Order', 'User', 'Category', 'Role', 'Employee', 'Shop'], // More tag types
+  tagTypes: ['Auth', 'Product', 'Order', 'User', 'Category', 'Role', 'Employee', 'Shop', 'Media'], // More tag types
+  endpoints: () => ({}),
+});
+
+export const baseApi2 = createApi({
+  reducerPath: 'baseApi2',
+  baseQuery: fetchBaseQuery({
+    baseUrl: `https://prod.saraemart.com/api`,
+  }),
   endpoints: () => ({}),
 });

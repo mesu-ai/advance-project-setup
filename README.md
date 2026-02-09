@@ -78,7 +78,7 @@ sara-admin-panel/
 │   ├── actions/                    # Server actions (if using React Router actions)
 │   ├── apis/
 │   │   ├── config/
-│   │   │   └── baseURL.ts         # API base URL configuration
+│   │   │   └── API_BASE_URL.ts         # API base URL configuration
 │   │   └── services/              # Legacy API services
 │   │       ├── account/
 │   │       └── auth/

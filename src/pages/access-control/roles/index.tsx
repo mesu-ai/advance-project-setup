@@ -8,15 +8,14 @@ import ActionButtons from '@/components/molecules/ActionButtons';
 import { useNavigate } from 'react-router';
 import { useGetRolesQuery } from '@/store/api/endpoints/roleEndpoints';
 import PageSection from '@/components/templates/PageSection';
-import type { RoleT } from '@/types';
 
 const RolePermissionPage = () => {
   const [currPage, setCurrPage] = useState<number>(1);
   const navigate = useNavigate();
 
-  const { data: roles } = useGetRolesQuery('Role');
+  const { data: roles } = useGetRolesQuery();
 
-  console.log({ currPage, roles });
+  console.log({ currPage });
 
   const handleView = (id: number) => {
     console.log(id);
@@ -40,7 +39,7 @@ const RolePermissionPage = () => {
       <div className="w-full overflow-x-auto">
         <DataTable header={['SL No', 'Role Name', 'Status', 'Action']}>
           {roles &&
-            roles?.data.map((role: RoleT) => (
+            roles?.data?.map((role) => (
               <tr key={role?.id}>
                 <td className="px-5 py-3">{role.id}</td>
                 <td className="px-5 py-3 capitalize">{role.role}</td>

@@ -15,7 +15,7 @@ import type {
   SecondChildT,
   SelectedCategoryT,
   ThirdChildT,
-} from '@/types/categories';
+} from '@/types/category';
 import { useCallback, useMemo, type ChangeEvent } from 'react';
 
 const recentUsed: SelectedCategoryT[] = [
@@ -90,7 +90,7 @@ const CategorySelector = ({
   onSelected,
   suggession,
 }: CategorySelectorProps) => {
-  const { data: categoies, isLoading } = useGetCategoriesQuery('Category');
+  const { data: categoies, isLoading } = useGetCategoriesQuery();
 
   const derivedChildren = useMemo(() => {
     if (!categoies?.data || !selected?.id) {
@@ -127,7 +127,7 @@ const CategorySelector = ({
     []
   );
 
-  const baseSearch = useLocalSearch<CategoryT>(categoies?.data, getCategoryName, 200);
+  const baseSearch = useLocalSearch<CategoryT>(categoies?.data ?? [], getCategoryName, 200);
   const firstSearch = useLocalSearch<FirstChildT>(firstChild, getCategoryName, 200);
   const secondSearch = useLocalSearch<SecondChildT>(secondChild, getCategoryName, 200);
   const thirdSearch = useLocalSearch<ThirdChildT>(thirdChild, getCategoryName, 200);

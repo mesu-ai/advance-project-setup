@@ -25,7 +25,7 @@ const EmployeeListPage = () => {
 
   const navigate = useNavigate();
 
-  const { data: employees } = useGetEmployeesQuery('Employee');
+  const { data: employees } = useGetEmployeesQuery();
 
   console.log({ currPage });
 
@@ -63,7 +63,7 @@ const EmployeeListPage = () => {
       <div className="w-full overflow-x-auto">
         <DataTable header={['SL No', 'Name', 'Email', 'Role', 'Status', 'Action']}>
           {employees?.data &&
-            employees?.data.map((employee: EmployeeT, index: number) => (
+            employees?.data.map((employee, index: number) => (
               <tr key={employee.employeeId}>
                 <td className="px-5 py-3">{index + 1}</td>
                 <td className="px-5 py-3">

@@ -5,7 +5,7 @@ import ComboBox from '@/components/atoms/ComboBox';
 import CategorySelector from '@/features/products/components/CategorySelector';
 import useSearchKeyword from '@/hooks/useSearchKeyword';
 import { useGetShopsQuery } from '@/store/api/endpoints/shopEndpoints';
-import type { SelectedCategoryT } from '@/types/categories';
+import type { SelectedCategoryT } from '@/types/category';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useState, type ChangeEvent } from 'react';
 import { Controller, useForm, useWatch } from 'react-hook-form';
@@ -13,8 +13,9 @@ import Editor from 'textcrafter';
 import * as z from 'zod';
 import ArrowLongIcon from '@/assets/svg/ArrowLongIcon';
 import Checkbox from '@/components/atoms/Checkbox';
-import TextArea from '@/components/atoms/Textarea';
 import FileInput from '@/components/atoms/FileInput';
+import TextArea from '@/components/atoms/TextArea';
+import ImageUploader from '@/components/molecules/ImageUploader';
 
 const categorySuggessions: SelectedCategoryT[] = [
   {
@@ -44,6 +45,20 @@ const productSchema = z.object({
   unit: z.string('Product unit is required'),
   shopId: z.number('Shop name is required'),
   displayOrder: z.string().optional(),
+  // productImages: z.array(z.string()).nonempty('error'),
+  productImages: z.string(),
+  // productImages: z
+  //   .array(
+  //     z
+  //       .instanceof(File)
+  //       .refine((val) => val.size <= 5_000_000, {
+  //         message: 'Max file size is 5MB',
+  //       })
+  //       .refine((val) => ['image/jpeg', 'image/jpg', 'image/png', 'image/gif'].includes(val.type), {
+  //         message: 'Only .jpg, .jpeg, .png, .gif formats are supported',
+  //       })
+  //   )
+  //   .min(1, 'Please upload at least one image.'),
   brandId: z.number('Brand is required'),
   strapMeterial: z.string().optional(),
   fitType: z.string().optional(),
@@ -65,9 +80,6 @@ const productSchema = z.object({
   ogImage: z
     .union([z.string().min(1), z.instanceof(File)])
     .optional()
-    // .refine((val) => val !== undefined && val !== null && val !== '', {
-    //   message: 'Upload a photo',
-    // })
     .refine((val) => {
       if (val instanceof File) {
         return val.size <= 5_000_000;
@@ -106,6 +118,8 @@ const CreateProductPage = () => {
     keyword: shopSearch?.debouncedKeyword,
   });
 
+  // const [uploadImage] = useUploadFileMutation();
+
   const {
     register,
     setValue,
@@ -119,6 +133,8 @@ const CreateProductPage = () => {
     defaultValues: {
       description: '',
       specification: '',
+      productImages:
+        'https://prod.saraemrt.com/uploads/images/f3f7a244-f253-4e6b-897b-918cc53ef505.jpg',
     },
   });
 
@@ -246,6 +262,42 @@ const CreateProductPage = () => {
                     {...register('displayOrder')}
                   />
                 </div>
+              </div>
+            </div>
+
+            <div className="bg-surface rounded-xl border border-border px-5 py-4 space-y-4">
+              <h2 className="text-lg font-bold">Images</h2>
+              <div className="space-y-4">
+                {/* <Controller
+                  name="productImages"
+                  control={control}
+                  render={({ field: { value, onChange } }) => (
+                    <FileInput
+                      label="Product Image"
+                      error={errors.productImages?.message}
+                      errorSameRow={errors.productImages?.message}
+                      accept="image/png,image/jpeg,image/jpg,image/gif"
+                      value={value}
+                      // className=""
+                      required
+                      onChange={async (e) => {
+                        const file = e.target.files?.[0];
+                        if (file) {
+                          const formData = new FormData();
+                          formData.append('files', file);
+                          const res = await uploadImage(formData).unwrap();
+                          console.log({ res });
+                        }
+                      }}
+                      // onChange={(e) => {
+                      //   const file = e.target.files?.[0];
+                      //   if (file) onChange(file);
+                      // }}
+                    />
+                  )}
+                /> */}
+
+                <ImageUploader label="Product Image" required />
               </div>
             </div>
 
@@ -541,6 +593,7 @@ const CreateProductPage = () => {
                           const file = e.target.files?.[0];
                           if (file) onChange(file);
                         }}
+                        onDrop={(e) => onChange(e)}
                       />
                     )}
                   />

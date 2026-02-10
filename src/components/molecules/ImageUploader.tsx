@@ -14,9 +14,13 @@ import toast from 'react-hot-toast';
 import { MEDIA_BASE_URL } from '@/apis/config/baseURL';
 import { useApiError } from '@/hooks/useApiError';
 
-interface ImageUploaderProps extends Omit<ComponentPropsWithRef<'input'>, 'type'> {
+interface ImageUploaderProps extends Omit<ComponentPropsWithRef<'input'>, 'type' | 'value'> {
   label: string;
   error?: string;
+  value: string[];
+  // onChangeImage: Dispatch<SetStateAction<string[]>>;
+  onChangeImage: (images: string[] | ((prev: string[]) => string[])) => void;
+
   // value?: File | File[] | string;
   // onChange?: (file: File) => void;
 }
@@ -26,32 +30,10 @@ const ImageUploader = ({
   error,
   required,
   className = '',
+  value,
+  onChangeImage,
   ...props
 }: ImageUploaderProps) => {
-  const [images, setImages] = useState<string[]>([
-    'https://prod.saraemart.com/uploads/images/7bff7f55-3c3d-4f16-a3db-8c7a9b88a160.png',
-    'https://prod.saraemart.com/uploads/images/805af629-d328-49a5-a6a8-20dd871ccf3c.png',
-    'https://prod.saraemart.com/uploads/images/3507850e-5962-477e-bc0e-563b84524e47.png',
-    'https://prod.saraemart.com/uploads/images/4e1be5c4-4e12-4e15-9b42-b610a66a2fbe.jpeg',
-    'https://prod.saraemart.com/uploads/images/c50863d4-739e-48fd-a5d0-c0e0951ab6a1.png',
-    'https://prod.saraemart.com/uploads/images/e588323a-80ea-432b-bc51-a54eee0415b0.jpg',
-    'https://prod.saraemart.com/uploads/images/fd8854f0-7763-477a-9db8-7a5c1b28ae65.png',
-    'https://prod.saraemart.com/uploads/images/49a49fa0-1d8c-48be-afb3-dd4600234db3.jpg',
-    'https://prod.saraemart.com/uploads/images/1119b24a-0cf6-4bee-9c3c-d41cf1270496.png',
-    'https://prod.saraemart.com/uploads/images/7908fed7-6884-479b-96dc-3bebc87e24eb.webp',
-    'https://prod.saraemart.com/uploads/images/17a61093-df3a-426c-afe7-c307f5e58a23.png',
-    'https://prod.saraemart.com/uploads/images/73a08592-9c08-41c2-b135-f7302549d333.jpg',
-    'https://prod.saraemart.com/uploads/images/e772b0a3-0c56-4389-96a0-dd7f27aabd3c.png',
-    'https://prod.saraemart.com/uploads/images/97d457dd-9f88-4931-946b-4426f99a96ba.png',
-    'https://prod.saraemart.com/uploads/images/472713ed-fd94-4411-9c84-31742b89aff6.jpg',
-    'https://prod.saraemart.com/uploads/images/7bb9132f-5c6c-4805-8504-a05b9cd72e65.png',
-    'https://prod.saraemart.com/uploads/images/28a808d6-aca4-4723-a85d-03b8c8dea460.png',
-    'https://prod.saraemart.com/uploads/images/40804020-6a2f-41a3-b913-ed1a84be7881.png',
-    'https://prod.saraemart.com/uploads/images/8d6ad608-6128-4900-8164-758cc1d5f6e7.png',
-    'https://prod.saraemart.com/uploads/images/59a8f6c3-c30b-455e-abed-c41da643893d.jpeg',
-    'https://prod.saraemart.com/uploads/images/4af5decd-6712-43a1-9ab4-d3e4ebbd08c9.png',
-    'https://prod.saraemart.com/uploads/images/5838463d-9cd6-45b8-8e70-fecf4277e277.jpeg',
-  ]);
   const [isDragOver, setIsDragOver] = useState<boolean>(false);
 
   const generatedId = useId();
@@ -65,8 +47,6 @@ const ImageUploader = ({
   // const fileName =
   //   value instanceof File ? value.name : typeof value === 'string' ? value.split('/').pop() : '';
 
-  // console.log({ isDragOver, images });
-
   const handleImageUpload = async (file: File) => {
     const formData = new FormData();
     formData.append('files', file);
@@ -78,7 +58,7 @@ const ImageUploader = ({
       }
       const uplodedFile = res.data.files[0];
       const newSrc = `${MEDIA_BASE_URL}${uplodedFile.path}`;
-      setImages((prev) => [...prev, newSrc]);
+      onChangeImage((prev) => [...prev, newSrc]);
     } catch (error) {
       handleApiError(error);
     }
@@ -165,16 +145,16 @@ const ImageUploader = ({
     e.stopPropagation();
     console.log('image internat drag end');
 
-    if (!images || dragItemRef.current === null || dragOverItemRef.current === null) return;
+    if (!value || dragItemRef.current === null || dragOverItemRef.current === null) return;
 
-    const newImages = [...images];
+    const newImages = [...value];
     const dragItem = newImages[dragItemRef.current];
     newImages.splice(dragItemRef.current, 1);
     newImages.splice(dragOverItemRef.current, 0, dragItem);
 
     dragItemRef.current = null;
     dragOverItemRef.current = null;
-    setImages(newImages);
+    onChangeImage(newImages);
   };
 
   return (
@@ -183,7 +163,7 @@ const ImageUploader = ({
         {label} {required && <span className="text-danger-500">*</span>}
       </label>
 
-      <div className="">
+      <div>
         <label
           htmlFor={generatedId}
           onDrop={handleUploadOnDrop}
@@ -191,11 +171,11 @@ const ImageUploader = ({
           onDragLeave={handleUploadDragLeave}
           className={`min-h-[60px] input-field border-dashed flex items-center justify-center gap-4 ${isDragOver && 'border-primary-500 '}`}
         >
-          <div className="relative flex flex-wrap items-center justify-center gap-4 pointer-events-none">
+          <div className="w-full relative flex flex-wrap items-center justify-center gap-4">
             <div
               className={`flex items-center justify-center gap-4 transition-opacity duration-300 ease-in-out ${isDragOver ? 'opacity-50' : 'opacity-100 pointer-events-auto'}`}
             >
-              {images?.map((item, index) => (
+              {value?.map((item, index) => (
                 <div
                   key={index}
                   draggable={!isDragOver}
@@ -203,7 +183,7 @@ const ImageUploader = ({
                   onDragEnter={(e) => handleImageDragEnter(e, index)}
                   onDragEnd={handleImageDragEnd}
                   onDragOver={(e) => e.preventDefault()}
-                  className=" h-10 w-10 border border-white-700 rounded cursor-move flex justify-center items-center"
+                  className="size-10 border border-white-700 rounded cursor-move grid place-items-center"
                 >
                   <Image
                     src={item}
@@ -213,20 +193,24 @@ const ImageUploader = ({
                 </div>
               ))}
               {isUploading && (
-                <div className="w-10 h-10 flex justify-center items-center">
-                  <div className="animate-spin w-5 h-5 border-t border-secondary-500 rounded-full" />
+                <div
+                  role="status"
+                  aria-label="Uploading"
+                  className="size-10 grid place-items-center"
+                >
+                  <div className="animate-spin size-5 border-t border-r border-secondary-500 rounded-full" />
                 </div>
               )}
             </div>
 
-            <p className="w-10 h-10 bg-white-600 rounded flex justify-center items-center">
+            <p className="size-10 bg-white-600 rounded grid place-items-center">
               <PlusIcon className="stroke-neutral-300" />
             </p>
 
             {isDragOver && (
-              <p className="rounded-lg bg-primary-50/80 text-secondary-500 z-10 absolute inset-0 flex items-center justify-center">
+              <div className="pointer-events-none rounded-lg bg-primary-50/80 text-secondary-500 z-10 absolute inset-0 flex items-center justify-center">
                 Drop Your Image Here
-              </p>
+              </div>
             )}
           </div>
 
@@ -243,7 +227,7 @@ const ImageUploader = ({
           <div
             className={`flex items-center justify-center gap-x-4 transition-opacity duration-300 ease-in-out ${isDragOver ? 'opacity-50' : 'opacity-100 pointer-events-auto'}`}
           >
-            {images?.map((item, index) => (
+            {value?.map((item, index) => (
               <div
                 key={index}
                 draggable={!isDragOver}

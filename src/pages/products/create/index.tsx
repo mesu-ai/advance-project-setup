@@ -45,20 +45,7 @@ const productSchema = z.object({
   unit: z.string('Product unit is required'),
   shopId: z.number('Shop name is required'),
   displayOrder: z.string().optional(),
-  productImages: z.array(z.string()).nonempty('error'),
-  // productImages: z.ar,
-  // productImages: z
-  //   .array(
-  //     z
-  //       .instanceof(File)
-  //       .refine((val) => val.size <= 5_000_000, {
-  //         message: 'Max file size is 5MB',
-  //       })
-  //       .refine((val) => ['image/jpeg', 'image/jpg', 'image/png', 'image/gif'].includes(val.type), {
-  //         message: 'Only .jpg, .jpeg, .png, .gif formats are supported',
-  //       })
-  //   )
-  //   .min(1, 'Please upload at least one image.'),
+  productImages: z.array(z.url('Invalid image URL')).nonempty('Select at least one image'),
   brandId: z.number('Brand is required'),
   strapMeterial: z.string().optional(),
   fitType: z.string().optional(),
@@ -97,31 +84,6 @@ const productSchema = z.object({
 type ProductFormData = z.infer<typeof productSchema>;
 
 const CreateProductPage = () => {
-  // const [images, setImages] = useState<string[]>([
-  // 'https://prod.saraemart.com/uploads/images/7bff7f55-3c3d-4f16-a3db-8c7a9b88a160.png',
-  // 'https://prod.saraemart.com/uploads/images/805af629-d328-49a5-a6a8-20dd871ccf3c.png',
-  // 'https://prod.saraemart.com/uploads/images/3507850e-5962-477e-bc0e-563b84524e47.png',
-  // 'https://prod.saraemart.com/uploads/images/4e1be5c4-4e12-4e15-9b42-b610a66a2fbe.jpeg',
-  // 'https://prod.saraemart.com/uploads/images/c50863d4-739e-48fd-a5d0-c0e0951ab6a1.png',
-  // 'https://prod.saraemart.com/uploads/images/e588323a-80ea-432b-bc51-a54eee0415b0.jpg',
-  // 'https://prod.saraemart.com/uploads/images/fd8854f0-7763-477a-9db8-7a5c1b28ae65.png',
-  // 'https://prod.saraemart.com/uploads/images/49a49fa0-1d8c-48be-afb3-dd4600234db3.jpg',
-  // 'https://prod.saraemart.com/uploads/images/1119b24a-0cf6-4bee-9c3c-d41cf1270496.png',
-  //   'https://prod.saraemart.com/uploads/images/7908fed7-6884-479b-96dc-3bebc87e24eb.webp',
-  //   'https://prod.saraemart.com/uploads/images/17a61093-df3a-426c-afe7-c307f5e58a23.png',
-  //   'https://prod.saraemart.com/uploads/images/73a08592-9c08-41c2-b135-f7302549d333.jpg',
-  //   'https://prod.saraemart.com/uploads/images/e772b0a3-0c56-4389-96a0-dd7f27aabd3c.png',
-  //   'https://prod.saraemart.com/uploads/images/97d457dd-9f88-4931-946b-4426f99a96ba.png',
-  //   'https://prod.saraemart.com/uploads/images/472713ed-fd94-4411-9c84-31742b89aff6.jpg',
-  //   'https://prod.saraemart.com/uploads/images/7bb9132f-5c6c-4805-8504-a05b9cd72e65.png',
-  //   'https://prod.saraemart.com/uploads/images/28a808d6-aca4-4723-a85d-03b8c8dea460.png',
-  //   'https://prod.saraemart.com/uploads/images/40804020-6a2f-41a3-b913-ed1a84be7881.png',
-  //   'https://prod.saraemart.com/uploads/images/8d6ad608-6128-4900-8164-758cc1d5f6e7.png',
-  //   'https://prod.saraemart.com/uploads/images/59a8f6c3-c30b-455e-abed-c41da643893d.jpeg',
-  //   'https://prod.saraemart.com/uploads/images/4af5decd-6712-43a1-9ab4-d3e4ebbd08c9.png',
-  //   'https://prod.saraemart.com/uploads/images/5838463d-9cd6-45b8-8e70-fecf4277e277.jpeg',
-  // ]);
-
   const [isCategoryOpen, setCategoryOpen] = useState<boolean>(false);
   const [selectedCategory, setSelectedCategory] = useState<SelectedCategoryT>({
     id: null,
@@ -157,17 +119,7 @@ const CreateProductPage = () => {
     defaultValues: {
       description: '',
       specification: '',
-      productImages: [
-        'https://prod.saraemart.com/uploads/images/7bff7f55-3c3d-4f16-a3db-8c7a9b88a160.png',
-        'https://prod.saraemart.com/uploads/images/805af629-d328-49a5-a6a8-20dd871ccf3c.png',
-        'https://prod.saraemart.com/uploads/images/3507850e-5962-477e-bc0e-563b84524e47.png',
-        'https://prod.saraemart.com/uploads/images/4e1be5c4-4e12-4e15-9b42-b610a66a2fbe.jpeg',
-        'https://prod.saraemart.com/uploads/images/c50863d4-739e-48fd-a5d0-c0e0951ab6a1.png',
-        'https://prod.saraemart.com/uploads/images/e588323a-80ea-432b-bc51-a54eee0415b0.jpg',
-        'https://prod.saraemart.com/uploads/images/fd8854f0-7763-477a-9db8-7a5c1b28ae65.png',
-        'https://prod.saraemart.com/uploads/images/49a49fa0-1d8c-48be-afb3-dd4600234db3.jpg',
-        'https://prod.saraemart.com/uploads/images/1119b24a-0cf6-4bee-9c3c-d41cf1270496.png',
-      ],
+      productImages: [],
     },
   });
 
@@ -301,44 +253,16 @@ const CreateProductPage = () => {
             <div className="bg-surface rounded-xl border border-border px-5 py-4 space-y-4">
               <h2 className="text-lg font-bold">Images</h2>
               <div className="space-y-4">
-                {/* <Controller
-                  name="productImages"
-                  control={control}
-                  render={({ field: { value, onChange } }) => (
-                    <FileInput
-                      label="Product Image"
-                      error={errors.productImages?.message}
-                      errorSameRow={errors.productImages?.message}
-                      accept="image/png,image/jpeg,image/jpg,image/gif"
-                      value={value}
-                      // className=""
-                      required
-                      onChange={async (e) => {
-                        const file = e.target.files?.[0];
-                        if (file) {
-                          const formData = new FormData();
-                          formData.append('files', file);
-                          const res = await uploadImage(formData).unwrap();
-                          console.log({ res });
-                        }
-                      }}
-                      // onChange={(e) => {
-                      //   const file = e.target.files?.[0];
-                      //   if (file) onChange(file);
-                      // }}
-                    />
-                  )}
-                /> */}
-
                 <Controller
                   name="productImages"
                   control={control}
                   render={({ field: { value, onChange } }) => (
                     <ImageUploader
+                      required
+                      label="Product Image"
                       value={value}
                       onChangeImage={(img) => onChange(img)}
-                      label="Product Image"
-                      required
+                      error={errors.productImages?.message}
                     />
                   )}
                 />

@@ -63,7 +63,8 @@ interface EmployeeFormProps {
 const EmployeeForm = ({ mode, initialValues, onSubmit }: EmployeeFormProps) => {
   const [isExpand, setExpand] = useState<boolean>(false);
   const navigate = useNavigate();
-  const { data: roles, isLoading } = useGetRolesQuery('Role');
+
+  const { data: roles, isLoading } = useGetRolesQuery();
 
   const {
     handleSubmit,
@@ -159,6 +160,7 @@ const EmployeeForm = ({ mode, initialValues, onSubmit }: EmployeeFormProps) => {
           label="Depertment"
           options={depertments}
           placeholder="Select Depertment"
+          optionKeys={{ label: 'label', value: 'id' }}
           error={errors.depertment?.message}
           {...register('depertment')}
           required
@@ -166,7 +168,7 @@ const EmployeeForm = ({ mode, initialValues, onSubmit }: EmployeeFormProps) => {
 
         <Select
           label="Role"
-          options={roles?.data}
+          options={roles?.data ?? []}
           optionKeys={{ label: 'role', value: 'role' }}
           placeholder="Select Role"
           error={errors.role?.message}

@@ -1,7 +1,7 @@
 import ArrowIcon from '@/assets/svg/ArrowIcon';
 import { useId, type ComponentPropsWithRef } from 'react';
 
-type OptionType = Record<string, string | number>;
+type OptionType = Record<string, string | number> | object;
 type OptionKeys<T> = { label: keyof T; value: keyof T };
 
 interface SelectProps<T extends OptionType> extends ComponentPropsWithRef<'select'> {
@@ -9,7 +9,7 @@ interface SelectProps<T extends OptionType> extends ComponentPropsWithRef<'selec
   options: T[];
   error?: string;
   placeholder?: string;
-  optionKeys?: OptionKeys<T>;
+  optionKeys: OptionKeys<T>;
 }
 
 const Select = <T extends OptionType>({
@@ -41,11 +41,8 @@ const Select = <T extends OptionType>({
             {placeholder}
           </option>
           {options?.map((option, index) => (
-            <option
-              key={index}
-              value={String(optionKeys ? option[optionKeys.value] : option.value)}
-            >
-              {String(optionKeys ? option[optionKeys?.label] : option.label)}
+            <option key={index} value={String(option[optionKeys.value])}>
+              {String(option[optionKeys?.label])}
             </option>
           ))}
         </select>

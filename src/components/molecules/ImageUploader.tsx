@@ -7,22 +7,18 @@ import {
   type DragEvent,
 } from 'react';
 
-import PlusIcon from '@/assets/svg/PlusIcon';
-import { useUploadFileMutation } from '@/store/api/endpoints/mediaEndpoints';
 import Image from '../atoms/Image';
 import toast from 'react-hot-toast';
-import { MEDIA_BASE_URL } from '@/apis/config/baseURL';
+import PlusIcon from '@/assets/svg/PlusIcon';
 import { useApiError } from '@/hooks/useApiError';
+import { MEDIA_BASE_URL } from '@/apis/config/baseURL';
+import { useUploadFileMutation } from '@/store/api/endpoints/mediaEndpoints';
 
 interface ImageUploaderProps extends Omit<ComponentPropsWithRef<'input'>, 'type' | 'value'> {
   label: string;
   error?: string;
-  value: string[];
-  // onChangeImage: Dispatch<SetStateAction<string[]>>;
+  value?: string[];
   onChangeImage: (images: string[] | ((prev: string[]) => string[])) => void;
-
-  // value?: File | File[] | string;
-  // onChange?: (file: File) => void;
 }
 
 const ImageUploader = ({
@@ -58,7 +54,7 @@ const ImageUploader = ({
       }
       const uplodedFile = res.data.files[0];
       const newSrc = `${MEDIA_BASE_URL}${uplodedFile.path}`;
-      onChangeImage((prev) => [...prev, newSrc]);
+      onChangeImage([...(value ?? []), newSrc]);
     } catch (error) {
       handleApiError(error);
     }
@@ -72,7 +68,6 @@ const ImageUploader = ({
       isExternalFileDragRef.current = true;
 
       if (!isDragOver) setIsDragOver(true);
-      console.log('upload drag over', 'isDragOver:', isDragOver);
     }
   };
 
@@ -86,7 +81,6 @@ const ImageUploader = ({
     if (e.currentTarget.contains(related)) return;
     isExternalFileDragRef.current = false;
     setIsDragOver(false);
-    console.log('upload drag leave', 'isDragOver:', isDragOver);
   };
 
   const handleUploadOnDrop = (e: DragEvent<HTMLLabelElement>) => {
@@ -95,8 +89,6 @@ const ImageUploader = ({
 
     isExternalFileDragRef.current = false;
     setIsDragOver(false);
-
-    console.log('upload drag drop');
 
     if (e.dataTransfer?.types?.includes('Files')) {
       const files = Array.from(e.dataTransfer?.files ?? []);
@@ -126,7 +118,6 @@ const ImageUploader = ({
     e.dataTransfer.effectAllowed = 'move';
 
     dragItemRef.current = index;
-    console.log('image internat drag start');
   };
 
   const handleImageDragEnter = (e: DragEvent<HTMLDivElement>, index: number) => {
@@ -137,13 +128,11 @@ const ImageUploader = ({
     }
 
     dragOverItemRef.current = index;
-    console.log('image internat drag enter');
   };
 
   const handleImageDragEnd = (e: DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     e.stopPropagation();
-    console.log('image internat drag end');
 
     if (!value || dragItemRef.current === null || dragOverItemRef.current === null) return;
 

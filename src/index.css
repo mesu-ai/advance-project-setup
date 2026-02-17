@@ -82,6 +82,7 @@
 
   --color-white-600: #f3f3f3;
   --color-white-700: #ebebeb;
+  --color-white-800: #8c8c8c;
 
   --spacing-7.5: 30px;
   --spacing-17: 68px;
@@ -119,11 +120,11 @@ input:-webkit-autofill {
 
 @layer components {
   .input-label {
-    @apply text-sm font-medium w-fit h-fit;
+    @apply text-sm font-medium w-fit h-fit select-none;
   }
 
   .input-field {
-    @apply mt-1 w-full border border-neutral-300 text-sm rounded-lg px-2 py-[7px] outline-none hover:border-primary-500;
+    @apply mt-1 w-full border border-neutral-300 text-sm leading-normal rounded-lg px-2 py-[6.5px] outline-none hover:border-primary-500;
   }
 
   .input-error {

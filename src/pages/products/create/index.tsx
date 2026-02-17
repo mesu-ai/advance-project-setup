@@ -1,14 +1,13 @@
 import ArrowIcon from '@/assets/svg/ArrowIcon';
 import Button from '@/components/atoms/Button';
 import Input from '@/components/atoms/Input';
-import ComboBox from '@/components/atoms/ComboBox';
 import CategorySelector from '@/features/products/components/CategorySelector';
 import useSearchKeyword from '@/hooks/useSearchKeyword';
 import { useGetShopsQuery } from '@/store/api/endpoints/shopEndpoints';
 import type { SelectedCategoryT } from '@/types/category';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useState, type ChangeEvent } from 'react';
-import { Controller, useForm, useWatch } from 'react-hook-form';
+import { Controller, useFieldArray, useForm, useWatch } from 'react-hook-form';
 import Editor from 'textcrafter';
 import * as z from 'zod';
 import ArrowLongIcon from '@/assets/svg/ArrowLongIcon';
@@ -16,6 +15,7 @@ import Checkbox from '@/components/atoms/Checkbox';
 import FileInput from '@/components/atoms/FileInput';
 import TextArea from '@/components/atoms/TextArea';
 import ImageUploader from '@/components/molecules/ImageUploader';
+import ComboBox from '@/components/atoms/ComboBox';
 
 const categorySuggessions: SelectedCategoryT[] = [
   {
@@ -39,6 +39,26 @@ const categorySuggessions: SelectedCategoryT[] = [
   },
 ];
 
+const colorVariants = [
+  { label: 'Green', value: 'green' },
+  { label: 'Red', value: 'red' },
+  { label: 'Yellow', value: 'yellow' },
+  { label: 'White', value: 'white' },
+];
+
+const sizeVariants = [
+  { label: 'S', value: 's' },
+  { label: 'M', value: 'm' },
+  { label: 'L', value: 'l' },
+  { label: 'XL', value: 'xl' },
+  { label: '2XL', value: '2xl' },
+];
+
+const variantSchema = z.object({
+  color: z.array(z.string()).nonempty('At least one color is required'),
+  size: z.array(z.string()).nonempty('At least one size is required'),
+});
+
 const productSchema = z.object({
   productName: z.string().min(3, 'Product name is required'),
   categoryId: z.number('Product category is required'),
@@ -50,6 +70,7 @@ const productSchema = z.object({
   strapMeterial: z.string().optional(),
   fitType: z.string().optional(),
   gender: z.string().optional(),
+  variants: z.array(variantSchema).nonempty('error'),
   description: z.string().min(3, 'Description is required'),
   specification: z.string().min(3, 'Specification is required'),
   hasEmi: z.enum(['Y', 'N']).optional(),
@@ -120,8 +141,11 @@ const CreateProductPage = () => {
       description: '',
       specification: '',
       productImages: [],
+      variants: [{ color: [], size: [] }],
     },
   });
+
+  const { fields: productVariants } = useFieldArray({ control, name: 'variants' });
 
   const watchedProductName = useWatch({ control, name: 'productName' });
   const watchedCategory = useWatch({ control, name: 'categoryId' });
@@ -138,6 +162,8 @@ const CreateProductPage = () => {
   const onSubmit = (data: ProductFormData) => {
     console.log({ data });
   };
+
+  console.log(errors.variants?.message, errors.productName?.message);
 
   return (
     <div>
@@ -201,19 +227,20 @@ const CreateProductPage = () => {
                   <Controller
                     name="unit"
                     control={control}
-                    render={({ field: { value, onChange } }) => (
+                    render={({ field }) => (
                       <ComboBox
                         label="Product Quantity Unit"
-                        selectedValue={value}
+                        // selectedValue={value}
                         options={[
                           { label: 'PSC', value: 'psc' },
                           { label: 'KG', value: 'kg' },
                         ]}
                         optionKeys={{ label: 'label', value: 'value' }}
-                        onOptionSelect={(u) => onChange(u.value)}
+                        // onOptionSelect={(u) => onChange(u.value)}
                         placeholder="Select Product Quantity Unit"
                         error={errors.unit?.message}
                         required
+                        {...field}
                       />
                     )}
                   />
@@ -221,13 +248,11 @@ const CreateProductPage = () => {
                   <Controller
                     name="shopId"
                     control={control}
-                    render={({ field: { value, onChange } }) => (
+                    render={({ field }) => (
                       <ComboBox
                         label="Shop Name"
-                        selectedValue={value}
                         options={shops?.data ?? []}
                         optionKeys={{ label: 'shopName', value: 'shopId' }}
-                        onOptionSelect={(s) => onChange(Number(s.shopId))}
                         error={errors.shopId?.message}
                         isLoading={isShopLoading}
                         placeholder="Select/Search Shop Name  "
@@ -236,6 +261,7 @@ const CreateProductPage = () => {
                           onSearch: shopSearch.setKeyword,
                         }}
                         required
+                        {...field}
                       />
                     )}
                   />
@@ -275,16 +301,16 @@ const CreateProductPage = () => {
                 <Controller
                   name="brandId"
                   control={control}
-                  render={({ field: { value, onChange } }) => (
+                  render={({ field }) => (
                     <ComboBox
                       label="Product Brand"
+                      placeholder="Select/Search Brand"
                       options={[{ brandId: 1, brandName: 'SaRa' }]}
                       optionKeys={{ label: 'brandName', value: 'brandId' }}
-                      onOptionSelect={(b) => onChange(Number(b.brandId))}
-                      selectedValue={value}
                       search={{ enabled: true, onSearch: brandSearch.setKeyword }}
-                      placeholder="Select/Search Brand"
+                      error={errors.brandId?.message}
                       required
+                      {...field}
                     />
                   )}
                 />
@@ -292,18 +318,18 @@ const CreateProductPage = () => {
                 <Controller
                   name="strapMeterial"
                   control={control}
-                  render={({ field: { value, onChange } }) => (
+                  render={({ field }) => (
                     <ComboBox
                       label="Strap Material"
+                      placeholder="Select Strap Material"
                       options={[
                         { strapId: 1, strapName: 'Metal' },
                         { strapId: 1, strapName: 'Plastic' },
                       ]}
                       optionKeys={{ label: 'strapName', value: 'strapName' }}
-                      onOptionSelect={(sm) => onChange(sm.strapName)}
-                      selectedValue={value}
-                      placeholder="Select Strap Material"
-                      required
+                      // error={errors.strapMeterial?.message}
+                      // required
+                      {...field}
                     />
                   )}
                 />
@@ -313,7 +339,7 @@ const CreateProductPage = () => {
                     <Controller
                       name="fitType"
                       control={control}
-                      render={({ field: { value, onChange } }) => (
+                      render={({ field }) => (
                         <ComboBox
                           label="Fit Type"
                           options={[
@@ -321,9 +347,8 @@ const CreateProductPage = () => {
                             { id: 1, fitName: 'Regular' },
                           ]}
                           optionKeys={{ label: 'fitName', value: 'fitName' }}
-                          onOptionSelect={(f) => onChange(f.fitName)}
-                          selectedValue={value}
                           placeholder="Select Fit Type"
+                          {...field}
                         />
                       )}
                     />
@@ -331,7 +356,7 @@ const CreateProductPage = () => {
                     <Controller
                       name="gender"
                       control={control}
-                      render={({ field: { value, onChange } }) => (
+                      render={({ field }) => (
                         <ComboBox
                           label="Gender"
                           options={[
@@ -339,9 +364,8 @@ const CreateProductPage = () => {
                             { label: 'Female', value: 'female' },
                           ]}
                           optionKeys={{ label: 'label', value: 'value' }}
-                          onOptionSelect={(sm) => onChange(sm.value)}
-                          selectedValue={value}
                           placeholder="Select Gender"
+                          {...field}
                         />
                       )}
                     />
@@ -355,6 +379,69 @@ const CreateProductPage = () => {
                 >
                   {isExpandAtt ? 'See Less' : 'See Less'} <ArrowLongIcon className="h-5 w-5" />
                 </button>
+              </div>
+            </div>
+
+            <div className="bg-surface rounded-xl border border-border px-5 py-4 space-y-4">
+              <h2 className="text-lg font-bold">Price, Stock & Variants</h2>
+
+              <div className="space-y-4">
+                {productVariants.map((variant, index) => (
+                  <div key={variant.id} className="space-y-4">
+                    <Controller
+                      name={`variants.${index}.color`}
+                      control={control}
+                      render={({ field }) => (
+                        <ComboBox
+                          isMulti
+                          label="Color Variant"
+                          options={colorVariants ?? []}
+                          optionKeys={{ label: 'label', value: 'value' }}
+                          error={errors.variants?.[index]?.color?.message}
+                          isLoading={false}
+                          placeholder="Select/Search Color  "
+                          search={{
+                            enabled: true,
+                            onSearch: shopSearch.setKeyword,
+                          }}
+                          required
+                          {...field}
+                        />
+                      )}
+                    />
+                    <Controller
+                      name={`variants.${index}.size`}
+                      control={control}
+                      render={({ field }) => (
+                        <ComboBox
+                          isMulti
+                          label="Size"
+                          options={sizeVariants ?? []}
+                          optionKeys={{ label: 'label', value: 'value' }}
+                          error={errors.variants?.[index]?.size?.message}
+                          isLoading={false}
+                          placeholder="Select Size"
+                          required
+                          {...field}
+                        />
+                      )}
+                    />
+                  </div>
+                ))}
+
+                <Controller
+                  name="productImages"
+                  control={control}
+                  render={({ field: { value, onChange } }) => (
+                    <ImageUploader
+                      required
+                      label="Product Image"
+                      value={value}
+                      onChangeImage={(img) => onChange(img)}
+                      error={errors.productImages?.message}
+                    />
+                  )}
+                />
               </div>
             </div>
 
@@ -437,7 +524,7 @@ const CreateProductPage = () => {
                 <Controller
                   name="sizeChartId"
                   control={control}
-                  render={({ field: { value, onChange } }) => (
+                  render={({ field }) => (
                     <ComboBox
                       label="Size Chart Category"
                       options={[
@@ -447,11 +534,10 @@ const CreateProductPage = () => {
                         { label: 'Mens Panjabi Regular', value: 4 },
                       ]}
                       optionKeys={{ label: 'label', value: 'value' }}
-                      onOptionSelect={(ch) => onChange(Number(ch.value))}
-                      selectedValue={value}
                       placeholder="Select a Size Chart"
                       error={errors.sizeChartId?.message}
                       required
+                      {...field}
                     />
                   )}
                 />
@@ -520,7 +606,7 @@ const CreateProductPage = () => {
                   <Controller
                     name="ogType"
                     control={control}
-                    render={({ field: { value, onChange } }) => (
+                    render={({ field }) => (
                       <ComboBox
                         label="OG Type"
                         options={[
@@ -530,9 +616,8 @@ const CreateProductPage = () => {
                           { label: 'Career', value: 'career' },
                         ]}
                         optionKeys={{ label: 'label', value: 'value' }}
-                        onOptionSelect={(ogT) => onChange(ogT.value)}
-                        selectedValue={value}
                         placeholder="Select og type"
+                        {...field}
                       />
                     )}
                   />

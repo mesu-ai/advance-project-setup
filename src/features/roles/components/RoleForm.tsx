@@ -59,6 +59,7 @@ const RoleForm = ({ mode, initialValue, onSubmit }: RoleFormProps) => {
               { label: 'Active', value: 'Y' },
               { label: 'Inactive', value: 'N' },
             ]}
+            optionKeys={{ label: 'label', value: 'value' }}
             placeholder="Select Status"
             error={errors.status?.message}
             {...register('status')}

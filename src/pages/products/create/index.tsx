@@ -86,6 +86,13 @@ const productSchema = z.object({
   gender: z.string().optional(),
   variantDimensions: z.array(variantDimensionSchema).nonempty('error'),
   variantImages: z.array(productImagesSchema).optional(),
+  variantCombinations: z.array(z.string()).nonempty('error'),
+
+  sku: z.string().optional(),
+  subStyle: z.string().optional(),
+  stock: z.string().optional(),
+  dp: z.string().optional(),
+  mrp: z.string().optional(),
 
   description: z.string().min(3, 'Description is required'),
   specification: z.string().min(3, 'Specification is required'),
@@ -529,6 +536,29 @@ const CreateProductPage = () => {
                     />
                   )}
                 />
+
+                <div>
+                  <p className="input-label ">
+                    Price & Stock <span className="text-danger-500">*</span>
+                  </p>
+                  <div className="flex items-center gap-x-3 gap-y-2">
+                    <div className="flex-auto grid grid-cols-5 gap-3">
+                      <Input placeholder="SKU/Barcode" {...register('sku')} />
+                      <Input placeholder="Sub-Style" {...register('subStyle')} />
+                      <Input placeholder="Stock" {...register('stock')} />
+                      <Input placeholder="DP" {...register('dp')} />
+
+                      <Input placeholder="MRP" {...register('mrp')} />
+                      <button
+                        type="button"
+                        className="w-fit cursor-pointer text-secondary-500 hover:text-secondary-600 font-medium test-sm"
+                      >
+                        Add Selling Price
+                      </button>
+                      <Button variant="apply">Apply to App</Button>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
 

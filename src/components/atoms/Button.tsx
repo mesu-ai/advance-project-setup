@@ -9,6 +9,7 @@ type ButtonVariantT =
   | 'view'
   | 'confirm'
   | 'draft'
+  | 'apply'
   | 'submit';
 
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
@@ -33,6 +34,7 @@ const Button = ({
     cancel: 'py-2 bg-danger-500 text-white hover:bg-danger-600 w-full max-w-[180px]',
     update: 'py-2 bg-primary-500 text-white hover:bg-primary-600 w-full max-w-[180px]',
     confirm: 'py-2 bg-primary-500 text-white hover:bg-primary-600 w-full max-w-[180px]',
+    apply: 'py-[5.87px] bg-secondary-500 text-white hover:bg-secondary-600 w-full',
     draft: 'py-2 bg-primary-500 text-white hover:bg-primary-600 w-full max-w-[180px]',
     submit: 'py-2 bg-success-500 text-white hover:bg-success-600 w-full max-w-[180px]',
   };

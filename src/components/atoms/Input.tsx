@@ -1,7 +1,7 @@
 import { useId, type ComponentPropsWithRef } from 'react';
 
 interface InputProps extends ComponentPropsWithRef<'input'> {
-  label: string;
+  label?: string;
   error?: string;
 }
 
@@ -13,6 +13,7 @@ const Input = ({ label, className = '', type = 'text', error, required, ...props
       <label className="input-label" htmlFor={generatedId}>
         {label} {required && <span className="text-danger-500">*</span>}
       </label>
+
       <div className={`input-field ${className}`}>
         <input
           type={type}

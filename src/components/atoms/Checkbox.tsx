@@ -12,7 +12,7 @@ const Checkbox = ({ label, className = '', ...props }: CheckboxProps) => {
         className="accent-primary-500 cursor-pointer w-4 h-4 disabled:cursor-not-allowed"
         {...props}
       />
-      <span className="mt-0.5"> {label}</span>
+      <span className={`mt-0.5 ${props?.disabled && 'text-neutral-200'}`}> {label}</span>
     </label>
   );
 };

@@ -6,7 +6,7 @@ import useSearchKeyword from '@/hooks/useSearchKeyword';
 import { useGetShopsQuery } from '@/store/api/endpoints/shopEndpoints';
 import type { SelectedCategoryT } from '@/types/category';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useState, type ChangeEvent } from 'react';
+import { useEffect, useState, type ChangeEvent } from 'react';
 import { Controller, useFieldArray, useForm, useWatch } from 'react-hook-form';
 import Editor from 'textcrafter';
 import * as z from 'zod';
@@ -16,6 +16,7 @@ import FileInput from '@/components/atoms/FileInput';
 import TextArea from '@/components/atoms/TextArea';
 import ImageUploader from '@/components/molecules/ImageUploader';
 import ComboBox from '@/components/atoms/ComboBox';
+import WarningIcon from '@/assets/svg/WarningIcon';
 
 const categorySuggessions: SelectedCategoryT[] = [
   {
@@ -39,24 +40,37 @@ const categorySuggessions: SelectedCategoryT[] = [
   },
 ];
 
-const colorVariants = [
-  { label: 'Green', value: 'green' },
-  { label: 'Red', value: 'red' },
-  { label: 'Yellow', value: 'yellow' },
-  { label: 'White', value: 'white' },
+const colorVariants: { variantOptionText: string; variantOptionId: number }[] = [
+  { variantOptionText: 'Green', variantOptionId: 425 },
+  { variantOptionText: 'Ash', variantOptionId: 426 },
+  { variantOptionText: 'Maroon', variantOptionId: 427 },
+  { variantOptionText: 'White', variantOptionId: 428 },
 ];
 
-const sizeVariants = [
-  { label: 'S', value: 's' },
-  { label: 'M', value: 'm' },
-  { label: 'L', value: 'l' },
-  { label: 'XL', value: 'xl' },
-  { label: '2XL', value: '2xl' },
+const sizeVariants: { variantOptionText: string; variantOptionId: number }[] = [
+  { variantOptionText: 'XS', variantOptionId: 442 },
+  { variantOptionText: 'S', variantOptionId: 443 },
+  { variantOptionText: 'M', variantOptionId: 444 },
+  { variantOptionText: 'L', variantOptionId: 445 },
+  { variantOptionText: 'XL', variantOptionId: 446 },
+  { variantOptionText: 'XXL', variantOptionId: 447 },
 ];
 
-const variantSchema = z.object({
-  color: z.array(z.string()).nonempty('At least one color is required'),
-  size: z.array(z.string()).nonempty('At least one size is required'),
+const productImagesSchema = z.object({
+  variantOptionId: z.number('Option id required'),
+  variantOptionText: z.string('Option label required'),
+  images: z.array(z.url('Invalid image URL')).nonempty('Select at least one image'),
+});
+
+const variantOptionSchema = z.object({
+  variantOptionId: z.number('Option id required'),
+  variantOptionText: z.string('Option label required'),
+});
+
+const variantDimensionSchema = z.object({
+  dimensionId: z.string('Dimension id required'),
+  name: z.string('Dimension name required'),
+  options: z.array(variantOptionSchema).nonempty('At least one option required'),
 });
 
 const productSchema = z.object({
@@ -65,12 +79,14 @@ const productSchema = z.object({
   unit: z.string('Product unit is required'),
   shopId: z.number('Shop name is required'),
   displayOrder: z.string().optional(),
-  productImages: z.array(z.url('Invalid image URL')).nonempty('Select at least one image'),
+  thumbnailImages: z.array(z.url('Invalid image URL')).nonempty('Select at least one image'),
   brandId: z.number('Brand is required'),
   strapMeterial: z.string().optional(),
   fitType: z.string().optional(),
   gender: z.string().optional(),
-  variants: z.array(variantSchema).nonempty('error'),
+  variantDimensions: z.array(variantDimensionSchema).nonempty('error'),
+  variantImages: z.array(productImagesSchema).optional(),
+
   description: z.string().min(3, 'Description is required'),
   specification: z.string().min(3, 'Specification is required'),
   hasEmi: z.enum(['Y', 'N']).optional(),
@@ -116,8 +132,9 @@ const CreateProductPage = () => {
       third: '',
     },
   });
-
   const [isExpandAtt, setExpandAtt] = useState(false);
+  const [hasVariantImages, setHasVariantImages] = useState(true);
+
   const shopSearch = useSearchKeyword(500);
   const brandSearch = useSearchKeyword(500);
 
@@ -140,15 +157,37 @@ const CreateProductPage = () => {
     defaultValues: {
       description: '',
       specification: '',
-      productImages: [],
-      variants: [{ color: [], size: [] }],
+      thumbnailImages: [
+        'https://prod.saraemart.com/uploads/images/e26107e8-992c-4d5f-845a-b3328a6a00c5.png',
+        'https://prod.saraemart.com/uploads/images/979a4366-b217-43d0-a7f9-1245b8ae9eb4.png',
+        'https://prod.saraemart.com/uploads/images/ba8cf1fa-442d-43f6-8128-6426053f1dad.jpg',
+        'https://prod.saraemart.com/uploads/images/89d781cf-0e16-4ede-a0ad-ad63e1a63a5e.jpg',
+        'https://prod.saraemart.com/uploads/images/b012a4a9-dc68-4788-9415-ff8d38327768.jpg',
+      ],
+      variantDimensions: [
+        {
+          dimensionId: 'color',
+          name: 'Color',
+          options: [{ variantOptionId: 425, variantOptionText: 'Green' }],
+        },
+        {
+          dimensionId: 'size',
+          name: 'Size',
+          options: [],
+        },
+      ],
     },
   });
 
-  const { fields: productVariants } = useFieldArray({ control, name: 'variants' });
+  const { fields: imageFields, replace: replaceImagFields } = useFieldArray({
+    control,
+    name: 'variantImages',
+  });
 
   const watchedProductName = useWatch({ control, name: 'productName' });
   const watchedCategory = useWatch({ control, name: 'categoryId' });
+  // const watchedVariants = useWatch({ control, name: 'variantDimensions' });
+  const watchColor = useWatch({ control, name: 'variantDimensions.0.options' });
 
   const handleSameAsMeta = (e: ChangeEvent<HTMLInputElement>) => {
     const isChecked = e.target.checked;
@@ -163,7 +202,24 @@ const CreateProductPage = () => {
     console.log({ data });
   };
 
-  console.log(errors.variants?.message, errors.productName?.message);
+  useEffect(() => {
+    if (!hasVariantImages) return;
+    const variantWiseImages = getValues('variantImages');
+    const mappedImageFields = watchColor.map((c) => {
+      const found = variantWiseImages?.find((v_img) => v_img.variantOptionId === c.variantOptionId);
+      return (
+        found ?? {
+          variantOptionId: c?.variantOptionId,
+          variantOptionText: c.variantOptionText,
+          images: [],
+        }
+      );
+    });
+
+    replaceImagFields(mappedImageFields);
+  }, [hasVariantImages, watchColor, replaceImagFields, getValues]);
+
+  console.log(getValues('variantImages'));
 
   return (
     <div>
@@ -230,13 +286,11 @@ const CreateProductPage = () => {
                     render={({ field }) => (
                       <ComboBox
                         label="Product Quantity Unit"
-                        // selectedValue={value}
                         options={[
                           { label: 'PSC', value: 'psc' },
                           { label: 'KG', value: 'kg' },
                         ]}
                         optionKeys={{ label: 'label', value: 'value' }}
-                        // onOptionSelect={(u) => onChange(u.value)}
                         placeholder="Select Product Quantity Unit"
                         error={errors.unit?.message}
                         required
@@ -280,7 +334,7 @@ const CreateProductPage = () => {
               <h2 className="text-lg font-bold">Images</h2>
               <div className="space-y-4">
                 <Controller
-                  name="productImages"
+                  name="thumbnailImages"
                   control={control}
                   render={({ field: { value, onChange } }) => (
                     <ImageUploader
@@ -288,7 +342,7 @@ const CreateProductPage = () => {
                       label="Product Image"
                       value={value}
                       onChangeImage={(img) => onChange(img)}
-                      error={errors.productImages?.message}
+                      error={errors.thumbnailImages?.message}
                     />
                   )}
                 />
@@ -384,61 +438,94 @@ const CreateProductPage = () => {
 
             <div className="bg-surface rounded-xl border border-border px-5 py-4 space-y-4">
               <h2 className="text-lg font-bold">Price, Stock & Variants</h2>
-
               <div className="space-y-4">
-                {productVariants.map((variant, index) => (
-                  <div key={variant.id} className="space-y-4">
-                    <Controller
-                      name={`variants.${index}.color`}
-                      control={control}
-                      render={({ field }) => (
-                        <ComboBox
-                          isMulti
-                          label="Color Variant"
-                          options={colorVariants ?? []}
-                          optionKeys={{ label: 'label', value: 'value' }}
-                          error={errors.variants?.[index]?.color?.message}
-                          isLoading={false}
-                          placeholder="Select/Search Color  "
-                          search={{
-                            enabled: true,
-                            onSearch: shopSearch.setKeyword,
-                          }}
-                          required
-                          {...field}
-                        />
-                      )}
-                    />
-                    <Controller
-                      name={`variants.${index}.size`}
-                      control={control}
-                      render={({ field }) => (
-                        <ComboBox
-                          isMulti
-                          label="Size"
-                          options={sizeVariants ?? []}
-                          optionKeys={{ label: 'label', value: 'value' }}
-                          error={errors.variants?.[index]?.size?.message}
-                          isLoading={false}
-                          placeholder="Select Size"
-                          required
-                          {...field}
-                        />
-                      )}
-                    />
-                  </div>
-                ))}
-
                 <Controller
-                  name="productImages"
+                  name={`variantDimensions.0.options`}
                   control={control}
                   render={({ field: { value, onChange } }) => (
-                    <ImageUploader
+                    <ComboBox
+                      isMulti
+                      label="Color"
+                      options={colorVariants ?? []}
+                      optionKeys={{ label: 'variantOptionText', value: 'variantOptionId' }}
+                      error={errors.variantDimensions?.[0]?.options?.message}
+                      isLoading={false}
+                      placeholder="Select/Search Color"
+                      value={value.map((v) => v.variantOptionId) ?? []}
+                      onChange={(ids: number[]) => {
+                        const colorSet = new Set(ids);
+                        const colorOptions = colorVariants.filter((c) => {
+                          if (colorSet.has(c.variantOptionId)) {
+                            return (c.variantOptionId, c.variantOptionText);
+                          }
+                        });
+                        onChange(colorOptions);
+                      }}
+                      search={{
+                        enabled: true,
+                        onSearch: shopSearch.setKeyword,
+                      }}
                       required
+                    />
+                  )}
+                />
+
+                <div>
+                  <div className="flex items-center gap-1">
+                    <Checkbox
                       label="Product Image"
-                      value={value}
-                      onChangeImage={(img) => onChange(img)}
-                      error={errors.productImages?.message}
+                      disabled={watchColor.length === 0}
+                      checked={hasVariantImages}
+                      onChange={(e) => setHasVariantImages(e.target.checked)}
+                      className="input-label"
+                    />
+                    <WarningIcon className="w-5 h-5 stroke-neutral-300" />
+                  </div>
+
+                  {hasVariantImages && (
+                    <div className="space-y-4">
+                      {imageFields.map((v, index) => (
+                        <Controller
+                          key={v.id}
+                          name={`variantImages.${index}.images`}
+                          control={control}
+                          render={({ field: { value, onChange } }) => (
+                            <ImageUploader
+                              value={value}
+                              onChangeImage={(img) => onChange(img)}
+                              instructions={`Color: ${v.variantOptionText}`}
+                              error={errors.thumbnailImages?.message}
+                            />
+                          )}
+                        />
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                <Controller
+                  name={`variantDimensions.1.options`}
+                  control={control}
+                  render={({ field: { value, onChange } }) => (
+                    <ComboBox
+                      isMulti
+                      label="Size"
+                      options={sizeVariants ?? []}
+                      optionKeys={{ label: 'variantOptionText', value: 'variantOptionId' }}
+                      error={errors.variantDimensions?.[1]?.options?.message}
+                      isLoading={false}
+                      placeholder="Select Size"
+                      value={value.map((v) => v.variantOptionId) ?? []}
+                      onChange={(ids: number[]) => {
+                        const sizeSet = new Set(ids);
+                        const selectedOptions = sizeVariants.filter((s) => {
+                          if (sizeSet.has(s.variantOptionId)) {
+                            return (s.variantOptionId, s.variantOptionText);
+                          }
+                        });
+                        onChange(selectedOptions);
+                      }}
+                      required
                     />
                   )}
                 />

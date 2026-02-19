@@ -15,10 +15,11 @@ import { MEDIA_BASE_URL } from '@/apis/config/baseURL';
 import { useUploadFileMutation } from '@/store/api/endpoints/mediaEndpoints';
 
 interface ImageUploaderProps extends Omit<ComponentPropsWithRef<'input'>, 'type' | 'value'> {
-  label: string;
+  label?: string;
   error?: string;
   value?: string[];
   onChangeImage: (images: string[] | ((prev: string[]) => string[])) => void;
+  instructions?: string;
 }
 
 const ImageUploader = ({
@@ -27,6 +28,7 @@ const ImageUploader = ({
   required,
   className = '',
   value,
+  instructions,
   onChangeImage,
   ...props
 }: ImageUploaderProps) => {
@@ -160,47 +162,57 @@ const ImageUploader = ({
           onDragLeave={handleUploadDragLeave}
           className={`min-h-[60px] input-field border-dashed flex items-center justify-center gap-4 ${isDragOver && 'border-primary-500 '}`}
         >
-          <div className="w-full relative flex flex-wrap items-center justify-center gap-4">
-            <div
-              className={`flex items-center justify-center gap-4 transition-opacity duration-300 ease-in-out ${isDragOver ? 'opacity-50' : 'opacity-100 pointer-events-auto'}`}
-            >
-              {value?.map((item, index) => (
-                <div
-                  key={index}
-                  draggable={!isDragOver}
-                  onDragStart={(e) => handleImageDragStart(e, index)}
-                  onDragEnter={(e) => handleImageDragEnter(e, index)}
-                  onDragEnd={handleImageDragEnd}
-                  onDragOver={(e) => e.preventDefault()}
-                  className="size-10 border border-white-700 rounded cursor-move grid place-items-center"
-                >
-                  <Image
-                    src={item}
-                    alt={`preview-image-${index}`}
-                    className="rounded aspect-square"
-                  />
-                </div>
-              ))}
-              {isUploading && (
-                <div
-                  role="status"
-                  aria-label="Uploading"
-                  className="size-10 grid place-items-center"
-                >
-                  <div className="animate-spin size-5 border-t border-r border-secondary-500 rounded-full" />
+          <div className="w-full relative flex flex-wrap items-center gap-4">
+            {instructions && (
+              <p
+                className={`text-neutral-300 capitalize ${value && value?.length < 10 && 'absolute left-0'}`}
+              >
+                {instructions}
+              </p>
+            )}
+
+            <div className="flex-auto flex flex-wrap items-center justify-center gap-4">
+              <div
+                className={`flex flex-wrap items-center justify-center gap-4 transition-opacity duration-300 ease-in-out ${isDragOver ? 'opacity-50' : 'opacity-100 pointer-events-auto'}`}
+              >
+                {value?.map((item, index) => (
+                  <div
+                    key={index}
+                    draggable={!isDragOver}
+                    onDragStart={(e) => handleImageDragStart(e, index)}
+                    onDragEnter={(e) => handleImageDragEnter(e, index)}
+                    onDragEnd={handleImageDragEnd}
+                    onDragOver={(e) => e.preventDefault()}
+                    className="size-10 border border-white-700 rounded cursor-move grid place-items-center"
+                  >
+                    <Image
+                      src={item}
+                      alt={`preview-image-${index}`}
+                      className="rounded aspect-square"
+                    />
+                  </div>
+                ))}
+                {isUploading && (
+                  <div
+                    role="status"
+                    aria-label="Uploading"
+                    className="size-10 grid place-items-center"
+                  >
+                    <div className="animate-spin size-5 border-t border-r border-secondary-500 rounded-full" />
+                  </div>
+                )}
+              </div>
+
+              <p className="size-10 bg-white-600 rounded grid place-items-center">
+                <PlusIcon className="stroke-neutral-300" />
+              </p>
+
+              {isDragOver && (
+                <div className="pointer-events-none rounded-lg bg-primary-50/80 text-secondary-500 z-10 absolute inset-0 flex items-center justify-center">
+                  Drop Your Image Here
                 </div>
               )}
             </div>
-
-            <p className="size-10 bg-white-600 rounded grid place-items-center">
-              <PlusIcon className="stroke-neutral-300" />
-            </p>
-
-            {isDragOver && (
-              <div className="pointer-events-none rounded-lg bg-primary-50/80 text-secondary-500 z-10 absolute inset-0 flex items-center justify-center">
-                Drop Your Image Here
-              </div>
-            )}
           </div>
 
           <input

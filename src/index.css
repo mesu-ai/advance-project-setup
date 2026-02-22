@@ -102,6 +102,10 @@ body {
   font-family: var(--font-english);
 }
 
+/* table, th, td {
+  border: 1px solid black
+} */
+
 input:-webkit-autofill {
   -webkit-text-fill-color: #000 !important;
   transition: background-color 9999s ease-in-out 0s;

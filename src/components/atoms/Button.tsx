@@ -4,7 +4,7 @@ type ButtonVariantT =
   | 'add'
   | 'edit'
   | 'delete'
-  | 'update'
+  | 'save'
   | 'cancel'
   | 'view'
   | 'confirm'
@@ -32,7 +32,7 @@ const Button = ({
     view: 'bg-danger-500 text-white hover:bg-danger-600',
     delete: 'bg-danger-500 text-white hover:bg-danger-600',
     cancel: 'py-2 bg-danger-500 text-white hover:bg-danger-600 w-full max-w-[180px]',
-    update: 'py-2 bg-primary-500 text-white hover:bg-primary-600 w-full max-w-[180px]',
+    save: 'py-2 bg-primary-500 text-white hover:bg-primary-600 w-full max-w-[180px]',
     confirm: 'py-2 bg-primary-500 text-white hover:bg-primary-600 w-full max-w-[180px]',
     apply: 'py-[5.87px] bg-secondary-500 text-white hover:bg-secondary-600 w-full',
     draft: 'py-2 bg-primary-500 text-white hover:bg-primary-600 w-full max-w-[180px]',

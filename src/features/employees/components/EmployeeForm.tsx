@@ -227,7 +227,7 @@ const EmployeeForm = ({ mode, initialValues, onSubmit }: EmployeeFormProps) => {
           Cancel
         </Button>
 
-        <Button type="submit" variant="update">
+        <Button type="submit" variant="save">
           {submitLabel(mode, isSubmitting)}
         </Button>
       </div>

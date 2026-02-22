@@ -17,6 +17,10 @@ import TextArea from '@/components/atoms/TextArea';
 import ImageUploader from '@/components/molecules/ImageUploader';
 import ComboBox from '@/components/atoms/ComboBox';
 import WarningIcon from '@/assets/svg/WarningIcon';
+import SellingPriceModal, {
+  type PriceFormData,
+} from '@/features/products/components/modal/SellingPriceModal';
+import VariantPriceTable from '@/features/products/components/table/VariantPriceTable';
 
 const categorySuggessions: SelectedCategoryT[] = [
   {
@@ -141,6 +145,7 @@ const CreateProductPage = () => {
   });
   const [isExpandAtt, setExpandAtt] = useState(false);
   const [hasVariantImages, setHasVariantImages] = useState(true);
+  const [isPriceOpen, setPriceOpen] = useState(false);
 
   const shopSearch = useSearchKeyword(500);
   const brandSearch = useSearchKeyword(500);
@@ -203,6 +208,10 @@ const CreateProductPage = () => {
       setValue('ogUrl', getValues('productUrl'));
       setValue('ogDescription', getValues('metaDescription'));
     }
+  };
+
+  const onPriceSubmit = (data: PriceFormData) => {
+    console.log({ data });
   };
 
   const onSubmit = (data: ProductFormData) => {
@@ -551,12 +560,17 @@ const CreateProductPage = () => {
                       <Input placeholder="MRP" {...register('mrp')} />
                       <button
                         type="button"
+                        onClick={() => setPriceOpen(true)}
                         className="w-fit cursor-pointer text-secondary-500 hover:text-secondary-600 font-medium test-sm"
                       >
                         Add Selling Price
                       </button>
                       <Button variant="apply">Apply to App</Button>
                     </div>
+                  </div>
+
+                  <div className="mt-4">
+                    <VariantPriceTable />
                   </div>
                 </div>
               </div>
@@ -789,6 +803,10 @@ const CreateProductPage = () => {
           </p>
         </div>
       </div>
+
+      {isPriceOpen && (
+        <SellingPriceModal isOpen={isPriceOpen} onClose={setPriceOpen} onSubmit={onPriceSubmit} />
+      )}
     </div>
   );
 };

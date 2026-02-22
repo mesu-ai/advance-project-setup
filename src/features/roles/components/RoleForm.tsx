@@ -79,7 +79,7 @@ const RoleForm = ({ mode, initialValue, onSubmit }: RoleFormProps) => {
         <Button variant="cancel" onClick={() => navigate('/access-control/roles')}>
           Cancel
         </Button>
-        <Button type="submit" variant="update">
+        <Button type="submit" variant="save">
           {submitLabel(mode, isSubmitting)}
         </Button>
       </div>

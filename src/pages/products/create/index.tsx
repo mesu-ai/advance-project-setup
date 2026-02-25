@@ -44,20 +44,20 @@ const categorySuggessions: SelectedCategoryT[] = [
   },
 ];
 
-const colorVariants: { variantOptionText: string; variantOptionId: number }[] = [
-  { variantOptionText: 'Green', variantOptionId: 425 },
-  { variantOptionText: 'Ash', variantOptionId: 426 },
-  { variantOptionText: 'Maroon', variantOptionId: 427 },
-  { variantOptionText: 'White', variantOptionId: 428 },
+const colorVariants: { variantOptionId: number; variantOptionText: string }[] = [
+  { variantOptionId: 425, variantOptionText: 'Green' },
+  { variantOptionId: 426, variantOptionText: 'Ash' },
+  { variantOptionId: 427, variantOptionText: 'Maroon' },
+  { variantOptionId: 428, variantOptionText: 'White' },
 ];
 
-const sizeVariants: { variantOptionText: string; variantOptionId: number }[] = [
-  { variantOptionText: 'XS', variantOptionId: 442 },
-  { variantOptionText: 'S', variantOptionId: 443 },
-  { variantOptionText: 'M', variantOptionId: 444 },
-  { variantOptionText: 'L', variantOptionId: 445 },
-  { variantOptionText: 'XL', variantOptionId: 446 },
-  { variantOptionText: 'XXL', variantOptionId: 447 },
+const sizeVariants: { variantOptionId: number; variantOptionText: string }[] = [
+  { variantOptionId: 442, variantOptionText: 'XS' },
+  { variantOptionId: 443, variantOptionText: 'S' },
+  { variantOptionId: 444, variantOptionText: 'M' },
+  { variantOptionId: 445, variantOptionText: 'L' },
+  { variantOptionId: 446, variantOptionText: 'XL' },
+  { variantOptionId: 447, variantOptionText: 'XXL' },
 ];
 
 const productImagesSchema = z.object({
@@ -77,6 +77,30 @@ const variantDimensionSchema = z.object({
   options: z.array(variantOptionSchema).nonempty('At least one option required'),
 });
 
+const combinationOptionSchema = z.object({
+  variantOptionId: z.number('Option id required'),
+  variantOptionText: z.string('Option label required'),
+});
+
+const variantCombinationSchema = z.object({
+  sku: z.string(),
+  subStyle: z.string().optional(),
+  stock: z.coerce.number<number>('Invalid price').positive('Price must be positive'),
+  dpPrice: z.coerce.number<number>('Invalid price').positive('Price must be positive'),
+  mrp: z.coerce.number<number>('Invalid price').positive('Price must be positive'),
+  sellingPrice: z.coerce.number<number>('Invalid price').positive('Price must be positive'),
+  sellingDate: z.iso.datetime({ local: true }),
+  burnAmount: z.coerce
+    .number<number>('Invalid price')
+    .positive('Price must be positive')
+    .optional(),
+  commissionAmount: z.coerce
+    .number<number>('Invalid price')
+    .positive('Price must be positive')
+    .optional(),
+  options: z.array(combinationOptionSchema),
+});
+
 const productSchema = z.object({
   productName: z.string().min(3, 'Product name is required'),
   categoryId: z.number('Product category is required'),
@@ -90,13 +114,13 @@ const productSchema = z.object({
   gender: z.string().optional(),
   variantDimensions: z.array(variantDimensionSchema).nonempty('error'),
   variantImages: z.array(productImagesSchema).optional(),
-  variantCombinations: z.array(z.string()).nonempty('error'),
+  variantCombinations: z.array(variantCombinationSchema).nonempty('error'),
 
   sku: z.string().optional(),
   subStyle: z.string().optional(),
-  stock: z.string().optional(),
-  dp: z.string().optional(),
-  mrp: z.string().optional(),
+  stock: z.number().optional(),
+  dp: z.number().optional(),
+  mrp: z.number().optional(),
 
   description: z.string().min(3, 'Description is required'),
   specification: z.string().min(3, 'Specification is required'),
@@ -129,7 +153,7 @@ const productSchema = z.object({
     }, 'Only .jpg, .jpeg, .png formats are supported'),
 });
 
-type ProductFormData = z.infer<typeof productSchema>;
+export type ProductFormData = z.infer<typeof productSchema>;
 
 const CreateProductPage = () => {
   const [isCategoryOpen, setCategoryOpen] = useState<boolean>(false);
@@ -153,8 +177,6 @@ const CreateProductPage = () => {
   const { data: shops, isLoading: isShopLoading } = useGetShopsQuery({
     keyword: shopSearch?.debouncedKeyword,
   });
-
-  // const [uploadImage] = useUploadFileMutation();
 
   const {
     register,
@@ -185,7 +207,57 @@ const CreateProductPage = () => {
         {
           dimensionId: 'size',
           name: 'Size',
-          options: [],
+          options: [
+            { variantOptionId: 442, variantOptionText: 'XS' },
+            { variantOptionId: 443, variantOptionText: 'S' },
+          ],
+        },
+      ],
+      variantImages: [
+        {
+          variantOptionId: 425,
+          variantOptionText: 'Green',
+          images: [
+            'https://prod.saraemart.com/uploads/images/e26107e8-992c-4d5f-845a-b3328a6a00c5.png',
+            'https://prod.saraemart.com/uploads/images/979a4366-b217-43d0-a7f9-1245b8ae9eb4.png',
+            'https://prod.saraemart.com/uploads/images/ba8cf1fa-442d-43f6-8128-6426053f1dad.jpg',
+          ],
+        },
+      ],
+
+      // burn= mrp- selling
+      // discount= mrp - selling
+      // commission = selling -dp
+      variantCombinations: [
+        {
+          sku: 'dsewes',
+          subStyle: 'dffrr',
+          stock: 20,
+          dpPrice: 500,
+          mrp: 700,
+          sellingPrice: 600,
+          sellingDate: '',
+          burnAmount: 100,
+          commissionAmount: 0,
+          options: [
+            { variantOptionId: 425, variantOptionText: 'Green' },
+            { variantOptionId: 442, variantOptionText: 'XS' },
+          ],
+        },
+        {
+          sku: 'aas',
+          subStyle: 'ddeet',
+          stock: 50,
+          dpPrice: 300,
+          mrp: 400,
+          sellingPrice: 350,
+          sellingDate: '',
+          burnAmount: 50,
+          commissionAmount: 0,
+          options: [
+            { variantOptionId: 425, variantOptionText: 'Green' },
+            { variantOptionId: 443, variantOptionText: 'S' },
+          ],
         },
       ],
     },
@@ -200,6 +272,7 @@ const CreateProductPage = () => {
   const watchedCategory = useWatch({ control, name: 'categoryId' });
   // const watchedVariants = useWatch({ control, name: 'variantDimensions' });
   const watchColor = useWatch({ control, name: 'variantDimensions.0.options' });
+  const watchSize = useWatch({ control, name: 'variantDimensions.1.options' });
 
   const handleSameAsMeta = (e: ChangeEvent<HTMLInputElement>) => {
     const isChecked = e.target.checked;
@@ -235,13 +308,11 @@ const CreateProductPage = () => {
     replaceImagFields(mappedImageFields);
   }, [hasVariantImages, watchColor, replaceImagFields, getValues]);
 
-  console.log(getValues('variantImages'));
-
   return (
     <div>
       <h1 className="heading-1">Add New Product</h1>
       <div className="mt-3 flex gap-5">
-        <div className="flex-1">
+        <div className="flex-1 min-w-0">
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
             <div className="bg-surface rounded-xl border border-border px-5 py-4 space-y-4">
               <h2 className="text-lg font-bold">Basic Information</h2>
@@ -561,16 +632,16 @@ const CreateProductPage = () => {
                       <button
                         type="button"
                         onClick={() => setPriceOpen(true)}
-                        className="w-fit cursor-pointer text-secondary-500 hover:text-secondary-600 font-medium test-sm"
+                        className="w-fit cursor-pointer text-secondary-500 hover:text-secondary-600 text-sm font-medium"
                       >
                         Add Selling Price
                       </button>
-                      <Button variant="apply">Apply to App</Button>
+                      <Button variant="apply">Apply to All</Button>
                     </div>
                   </div>
 
-                  <div className="mt-4">
-                    <VariantPriceTable />
+                  <div className="mt-4 overflow-hidden rounded-lg border border-neutral-300">
+                    <VariantPriceTable colors={watchColor} sizes={watchSize} control={control} />
                   </div>
                 </div>
               </div>
@@ -805,7 +876,11 @@ const CreateProductPage = () => {
       </div>
 
       {isPriceOpen && (
-        <SellingPriceModal isOpen={isPriceOpen} onClose={setPriceOpen} onSubmit={onPriceSubmit} />
+        <SellingPriceModal
+          isOpen={isPriceOpen}
+          onClose={() => setPriceOpen(false)}
+          onSubmit={onPriceSubmit}
+        />
       )}
     </div>
   );

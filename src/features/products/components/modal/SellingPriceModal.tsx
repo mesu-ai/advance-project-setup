@@ -14,7 +14,7 @@ export type PriceFormData = z.infer<typeof PriceModalSchema>;
 
 interface SellingPriceModalProps {
   isOpen: boolean;
-  onClose: (value: boolean) => void;
+  onClose: () => void;
   onSubmit: (data: PriceFormData) => void;
 }
 
@@ -22,16 +22,27 @@ const SellingPriceModal = ({ isOpen, onClose, onSubmit }: SellingPriceModalProps
   const {
     register,
     handleSubmit,
+    reset,
     formState: { isSubmitting, errors },
   } = useForm<PriceFormData>({ resolver: zodResolver(PriceModalSchema) });
 
-  //   const onSubmit = (data: PriceFormData) => {
-  //     console.log({ data });
-  //   };
+  const handleFormSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    handleSubmit((data) => {
+      onSubmit(data);
+      reset();
+    })(e);
+  };
+
+  const handleClose = () => {
+    reset(); // Reset form when closing
+    onClose();
+  };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title="Add Selling Price">
-      <form onSubmit={handleSubmit(onSubmit)} className="min-w-xl space-y-4">
+    <Modal isOpen={isOpen} onClose={handleClose} title="Add Selling Price">
+      <form onSubmit={handleFormSubmit} className="min-w-xl space-y-4">
         <Input
           label="Selling Price"
           placeholder="Enter Selling Price"
@@ -49,7 +60,7 @@ const SellingPriceModal = ({ isOpen, onClose, onSubmit }: SellingPriceModalProps
         />
 
         <div className="flex justify-end gap-4 pt-4">
-          <Button onClick={() => onClose(false)} variant="cancel">
+          <Button onClick={handleClose} variant="cancel">
             Cancel
           </Button>
           <Button type="submit" variant="save" disabled={isSubmitting}>

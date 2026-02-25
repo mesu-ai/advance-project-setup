@@ -103,7 +103,7 @@ const EmployeeListPage = () => {
       </div>
 
       {isViewOpen && selectedEmp && (
-        <Modal title="View Employee" isOpen={isViewOpen} onClose={setIsViewOpen}>
+        <Modal title="View Employee" isOpen={isViewOpen} onClose={() => setIsViewOpen(false)}>
           <div className="flex gap-4 items-center">
             <div className="ring-2 ring-primary-500 rounded-full p-2.5">
               <Image src={ProfileImage} className="rounded-full" width={162} height={162} />
@@ -151,7 +151,7 @@ const EmployeeListPage = () => {
         <ConfirmModal
           title="Deactivate Employee"
           isOpen={isDeactiveOpen}
-          onClose={setIsDeactiveOpen}
+          onClose={() => setIsDeactiveOpen(false)}
           onConfirm={handleConfirm}
         />
       )}

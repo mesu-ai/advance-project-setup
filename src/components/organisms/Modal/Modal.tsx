@@ -5,7 +5,7 @@ import { createPortal } from 'react-dom';
 interface ModalProps {
   title?: string;
   isOpen: boolean;
-  onClose: (value: boolean) => void;
+  onClose: () => void;
   children: ReactNode;
   className?: string;
 }
@@ -16,11 +16,11 @@ const Modal: FC<ModalProps> = ({ title, isOpen, onClose, children, className = '
 
   const modalRef = useRef<HTMLDivElement | null>(null);
 
-  const handleClose = () => onClose(false);
+  const handleClose = () => onClose();
 
   const handleBackdrop = (e: MouseEvent<HTMLDivElement>) => {
     if (modalRef.current && !modalRef.current.contains(e.target as Node)) {
-      onClose(false);
+      onClose();
     }
   };
 
@@ -38,7 +38,7 @@ const Modal: FC<ModalProps> = ({ title, isOpen, onClose, children, className = '
 
   useEffect(() => {
     const handleEsc = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && isOpen) onClose(false);
+      if (e.key === 'Escape' && isOpen) onClose();
     };
     document.addEventListener('keydown', handleEsc);
     return () => document.removeEventListener('keydown', handleEsc);
@@ -46,7 +46,7 @@ const Modal: FC<ModalProps> = ({ title, isOpen, onClose, children, className = '
 
   useEffect(() => {
     const handlePopstate = () => {
-      if (isOpen) onClose(false);
+      if (isOpen) onClose();
     };
     window.addEventListener('popstate', handlePopstate);
 

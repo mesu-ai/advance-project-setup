@@ -5,7 +5,7 @@ type OptionType = Record<string, string | number> | object;
 type OptionKeys<T> = { label: keyof T; value: keyof T };
 
 interface SelectProps<T extends OptionType> extends ComponentPropsWithRef<'select'> {
-  label: string;
+  label?: string;
   options: T[];
   error?: string;
   placeholder?: string;

@@ -1,3 +1,4 @@
+import { cn } from '@/lib/cn';
 import { useId, type ComponentPropsWithRef } from 'react';
 
 interface InputProps extends ComponentPropsWithRef<'input'> {
@@ -14,7 +15,7 @@ const Input = ({ label, className = '', type = 'text', error, required, ...props
         {label} {required && <span className="text-danger-500">*</span>}
       </label>
 
-      <div className={`input-field ${className}`}>
+      <div className={cn('input-field', className)}>
         <input
           type={type}
           id={generatedId}

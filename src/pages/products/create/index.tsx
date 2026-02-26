@@ -236,7 +236,7 @@ const CreateProductPage = () => {
           dpPrice: 500,
           mrp: 700,
           sellingPrice: 600,
-          sellingDate: '',
+          sellingDate: '2026-03-17T19:14',
           burnAmount: 100,
           commissionAmount: 0,
           options: [
@@ -251,7 +251,7 @@ const CreateProductPage = () => {
           dpPrice: 300,
           mrp: 400,
           sellingPrice: 350,
-          sellingDate: '',
+          sellingDate: '2026-02-28T04:12',
           burnAmount: 50,
           commissionAmount: 0,
           options: [

@@ -1,4 +1,5 @@
 import ArrowIcon from '@/assets/svg/ArrowIcon';
+import { cn } from '@/lib/cn';
 import { useId, type ComponentPropsWithRef } from 'react';
 
 type OptionType = Record<string, string | number> | object;
@@ -24,9 +25,8 @@ const Select = <T extends OptionType>({
 }: SelectProps<T>) => {
   const generatedId = useId();
 
-  console.log({ error });
   return (
-    <div className={className}>
+    <div>
       <label className="input-label" htmlFor={generatedId}>
         {label} {required && <span className="text-danger-500">*</span>}
       </label>
@@ -34,7 +34,7 @@ const Select = <T extends OptionType>({
       <div className="relative">
         <select
           id={generatedId}
-          className="input-field appearance-none peer capitalize bg-surface"
+          className={cn('input-field appearance-none peer capitalize bg-surface', className)}
           {...props}
         >
           <option className="text-neutral-300 font-medium" value="">

@@ -16,15 +16,24 @@ interface SellingPriceModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSubmit: (data: PriceFormData) => void;
+  initialValues?: PriceFormData;
 }
 
-const SellingPriceModal = ({ isOpen, onClose, onSubmit }: SellingPriceModalProps) => {
+const SellingPriceModal = ({
+  isOpen,
+  onClose,
+  onSubmit,
+  initialValues,
+}: SellingPriceModalProps) => {
   const {
     register,
     handleSubmit,
     reset,
     formState: { isSubmitting, errors },
-  } = useForm<PriceFormData>({ resolver: zodResolver(PriceModalSchema) });
+  } = useForm<PriceFormData>({
+    resolver: zodResolver(PriceModalSchema),
+    defaultValues: initialValues ?? {},
+  });
 
   const handleFormSubmit = (e: React.FormEvent) => {
     e.preventDefault();

@@ -21,6 +21,8 @@ import SellingPriceModal, {
   type PriceFormData,
 } from '@/features/products/components/modal/SellingPriceModal';
 import VariantPriceTable from '@/features/products/components/table/VariantPriceTable';
+import EditIcon from '@/assets/svg/EditIcon';
+import DeleteIcon from '@/assets/svg/DeleteIcon';
 
 const categorySuggessions: SelectedCategoryT[] = [
   {
@@ -85,10 +87,18 @@ const combinationOptionSchema = z.object({
 const variantCombinationSchema = z.object({
   sku: z.string(),
   subStyle: z.string().optional(),
-  stock: z.coerce.number<number>('Invalid price').positive('Price must be positive'),
-  dpPrice: z.coerce.number<number>('Invalid price').positive('Price must be positive'),
-  mrp: z.coerce.number<number>('Invalid price').positive('Price must be positive'),
-  sellingPrice: z.coerce.number<number>('Invalid price').positive('Price must be positive'),
+
+  // stock: z.string(),
+  // dpPrice: z.string(),
+  // mrp: z.string(),
+  // sellingPrice: z.string(),
+  stock: z.coerce.number<number>('Invalid price').positive('Price must be positive').optional(),
+  dpPrice: z.coerce.number<number>('Invalid price').positive('Price must be positive').optional(),
+  mrp: z.coerce.number<number>('Invalid price').positive('Price must be positive').optional(),
+  sellingPrice: z.coerce
+    .number<number>('Invalid price')
+    .positive('Price must be positive')
+    .optional(),
   sellingDate: z.iso.datetime({ local: true }),
   burnAmount: z.coerce
     .number<number>('Invalid price')
@@ -118,9 +128,14 @@ const productSchema = z.object({
 
   sku: z.string().optional(),
   subStyle: z.string().optional(),
-  stock: z.number().optional(),
-  dp: z.number().optional(),
-  mrp: z.number().optional(),
+  stock: z.coerce.number<number>('Invalid price').positive('Price must be positive').optional(),
+  dpPrice: z.coerce.number<number>('Invalid price').positive('Price must be positive').optional(),
+  mrp: z.coerce.number<number>('Invalid price').positive('Price must be positive').optional(),
+  sellingPrice: z.coerce
+    .number<number>('Invalid price')
+    .positive('Price must be positive')
+    .optional(),
+  sellingDate: z.iso.datetime({ local: true }).optional(),
 
   description: z.string().min(3, 'Description is required'),
   specification: z.string().min(3, 'Specification is required'),
@@ -130,7 +145,7 @@ const productSchema = z.object({
   productUrl: z.string().min(1, 'Product url is required'),
   videoUrl: z.string().optional(),
   metaTitle: z.string().optional(),
-  metaKeywords: z.array(z.string()).optional(),
+  metaKeywords: z.string().optional(),
   metaDescription: z.string().optional(),
   ogType: z.string().optional(),
   ogTitle: z.string().optional(),
@@ -169,7 +184,7 @@ const CreateProductPage = () => {
   });
   const [isExpandAtt, setExpandAtt] = useState(false);
   const [hasVariantImages, setHasVariantImages] = useState(true);
-  const [isPriceOpen, setPriceOpen] = useState(false);
+  const [isSellingPriceModal, setSellingPriceModal] = useState(false);
 
   const shopSearch = useSearchKeyword(500);
   const brandSearch = useSearchKeyword(500);
@@ -229,36 +244,36 @@ const CreateProductPage = () => {
       // discount= mrp - selling
       // commission = selling -dp
       variantCombinations: [
-        {
-          sku: 'dsewes',
-          subStyle: 'dffrr',
-          stock: 20,
-          dpPrice: 500,
-          mrp: 700,
-          sellingPrice: 600,
-          sellingDate: '2026-03-17T19:14',
-          burnAmount: 100,
-          commissionAmount: 0,
-          options: [
-            { variantOptionId: 425, variantOptionText: 'Green' },
-            { variantOptionId: 442, variantOptionText: 'XS' },
-          ],
-        },
-        {
-          sku: 'aas',
-          subStyle: 'ddeet',
-          stock: 50,
-          dpPrice: 300,
-          mrp: 400,
-          sellingPrice: 350,
-          sellingDate: '2026-02-28T04:12',
-          burnAmount: 50,
-          commissionAmount: 0,
-          options: [
-            { variantOptionId: 425, variantOptionText: 'Green' },
-            { variantOptionId: 443, variantOptionText: 'S' },
-          ],
-        },
+        // {
+        //   sku: 'dsewes',
+        //   subStyle: 'dffrr',
+        //   stock: 20,
+        //   dpPrice: 500,
+        //   mrp: 700,
+        //   sellingPrice: 600,
+        //   sellingDate: '2026-03-17T19:14',
+        //   burnAmount: 100,
+        //   commissionAmount: 100,
+        //   options: [
+        //     { variantOptionId: 425, variantOptionText: 'Green' },
+        //     { variantOptionId: 442, variantOptionText: 'XS' },
+        //   ],
+        // },
+        // {
+        //   sku: 'aas',
+        //   subStyle: 'ddeet',
+        //   stock: 50,
+        //   dpPrice: 300,
+        //   mrp: 400,
+        //   sellingPrice: 350,
+        //   sellingDate: '2026-02-28T04:12',
+        //   burnAmount: 50,
+        //   commissionAmount: 50,
+        //   options: [
+        //     { variantOptionId: 425, variantOptionText: 'Green' },
+        //     { variantOptionId: 443, variantOptionText: 'S' },
+        //   ],
+        // },
       ],
     },
   });
@@ -268,9 +283,12 @@ const CreateProductPage = () => {
     name: 'variantImages',
   });
 
+  // const variantCombinationsField = useFieldArray({ control, name: 'variantCombinations' });
+
   const watchedProductName = useWatch({ control, name: 'productName' });
   const watchedCategory = useWatch({ control, name: 'categoryId' });
   // const watchedVariants = useWatch({ control, name: 'variantDimensions' });
+
   const watchColor = useWatch({ control, name: 'variantDimensions.0.options' });
   const watchSize = useWatch({ control, name: 'variantDimensions.1.options' });
 
@@ -283,13 +301,71 @@ const CreateProductPage = () => {
     }
   };
 
+  const handleSellingPriceReset = () => {
+    setValue('sellingPrice', undefined);
+    setValue('sellingDate', '');
+  };
+
+  const handleGroupApply = () => {
+    const values = getValues();
+
+    const {
+      sku = '',
+      subStyle = '',
+      stock,
+      dpPrice,
+      mrp,
+      sellingPrice,
+      sellingDate = '',
+      variantCombinations = [],
+    } = values;
+
+    const burnAmount = (Number(mrp) || 0) - (Number(sellingPrice) || 0);
+    const commissionAmount = (Number(sellingPrice) || 0) - (Number(dpPrice) || 0);
+
+    // const combination = variantCombinations.map((item) => ({
+    //   ...item,
+    //   sku,
+    //   subStyle,
+    //   stock,
+    //   dpPrice,
+    //   mrp,
+    //   sellingPrice,
+    //   sellingDate,
+    //   burnAmount,
+    //   commissionAmount,
+    // }));
+
+    variantCombinations.forEach((_, index) => {
+      setValue(`variantCombinations.${index}.sku`, sku);
+      setValue(`variantCombinations.${index}.subStyle`, subStyle);
+      setValue(`variantCombinations.${index}.stock`, stock);
+      setValue(`variantCombinations.${index}.dpPrice`, dpPrice);
+      setValue(`variantCombinations.${index}.mrp`, mrp);
+      setValue(`variantCombinations.${index}.sellingPrice`, sellingPrice);
+      setValue(`variantCombinations.${index}.sellingDate`, sellingDate);
+      setValue(`variantCombinations.${index}.burnAmount`, burnAmount);
+      setValue(`variantCombinations.${index}.commissionAmount`, commissionAmount);
+    });
+
+    // setValue('variantCombinations', combination);
+  //  setValue(combination)
+    console.log('click apply to all button');
+  };
+
   const onPriceSubmit = (data: PriceFormData) => {
     console.log({ data });
+    setValue('sellingPrice', data.sellingPrice);
+    setValue('sellingDate', data.sellingDate);
+
+    setSellingPriceModal(false);
   };
 
   const onSubmit = (data: ProductFormData) => {
     console.log({ data });
   };
+
+  console.log({errors})
 
   useEffect(() => {
     if (!hasVariantImages) return;
@@ -621,25 +697,56 @@ const CreateProductPage = () => {
                   <p className="input-label ">
                     Price & Stock <span className="text-danger-500">*</span>
                   </p>
-                  <div className="flex items-center gap-x-3 gap-y-2">
-                    <div className="flex-auto grid grid-cols-5 gap-3">
-                      <Input placeholder="SKU/Barcode" {...register('sku')} />
-                      <Input placeholder="Sub-Style" {...register('subStyle')} />
-                      <Input placeholder="Stock" {...register('stock')} />
-                      <Input placeholder="DP" {...register('dp')} />
 
-                      <Input placeholder="MRP" {...register('mrp')} />
+                  {/* multiple value input to the variant combination table */}
+                  <div className="w-full flex flex-wrap items-center gap-3">
+                    <Input placeholder="SKU/Barcode" className="min-w-40" {...register('sku')} />
+                    <Input placeholder="Sub-Style" className="min-w-40" {...register('subStyle')} />
+                    <Input placeholder="Stock" className="w-24" {...register('stock')} />
+                    <Input placeholder="DP" className="w-28" {...register('dpPrice')} />
+
+                    <Input placeholder="MRP" className="w-28" {...register('mrp')} />
+
+                    {getValues('sellingPrice') ? (
+                      <div className="min-w-28 flex items-center border border-neutral-300 py-1 px-2 leading-normal rounded hover:bg-white-700">
+                        <span>{getValues('sellingPrice')}</span>
+                        <button
+                          type="button"
+                          onClick={() => setSellingPriceModal(true)}
+                          aria-label="Edit selling price"
+                          className="ms-auto cursor-pointer text-neutral-300 hover:text-secondary-500"
+                        >
+                          <EditIcon className="w-5 h-5" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleSellingPriceReset()}
+                          aria-label="Reset selling price"
+                          className="ms-1 cursor-pointer text-neutral-300 hover:text-danger-500"
+                        >
+                          <DeleteIcon className="w-5 h-5" />
+                        </button>
+                      </div>
+                    ) : (
                       <button
                         type="button"
-                        onClick={() => setPriceOpen(true)}
-                        className="w-fit cursor-pointer text-secondary-500 hover:text-secondary-600 text-sm font-medium"
+                        onClick={() => setSellingPriceModal(true)}
+                        className="max-w-28 leading-normal whitespace-nowrap cursor-pointer text-secondary-500 hover:text-secondary-600 text-sm font-medium"
                       >
                         Add Selling Price
                       </button>
-                      <Button variant="apply">Apply to All</Button>
-                    </div>
+                    )}
+
+                    <Button
+                      variant="apply"
+                      className="ms-5 max-w-28"
+                      onClick={() => handleGroupApply()}
+                    >
+                      Apply to All
+                    </Button>
                   </div>
 
+                  {/* variant wise price combination table */}
                   <div className="mt-4 overflow-hidden rounded-lg border border-neutral-300">
                     <VariantPriceTable colors={watchColor} sizes={watchSize} control={control} />
                   </div>
@@ -875,11 +982,15 @@ const CreateProductPage = () => {
         </div>
       </div>
 
-      {isPriceOpen && (
+      {isSellingPriceModal && (
         <SellingPriceModal
-          isOpen={isPriceOpen}
-          onClose={() => setPriceOpen(false)}
+          isOpen={isSellingPriceModal}
+          onClose={() => setSellingPriceModal(false)}
           onSubmit={onPriceSubmit}
+          initialValues={{
+            sellingPrice: getValues('sellingPrice'),
+            sellingDate: getValues('sellingDate') ?? '',
+          }}
         />
       )}
     </div>

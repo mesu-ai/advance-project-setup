@@ -125,7 +125,7 @@ input:-webkit-autofill {
   }
 
   .input-field {
-    @apply mt-1 w-full border border-neutral-300 text-sm leading-normal rounded-lg px-2 py-[6.5px] outline-none hover:border-primary-500;
+    @apply mt-1 w-full border border-neutral-300 text-sm leading-normal rounded-lg px-2 py-[6.5px] outline-none hover:border-primary-500 data-[disabled=true]:bg-white-700 data-[disabled=true]:border-neutral-300;
   }
 
   .input-error {

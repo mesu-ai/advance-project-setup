@@ -88,10 +88,6 @@ const variantCombinationSchema = z.object({
   sku: z.string(),
   subStyle: z.string().optional(),
 
-  // stock: z.string(),
-  // dpPrice: z.string(),
-  // mrp: z.string(),
-  // sellingPrice: z.string(),
   stock: z.coerce.number<number>('Invalid price').positive('Price must be positive').optional(),
   dpPrice: z.coerce.number<number>('Invalid price').positive('Price must be positive').optional(),
   mrp: z.coerce.number<number>('Invalid price').positive('Price must be positive').optional(),
@@ -109,6 +105,7 @@ const variantCombinationSchema = z.object({
     .positive('Price must be positive')
     .optional(),
   options: z.array(combinationOptionSchema),
+  status: z.enum(['Y', 'N'], { message: 'Status is required' }),
 });
 
 const productSchema = z.object({
@@ -349,7 +346,7 @@ const CreateProductPage = () => {
     });
 
     // setValue('variantCombinations', combination);
-  //  setValue(combination)
+    //  setValue(combination)
     console.log('click apply to all button');
   };
 
@@ -365,7 +362,7 @@ const CreateProductPage = () => {
     console.log({ data });
   };
 
-  console.log({errors})
+  console.log({ errors });
 
   useEffect(() => {
     if (!hasVariantImages) return;

@@ -15,7 +15,7 @@ const Input = ({ label, className = '', type = 'text', error, required, ...props
         {label} {required && <span className="text-danger-500">*</span>}
       </label>
 
-      <div className={cn('input-field', className)}>
+      <div data-disabled={props.disabled} className={cn('input-field', className)}>
         <input
           type={type}
           id={generatedId}

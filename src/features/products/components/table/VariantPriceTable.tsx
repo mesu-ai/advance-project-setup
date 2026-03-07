@@ -6,6 +6,8 @@ import { Controller, useFieldArray, useWatch, type Control } from 'react-hook-fo
 import SellingPriceModal, { type PriceFormData } from '../modal/SellingPriceModal';
 import Select from '@/components/atoms/Select';
 import EditIcon from '@/assets/svg/EditIcon';
+import { calculateBurn, calculateCommission } from '../../utils/priceHelpers';
+import Switch from '@/components/atoms/Switch';
 
 type VariantOption = { variantOptionId: number; variantOptionText: string };
 
@@ -25,27 +27,29 @@ const getCombinationKey = (options: VariantOption[]): string => {
 const createCombination = (options: VariantOption[]) => ({
   sku: '',
   subStyle: '',
-  stock: 0,
-  dpPrice: 0,
-  mrp: 0,
-  sellingPrice: 0,
+  stock: undefined,
+  dpPrice: undefined,
+  mrp: undefined,
+  sellingPrice: undefined,
   sellingDate: '',
   burnAmount: 0,
   commissionAmount: 0,
   options: options,
+  status: 'Y' as const,
 });
 
 const VariantPriceTable = ({ colors, sizes, control }: VariantPriceTableProps) => {
   const [activeFieldIndex, setActiveFieldIndex] = useState<number | null>(null);
-  const { fields, replace, remove, update } = useFieldArray({
+  const { fields, replace, update } = useFieldArray({
     control,
     name: 'variantCombinations',
   });
 
-  const prevSignatureRef = useRef<string>('');
-  const fieldsRef = useRef(fields);
-
   const watchCombinations = useWatch({ control, name: 'variantCombinations' });
+
+  const prevSignatureRef = useRef<string>('');
+  // ✅ Tracks live store values (not the stale `fields` snapshot)
+  const watchCombinationsRef = useRef(watchCombinations);
 
   const grouped = fields.reduce<
     Record<number, { field: (typeof fields)[number]; fieldIndex: number }[]>
@@ -62,28 +66,35 @@ const VariantPriceTable = ({ colors, sizes, control }: VariantPriceTableProps) =
 
   const handleSellingPriceReset = (index: number, sellingPrice: number = 0) => {
     if (index === null || index === undefined) return;
-    const currField = fields[index];
+
+    const currField = watchCombinations[index];
+
+    const dpPrice = Number(currField.dpPrice) || 0;
+    const mrp = Number(currField.mrp) || 0;
 
     update(index, {
       ...currField,
       sellingPrice: sellingPrice,
       sellingDate: '',
-      burnAmount: currField.mrp - sellingPrice,
-      commissionAmount: sellingPrice - currField.dpPrice,
+      burnAmount: mrp - sellingPrice,
+      commissionAmount: sellingPrice - dpPrice,
     });
   };
 
   const handleSellingPriceSubmit = (data: PriceFormData) => {
     if (activeFieldIndex === null) return;
 
-    const currField = fields[activeFieldIndex];
-    console.log(data, currField);
+    const currField = watchCombinations[activeFieldIndex];
+    const dpPrice = Number(currField.dpPrice) || 0;
+    const mrp = Number(currField.mrp) || 0;
+    const sellingPrice = Number(data.sellingPrice) || 0;
+
     update(activeFieldIndex, {
       ...currField,
-      sellingPrice: data.sellingPrice,
+      sellingPrice: sellingPrice,
       sellingDate: data.sellingDate,
-      burnAmount: currField.mrp - data.sellingPrice,
-      commissionAmount: data.sellingPrice - currField.dpPrice,
+      burnAmount: mrp - sellingPrice,
+      commissionAmount: sellingPrice - dpPrice,
     });
 
     setActiveFieldIndex(null);
@@ -109,8 +120,9 @@ const VariantPriceTable = ({ colors, sizes, control }: VariantPriceTableProps) =
     [expectedCombinations]
   );
 
+  // ✅ Keep watchCombinationsRef in sync with the latest live values on every render
   useEffect(() => {
-    fieldsRef.current = fields;
+    watchCombinationsRef.current = watchCombinations;
   });
 
   useEffect(() => {
@@ -118,26 +130,40 @@ const VariantPriceTable = ({ colors, sizes, control }: VariantPriceTableProps) =
 
     if (prevSignatureRef.current === expectedSignatureKeys) return;
 
-    const currentSignatureKeys = fieldsRef.current
+    // ✅ Use live values from watchCombinationsRef — not the stale `fields` snapshot
+    const liveValues = watchCombinationsRef.current ?? [];
+
+    const currentSignatureKeys = liveValues
       .map((f) => getCombinationKey(f.options))
       .sort()
       .join('|');
 
     if (currentSignatureKeys === expectedSignatureKeys) return;
 
-    const existingMap = new Map(fieldsRef.current.map((f) => [getCombinationKey(f.options), f]));
+    // ✅ Create a Set of expected combination keys
+    const expectedKeys = new Set(
+      expectedCombinations.map((combo) => getCombinationKey(combo.options))
+    );
 
-    const mergedCombinations = expectedCombinations.map((combo) => {
-      const key = getCombinationKey(combo.options);
+    // ✅ Build existingMap from live values so user-entered data is preserved
+    const existingMap = new Map(liveValues.map((f) => [getCombinationKey(f.options), f]));
 
-      return existingMap.get(key) ?? createCombination(combo.options);
-    });
+    // ✅ Keep existing combinations that are still valid (preserve their order + user data)
+    const validExisting = liveValues.filter((f) => expectedKeys.has(getCombinationKey(f.options)));
+
+    // ✅ Find NEW combinations that don't exist yet
+    const newCombinations = expectedCombinations
+      .filter((combo) => !existingMap.has(getCombinationKey(combo.options)))
+      .map((combo) => createCombination(combo.options));
+
+    // ✅ Merge: Keep existing order + append new ones at the END
+    const mergedCombinations = [...validExisting, ...newCombinations];
 
     replace(mergedCombinations);
     prevSignatureRef.current = expectedSignatureKeys;
   }, [expectedCombinations, expectedSignatureKeys, replace]);
 
-  console.log({ fields, grouped, watchCombinations });
+  console.log({ watchCombinations });
 
   return (
     <>
@@ -179,29 +205,41 @@ const VariantPriceTable = ({ colors, sizes, control }: VariantPriceTableProps) =
                 const size = field.options?.[1];
                 const showColorCell = rowIndex === 0;
 
-                const activeField = watchCombinations[fieldIndex];
-                const burnAmount = activeField?.mrp - activeField?.sellingPrice;
-                const commissionAmount = activeField?.sellingPrice - activeField?.dpPrice;
+                const fieldValue = watchCombinations[fieldIndex];
+
+                const burnAmount = calculateBurn(fieldValue.mrp, fieldValue.sellingPrice);
+                const commissionAmount = calculateCommission(
+                  fieldValue.sellingPrice,
+                  fieldValue.dpPrice
+                );
+
+                const isFirstRow = rowIndex === 0;
+                const isLastRow = rowIndex === rows.length - 1;
+                const rowPadding = `${isFirstRow ? 'pt-3' : isLastRow ? 'pb-3' : ''}`;
 
                 return (
                   <tr
-                    key={fieldIndex}
-                    className={`${showColorCell ? 'border-t border-neutral-300' : ''}`}
+                    key={field.id}
+                    className={`${
+                      fieldValue?.status === 'N' &&
+                      (showColorCell
+                        ? ' [&>td:not(:first-child)]:bg-white-700 dark:[&>td:not(:first-child)]:bg-black-300'
+                        : 'bg-white-700 dark:bg-black-300')
+                    } 
+                      ${showColorCell ? 'border-t border-neutral-300' : ''}`}
                   >
                     {showColorCell && (
                       <td
                         rowSpan={rows.length}
-                        className="border-r border-neutral-300 px-3 pb-3 pt-3"
+                        className="border-r border-neutral-300 px-3 py-1.5 bg-surface"
                       >
                         {color.variantOptionText}
                       </td>
                     )}
                     {sizes?.length ? (
-                      <td className={`px-3 pb-3 ${rowIndex === 0 && 'pt-3'}`}>
-                        {size?.variantOptionText}
-                      </td>
+                      <td className={`px-3 py-1.5 ${rowPadding}`}>{size?.variantOptionText}</td>
                     ) : null}
-                    <td className={`px-3 pb-3 ${rowIndex === 0 && 'pt-3'}`}>
+                    <td className={`px-3 py-1.5 ${rowPadding}`}>
                       <Controller
                         name={`variantCombinations.${fieldIndex}.sku`}
                         control={control}
@@ -209,12 +247,13 @@ const VariantPriceTable = ({ colors, sizes, control }: VariantPriceTableProps) =
                           <Input
                             placeholder="SKU/Barcode"
                             className="min-w-36 rounded py-1 mt-0"
+                            disabled={fieldValue.status === 'N'}
                             {...field}
                           />
                         )}
                       />
                     </td>
-                    <td className={`px-3 pb-3 ${rowIndex === 0 && 'pt-3'}`}>
+                    <td className={`px-3 py-1.5 ${rowPadding}`}>
                       <Controller
                         name={`variantCombinations.${fieldIndex}.subStyle`}
                         control={control}
@@ -222,12 +261,13 @@ const VariantPriceTable = ({ colors, sizes, control }: VariantPriceTableProps) =
                           <Input
                             placeholder="Sub-Style"
                             className="min-w-36 rounded py-1 mt-0"
+                            disabled={fieldValue.status === 'N'}
                             {...field}
                           />
                         )}
                       />
                     </td>
-                    <td className={`px-3 pb-3 ${rowIndex === 0 && 'pt-3'}`}>
+                    <td className={`px-3 py-1.5 ${rowPadding}`}>
                       <Controller
                         name={`variantCombinations.${fieldIndex}.stock`}
                         control={control}
@@ -235,12 +275,13 @@ const VariantPriceTable = ({ colors, sizes, control }: VariantPriceTableProps) =
                           <Input
                             placeholder="Stock"
                             className="min-w-24 rounded py-1 mt-0"
+                            disabled={fieldValue.status === 'N'}
                             {...field}
                           />
                         )}
                       />
                     </td>
-                    <td className={`px-3 pb-3 ${rowIndex === 0 && 'pt-3'}`}>
+                    <td className={`px-3 py-1.5 ${rowPadding}`}>
                       <Controller
                         name={`variantCombinations.${fieldIndex}.dpPrice`}
                         control={control}
@@ -248,12 +289,13 @@ const VariantPriceTable = ({ colors, sizes, control }: VariantPriceTableProps) =
                           <Input
                             placeholder="DP"
                             className="min-w-24 rounded py-1 mt-0"
+                            disabled={fieldValue.status === 'N'}
                             {...field}
                           />
                         )}
                       />
                     </td>
-                    <td className={`px-3 pb-3 ${rowIndex === 0 && 'pt-3'}`}>
+                    <td className={`px-3 py-1.5 ${rowPadding}`}>
                       <Controller
                         name={`variantCombinations.${fieldIndex}.mrp`}
                         control={control}
@@ -261,15 +303,16 @@ const VariantPriceTable = ({ colors, sizes, control }: VariantPriceTableProps) =
                           <Input
                             placeholder="MRP"
                             className="min-w-24 rounded py-1 mt-0"
+                            disabled={fieldValue.status === 'N'}
                             {...field}
                           />
                         )}
                       />
                     </td>
-                    <td className={`px-3 pb-3 ${rowIndex === 0 && 'pt-3'}`}>
-                      {field.sellingPrice ? (
+                    <td className={`px-3 py-1.5 ${rowPadding}`}>
+                      {fieldValue?.sellingPrice ? (
                         <div className="min-w-28 flex items-center border border-neutral-300 py-1 px-2 leading-normal rounded hover:bg-white-700">
-                          <span>{field.sellingPrice}</span>
+                          <span>{fieldValue?.sellingPrice}</span>
                           <button
                             type="button"
                             onClick={() => setActiveFieldIndex(fieldIndex)}
@@ -281,7 +324,7 @@ const VariantPriceTable = ({ colors, sizes, control }: VariantPriceTableProps) =
                           <button
                             type="button"
                             onClick={() => handleSellingPriceReset(fieldIndex)}
-                            aria-label={`Edit-selling-price-${fieldIndex}`}
+                            aria-label={`Reset-selling-price-${fieldIndex}`}
                             className="ms-1 cursor-pointer text-neutral-300 hover:text-danger-500"
                           >
                             <DeleteIcon className="w-5 h-5" />
@@ -290,6 +333,7 @@ const VariantPriceTable = ({ colors, sizes, control }: VariantPriceTableProps) =
                       ) : (
                         <button
                           type="button"
+                          disabled={fieldValue.status === 'N'}
                           onClick={() => setActiveFieldIndex(fieldIndex)}
                           className="w-fit cursor-pointer text-secondary-500 hover:text-secondary-600 text-sm font-medium"
                         >
@@ -297,19 +341,19 @@ const VariantPriceTable = ({ colors, sizes, control }: VariantPriceTableProps) =
                         </button>
                       )}
                     </td>
-                    <td className={`px-3 pb-3 ${rowIndex === 0 && 'pt-3'}`}>
+                    <td className={`px-3 py-1.5 ${rowPadding}`}>
                       {/* burn= mrp- selling */}
                       <div className="border border-neutral-300 py-1 px-2 leading-normal rounded bg-white-700">
                         {burnAmount || 0}
                       </div>
                     </td>
-                    <td className={`px-3 pb-3 ${rowIndex === 0 && 'pt-3'}`}>
+                    <td className={`px-3 py-1.5 ${rowPadding}`}>
                       {/* commission = selling -dp */}
                       <div className="border border-neutral-300 py-1 px-2 leading-normal rounded bg-white-700">
                         {commissionAmount || 0}
                       </div>
                     </td>
-                    <td className={`px-3 pb-3 ${rowIndex === 0 && 'pt-3'}`}>
+                    <td className={`px-3 py-1.5 ${rowPadding}`}>
                       <Select
                         options={[
                           { label: 'Self', value: 'self' },
@@ -321,15 +365,17 @@ const VariantPriceTable = ({ colors, sizes, control }: VariantPriceTableProps) =
                         onChange={(e) => handleUpdateThrough(e, fieldIndex)}
                       />
                     </td>
-                    <td className={`text-neutral-300 px-3 pb-3 ${rowIndex === 0 && 'pt-3'}`}>
-                      <button
-                        type="button"
-                        onClick={() => remove(fieldIndex)}
-                        className="cursor-pointer hover:text-danger-500"
-                        aria-label={`Delete varient-${fieldIndex}`}
-                      >
-                        <DeleteIcon />
-                      </button>
+                    <td className={` px-3 py-1.5 ${rowPadding}`}>
+                      <Controller
+                        name={`variantCombinations.${fieldIndex}.status`}
+                        control={control}
+                        render={({ field: { value, onChange } }) => (
+                          <Switch
+                            isEnabled={value === 'Y'}
+                            onEnabled={() => onChange(value === 'Y' ? 'N' : 'Y')}
+                          />
+                        )}
+                      />
                     </td>
                   </tr>
                 );
@@ -337,109 +383,6 @@ const VariantPriceTable = ({ colors, sizes, control }: VariantPriceTableProps) =
             )}
           </tbody>
         </table>
-
-        {/* <DataTable
-          header={[
-            'Color Family',
-            'Size',
-            'SKU/Barcode',
-            'Sub-Style',
-            'Stock',
-            'DP(৳)',
-            'MRP(৳)',
-            'Selling Price(৳)',
-            'Burn/Disc.(৳)',
-            'Commission(৳)',
-            'Inventory Updated By',
-            'Action',
-          ]}
-        >
-          {Object.entries(grouped).map(([, rows]) =>
-            rows?.map(({ field, fieldIndex }, rowIndex) => {
-              const color = field.options?.[0];
-              const size = field.options?.[1];
-              const showColorCell = rowIndex === 0;
-
-              return (
-                <tr key={fieldIndex} className={showColorCell ? 'border-t border-neutral-300' : ''}>
-                  {showColorCell && (
-                    <td rowSpan={rows.length} className="px-4 py-3 border-r border-neutral-300">
-                      {color.variantOptionText}
-                    </td>
-                  )}
-                  {sizes?.length ? <td className="px-4 py-3">{size?.variantOptionText}</td> : null}
-                  <td className="px-4 py-3">
-                    <Controller
-                      name={`variantCombinations.${fieldIndex}.sku`}
-                      control={control}
-                      render={({ field }) => (
-                        <Input placeholder="SKU/Barcode" className="min-w-36" {...field} />
-                      )}
-                    />
-                  </td>
-                  <td className="px-4 py-3">
-                    <Controller
-                      name={`variantCombinations.${fieldIndex}.subStyle`}
-                      control={control}
-                      render={({ field }) => (
-                        <Input placeholder="Sub-Style" className="min-w-36" {...field} />
-                      )}
-                    />
-                  </td>
-                  <td className="px-4 py-3">
-                    <Controller
-                      name={`variantCombinations.${fieldIndex}.stock`}
-                      control={control}
-                      render={({ field }) => <Input placeholder="Stock" {...field} />}
-                    />
-                  </td>
-                  <td className="px-4 py-3">
-                    <Controller
-                      name={`variantCombinations.${fieldIndex}.dpPrice`}
-                      control={control}
-                      render={({ field }) => <Input placeholder="DP" {...field} />}
-                    />
-                  </td>
-                  <td className="px-4 py-3">
-                    <Controller
-                      name={`variantCombinations.${fieldIndex}.mrp`}
-                      control={control}
-                      render={({ field }) => <Input placeholder="MRP" {...field} />}
-                    />
-                  </td>
-                  <td className="px-4 py-3">
-                    <button
-                      type="button"
-                      onClick={() => setPriceOpen(true)}
-                      className="w-fit cursor-pointer text-secondary-500 hover:text-secondary-600 text-sm font-medium"
-                    >
-                      Add Selling Price
-                    </button>
-
-                    <Controller
-                      name={`variantCombinations.${fieldIndex}.sellingPrice`}
-                      control={control}
-                      render={({ field }) => <Input placeholder="DP" {...field} />}
-                    />
-                  </td>
-                  <td className="px-4 py-3">20</td>
-                  <td className="px-4 py-3">20</td>
-                  <td className="px-4 py-3">Self</td>
-                  <td className="px-4 py-3 text-neutral-300">
-                    <button
-                      type="button"
-                      onClick={() => remove(fieldIndex)}
-                      className="cursor-pointer hover:text-danger-500"
-                      aria-label={`Delete varient-${fieldIndex}`}
-                    >
-                      <DeleteIcon />
-                    </button>
-                  </td>
-                </tr>
-              );
-            })
-          )}
-        </DataTable> */}
       </div>
       {activeFieldIndex !== null && (
         <SellingPriceModal
@@ -447,8 +390,8 @@ const VariantPriceTable = ({ colors, sizes, control }: VariantPriceTableProps) =
           onClose={() => setActiveFieldIndex(null)}
           onSubmit={handleSellingPriceSubmit}
           initialValues={{
-            sellingPrice: fields[activeFieldIndex].sellingPrice,
-            sellingDate: fields[activeFieldIndex].sellingDate,
+            sellingPrice: watchCombinations[activeFieldIndex].sellingPrice,
+            sellingDate: watchCombinations[activeFieldIndex].sellingDate,
           }}
         />
       )}

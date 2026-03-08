@@ -22,13 +22,13 @@ const RootLayout = () => {
       </aside>
 
       <div
-        className={` flex-1 flex overflow-x-auto flex-col transition-all duration-300 ${showSidebar ? 'pl-62' : 'pl-0'}`}
+        className={`flex-1 flex flex-col transition-all duration-300 ${showSidebar ? 'pl-62' : 'pl-0'}`}
       >
         <header className="sticky top-0 z-20 h-17 bg-surface border-b border-white-700 dark:border-black-300">
           <Navbar showLogo={showSidebar} onShowSidebar={() => setShowSidebar((prev) => !prev)} />
         </header>
 
-        <main className="flex-1 overflow-y-auto px-7.5 py-5">
+        <main className="flex-1 px-7.5 py-5">
           <Outlet />
         </main>
 

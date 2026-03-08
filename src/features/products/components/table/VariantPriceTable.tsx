@@ -168,7 +168,7 @@ const VariantPriceTable = ({ colors, sizes, control }: VariantPriceTableProps) =
   return (
     <>
       <div className="w-full overflow-x-auto">
-        <table className="w-full table-auto text-sm border-collapse">
+        <table className="table-auto text-sm border-collapse">
           <thead className="whitespace-nowrap bg-background">
             <tr>
               {/* burn= mrp- selling

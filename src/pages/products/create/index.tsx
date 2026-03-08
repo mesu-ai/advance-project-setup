@@ -6,7 +6,7 @@ import useSearchKeyword from '@/hooks/useSearchKeyword';
 import { useGetShopsQuery } from '@/store/api/endpoints/shopEndpoints';
 import type { SelectedCategoryT } from '@/types/category';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useEffect, useState, type ChangeEvent } from 'react';
+import { useEffect, useMemo, useRef, useState, type ChangeEvent } from 'react';
 import { Controller, useFieldArray, useForm, useWatch } from 'react-hook-form';
 import Editor from 'textcrafter';
 import * as z from 'zod';
@@ -23,6 +23,7 @@ import SellingPriceModal, {
 import VariantPriceTable from '@/features/products/components/table/VariantPriceTable';
 import EditIcon from '@/assets/svg/EditIcon';
 import DeleteIcon from '@/assets/svg/DeleteIcon';
+import { productCreateSteps } from '@/assets/data/productCreateSteps';
 
 const categorySuggessions: SelectedCategoryT[] = [
   {
@@ -168,6 +169,7 @@ const productSchema = z.object({
 export type ProductFormData = z.infer<typeof productSchema>;
 
 const CreateProductPage = () => {
+  const [step, setStep] = useState<number>(-1);
   const [isCategoryOpen, setCategoryOpen] = useState<boolean>(false);
   const [selectedCategory, setSelectedCategory] = useState<SelectedCategoryT>({
     id: null,
@@ -185,6 +187,18 @@ const CreateProductPage = () => {
 
   const shopSearch = useSearchKeyword(500);
   const brandSearch = useSearchKeyword(500);
+
+  const sectionsRef = {
+    basisInfo: useRef<HTMLDivElement>(null),
+    images: useRef<HTMLDivElement>(null),
+    attributes: useRef<HTMLDivElement>(null),
+    variants: useRef<HTMLDivElement>(null),
+    productInfo: useRef<HTMLDivElement>(null),
+    sizeChart: useRef<HTMLDivElement>(null),
+    warranty: useRef<HTMLDivElement>(null),
+    url: useRef<HTMLDivElement>(null),
+    meta: useRef<HTMLDivElement>(null),
+  };
 
   const { data: shops, isLoading: isShopLoading } = useGetShopsQuery({
     keyword: shopSearch?.debouncedKeyword,
@@ -280,14 +294,36 @@ const CreateProductPage = () => {
     name: 'variantImages',
   });
 
-  // const variantCombinationsField = useFieldArray({ control, name: 'variantCombinations' });
-
   const watchedProductName = useWatch({ control, name: 'productName' });
   const watchedCategory = useWatch({ control, name: 'categoryId' });
   // const watchedVariants = useWatch({ control, name: 'variantDimensions' });
 
   const watchColor = useWatch({ control, name: 'variantDimensions.0.options' });
   const watchSize = useWatch({ control, name: 'variantDimensions.1.options' });
+
+  const sectionRefsList = useMemo(
+    () => [
+      sectionsRef.basisInfo,
+      sectionsRef.images,
+      sectionsRef.attributes,
+      sectionsRef.variants,
+      sectionsRef.productInfo,
+      sectionsRef.sizeChart,
+      sectionsRef.warranty,
+      sectionsRef.url,
+      sectionsRef.meta,
+    ],
+    [sectionsRef]
+  );
+
+  const scrollToSection = (index: number) => {
+    sectionRefsList[index].current?.scrollIntoView({
+      behavior: 'smooth',
+      block: 'start',
+    });
+
+    setStep(index);
+  };
 
   const handleSameAsMeta = (e: ChangeEvent<HTMLInputElement>) => {
     const isChecked = e.target.checked;
@@ -320,19 +356,6 @@ const CreateProductPage = () => {
     const burnAmount = (Number(mrp) || 0) - (Number(sellingPrice) || 0);
     const commissionAmount = (Number(sellingPrice) || 0) - (Number(dpPrice) || 0);
 
-    // const combination = variantCombinations.map((item) => ({
-    //   ...item,
-    //   sku,
-    //   subStyle,
-    //   stock,
-    //   dpPrice,
-    //   mrp,
-    //   sellingPrice,
-    //   sellingDate,
-    //   burnAmount,
-    //   commissionAmount,
-    // }));
-
     variantCombinations.forEach((_, index) => {
       setValue(`variantCombinations.${index}.sku`, sku);
       setValue(`variantCombinations.${index}.subStyle`, subStyle);
@@ -344,14 +367,9 @@ const CreateProductPage = () => {
       setValue(`variantCombinations.${index}.burnAmount`, burnAmount);
       setValue(`variantCombinations.${index}.commissionAmount`, commissionAmount);
     });
-
-    // setValue('variantCombinations', combination);
-    //  setValue(combination)
-    console.log('click apply to all button');
   };
 
   const onPriceSubmit = (data: PriceFormData) => {
-    console.log({ data });
     setValue('sellingPrice', data.sellingPrice);
     setValue('sellingDate', data.sellingDate);
 
@@ -361,8 +379,6 @@ const CreateProductPage = () => {
   const onSubmit = (data: ProductFormData) => {
     console.log({ data });
   };
-
-  console.log({ errors });
 
   useEffect(() => {
     if (!hasVariantImages) return;
@@ -381,13 +397,39 @@ const CreateProductPage = () => {
     replaceImagFields(mappedImageFields);
   }, [hasVariantImages, watchColor, replaceImagFields, getValues]);
 
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            const index = sectionRefsList.findIndex((ref) => ref.current === entry.target);
+            console.log({ index });
+            if (index !== -1) {
+              setStep(index);
+            }
+          }
+        });
+      },
+      { root: null, rootMargin: '-30% 0px -60% 0px', threshold: 0 }
+    );
+
+    sectionRefsList.forEach((ref) => {
+      if (ref.current) observer.observe(ref.current);
+    });
+
+    return () => observer.disconnect();
+  }, [sectionRefsList]);
+
   return (
     <div>
       <h1 className="heading-1">Add New Product</h1>
-      <div className="mt-3 flex gap-5">
-        <div className="flex-1 min-w-0">
+      <div className="mt-3 grid grid-cols-[1fr_212px] items-start gap-5">
+        <div className="min-w-0">
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
-            <div className="bg-surface rounded-xl border border-border px-5 py-4 space-y-4">
+            <div
+              ref={sectionsRef.basisInfo}
+              className="bg-surface rounded-xl border border-border px-5 py-4 space-y-4 scroll-mt-20"
+            >
               <h2 className="text-lg font-bold">Basic Information</h2>
               <div className="space-y-4">
                 <Input
@@ -439,543 +481,634 @@ const CreateProductPage = () => {
                   />
                 </div>
 
-                <div className="grid grid-cols-2 gap-x-3 gap-y-4">
-                  <Controller
-                    name="unit"
-                    control={control}
-                    render={({ field }) => (
-                      <ComboBox
-                        label="Product Quantity Unit"
-                        options={[
-                          { label: 'PSC', value: 'psc' },
-                          { label: 'KG', value: 'kg' },
-                        ]}
-                        optionKeys={{ label: 'label', value: 'value' }}
-                        placeholder="Select Product Quantity Unit"
-                        error={errors.unit?.message}
-                        required
-                        {...field}
-                      />
-                    )}
-                  />
-
-                  <Controller
-                    name="shopId"
-                    control={control}
-                    render={({ field }) => (
-                      <ComboBox
-                        label="Shop Name"
-                        options={shops?.data ?? []}
-                        optionKeys={{ label: 'shopName', value: 'shopId' }}
-                        error={errors.shopId?.message}
-                        isLoading={isShopLoading}
-                        placeholder="Select/Search Shop Name  "
-                        search={{
-                          enabled: true,
-                          onSearch: shopSearch.setKeyword,
-                        }}
-                        required
-                        {...field}
-                      />
-                    )}
-                  />
-
-                  <Input
-                    label="Display Order"
-                    placeholder="1000000"
-                    error={errors.displayOrder?.message}
-                    {...register('displayOrder')}
-                  />
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-surface rounded-xl border border-border px-5 py-4 space-y-4">
-              <h2 className="text-lg font-bold">Images</h2>
-              <div className="space-y-4">
-                <Controller
-                  name="thumbnailImages"
-                  control={control}
-                  render={({ field: { value, onChange } }) => (
-                    <ImageUploader
-                      required
-                      label="Product Image"
-                      value={value}
-                      onChangeImage={(img) => onChange(img)}
-                      error={errors.thumbnailImages?.message}
-                    />
-                  )}
-                />
-              </div>
-            </div>
-
-            <div className="bg-surface rounded-xl border border-border px-5 py-4 space-y-4">
-              <h2 className="text-lg font-bold">Brand & Attributes</h2>
-              <div className="grid grid-cols-2 gap-x-3 gap-y-4">
-                <Controller
-                  name="brandId"
-                  control={control}
-                  render={({ field }) => (
-                    <ComboBox
-                      label="Product Brand"
-                      placeholder="Select/Search Brand"
-                      options={[{ brandId: 1, brandName: 'SaRa' }]}
-                      optionKeys={{ label: 'brandName', value: 'brandId' }}
-                      search={{ enabled: true, onSearch: brandSearch.setKeyword }}
-                      error={errors.brandId?.message}
-                      required
-                      {...field}
-                    />
-                  )}
-                />
-
-                <Controller
-                  name="strapMeterial"
-                  control={control}
-                  render={({ field }) => (
-                    <ComboBox
-                      label="Strap Material"
-                      placeholder="Select Strap Material"
-                      options={[
-                        { strapId: 1, strapName: 'Metal' },
-                        { strapId: 1, strapName: 'Plastic' },
-                      ]}
-                      optionKeys={{ label: 'strapName', value: 'strapName' }}
-                      // error={errors.strapMeterial?.message}
-                      // required
-                      {...field}
-                    />
-                  )}
-                />
-
-                {isExpandAtt ? (
-                  <>
+                {watchedCategory ? (
+                  <div className="grid grid-cols-2 gap-x-3 gap-y-4">
                     <Controller
-                      name="fitType"
+                      name="unit"
                       control={control}
                       render={({ field }) => (
                         <ComboBox
-                          label="Fit Type"
+                          label="Product Quantity Unit"
                           options={[
-                            { id: 1, fitName: 'Slim' },
-                            { id: 1, fitName: 'Regular' },
-                          ]}
-                          optionKeys={{ label: 'fitName', value: 'fitName' }}
-                          placeholder="Select Fit Type"
-                          {...field}
-                        />
-                      )}
-                    />
-
-                    <Controller
-                      name="gender"
-                      control={control}
-                      render={({ field }) => (
-                        <ComboBox
-                          label="Gender"
-                          options={[
-                            { label: 'Male', value: 'male' },
-                            { label: 'Female', value: 'female' },
+                            { label: 'PSC', value: 'psc' },
+                            { label: 'KG', value: 'kg' },
                           ]}
                           optionKeys={{ label: 'label', value: 'value' }}
-                          placeholder="Select Gender"
+                          placeholder="Select Product Quantity Unit"
+                          error={errors.unit?.message}
+                          required
                           {...field}
                         />
                       )}
                     />
-                  </>
-                ) : null}
 
-                <button
-                  type="button"
-                  onClick={() => setExpandAtt((prev) => !prev)}
-                  className="cursor-pointer col-span-full font-medium text-primary-500 hover:text-primary-600 flex justify-center gap-1.5"
-                >
-                  {isExpandAtt ? 'See Less' : 'See Less'} <ArrowLongIcon className="h-5 w-5" />
-                </button>
+                    <Controller
+                      name="shopId"
+                      control={control}
+                      render={({ field }) => (
+                        <ComboBox
+                          label="Shop Name"
+                          options={shops?.data ?? []}
+                          optionKeys={{ label: 'shopName', value: 'shopId' }}
+                          error={errors.shopId?.message}
+                          isLoading={isShopLoading}
+                          placeholder="Select/Search Shop Name  "
+                          search={{
+                            enabled: true,
+                            onSearch: shopSearch.setKeyword,
+                          }}
+                          required
+                          {...field}
+                        />
+                      )}
+                    />
+
+                    <Input
+                      label="Display Order"
+                      placeholder="1000000"
+                      error={errors.displayOrder?.message}
+                      {...register('displayOrder')}
+                    />
+                  </div>
+                ) : null}
               </div>
             </div>
 
-            <div className="bg-surface rounded-xl border border-border px-5 py-4 space-y-4">
-              <h2 className="text-lg font-bold">Price, Stock & Variants</h2>
-              <div className="space-y-4">
-                <Controller
-                  name={`variantDimensions.0.options`}
-                  control={control}
-                  render={({ field: { value, onChange } }) => (
-                    <ComboBox
-                      isMulti
-                      label="Color"
-                      options={colorVariants ?? []}
-                      optionKeys={{ label: 'variantOptionText', value: 'variantOptionId' }}
-                      error={errors.variantDimensions?.[0]?.options?.message}
-                      isLoading={false}
-                      placeholder="Select/Search Color"
-                      value={value.map((v) => v.variantOptionId) ?? []}
-                      onChange={(ids: number[]) => {
-                        const colorSet = new Set(ids);
-                        const colorOptions = colorVariants.filter((c) => {
-                          if (colorSet.has(c.variantOptionId)) {
-                            return (c.variantOptionId, c.variantOptionText);
-                          }
-                        });
-                        onChange(colorOptions);
-                      }}
-                      search={{
-                        enabled: true,
-                        onSearch: shopSearch.setKeyword,
-                      }}
-                      required
+            {watchedCategory ? (
+              <>
+                <div
+                  ref={sectionsRef.images}
+                  className="bg-surface rounded-xl border border-border px-5 py-4 space-y-4 scroll-mt-20"
+                >
+                  <h2 className="text-lg font-bold">Images</h2>
+                  <div className="space-y-4">
+                    <Controller
+                      name="thumbnailImages"
+                      control={control}
+                      render={({ field: { value, onChange } }) => (
+                        <ImageUploader
+                          required
+                          label="Product Image"
+                          value={value}
+                          onChangeImage={(img) => onChange(img)}
+                          error={errors.thumbnailImages?.message}
+                        />
+                      )}
                     />
-                  )}
-                />
-
-                <div>
-                  <div className="flex items-center gap-1">
-                    <Checkbox
-                      label="Product Image"
-                      disabled={watchColor.length === 0}
-                      checked={hasVariantImages}
-                      onChange={(e) => setHasVariantImages(e.target.checked)}
-                      className="input-label"
-                    />
-                    <WarningIcon className="w-5 h-5 stroke-neutral-300" />
                   </div>
+                </div>
 
-                  {hasVariantImages && (
-                    <div className="space-y-4">
-                      {imageFields.map((v, index) => (
+                <div
+                  ref={sectionsRef.attributes}
+                  className="bg-surface rounded-xl border border-border px-5 py-4 space-y-4 scroll-mt-20"
+                >
+                  <h2 className="text-lg font-bold">Brand & Attributes</h2>
+                  <div className="grid grid-cols-2 gap-x-3 gap-y-4">
+                    <Controller
+                      name="brandId"
+                      control={control}
+                      render={({ field }) => (
+                        <ComboBox
+                          label="Product Brand"
+                          placeholder="Select/Search Brand"
+                          options={[{ brandId: 1, brandName: 'SaRa' }]}
+                          optionKeys={{ label: 'brandName', value: 'brandId' }}
+                          search={{ enabled: true, onSearch: brandSearch.setKeyword }}
+                          error={errors.brandId?.message}
+                          required
+                          {...field}
+                        />
+                      )}
+                    />
+
+                    <Controller
+                      name="strapMeterial"
+                      control={control}
+                      render={({ field }) => (
+                        <ComboBox
+                          label="Strap Material"
+                          placeholder="Select Strap Material"
+                          options={[
+                            { strapId: 1, strapName: 'Metal' },
+                            { strapId: 1, strapName: 'Plastic' },
+                          ]}
+                          optionKeys={{ label: 'strapName', value: 'strapName' }}
+                          // error={errors.strapMeterial?.message}
+                          // required
+                          {...field}
+                        />
+                      )}
+                    />
+
+                    {isExpandAtt ? (
+                      <>
                         <Controller
-                          key={v.id}
-                          name={`variantImages.${index}.images`}
+                          name="fitType"
                           control={control}
-                          render={({ field: { value, onChange } }) => (
-                            <ImageUploader
-                              value={value}
-                              onChangeImage={(img) => onChange(img)}
-                              instructions={`Color: ${v.variantOptionText}`}
-                              error={errors.thumbnailImages?.message}
+                          render={({ field }) => (
+                            <ComboBox
+                              label="Fit Type"
+                              options={[
+                                { id: 1, fitName: 'Slim' },
+                                { id: 1, fitName: 'Regular' },
+                              ]}
+                              optionKeys={{ label: 'fitName', value: 'fitName' }}
+                              placeholder="Select Fit Type"
+                              {...field}
                             />
                           )}
                         />
-                      ))}
-                    </div>
-                  )}
-                </div>
 
-                <Controller
-                  name={`variantDimensions.1.options`}
-                  control={control}
-                  render={({ field: { value, onChange } }) => (
-                    <ComboBox
-                      isMulti
-                      label="Size"
-                      options={sizeVariants ?? []}
-                      optionKeys={{ label: 'variantOptionText', value: 'variantOptionId' }}
-                      error={errors.variantDimensions?.[1]?.options?.message}
-                      isLoading={false}
-                      placeholder="Select Size"
-                      value={value.map((v) => v.variantOptionId) ?? []}
-                      onChange={(ids: number[]) => {
-                        const sizeSet = new Set(ids);
-                        const selectedOptions = sizeVariants.filter((s) => {
-                          if (sizeSet.has(s.variantOptionId)) {
-                            return (s.variantOptionId, s.variantOptionText);
-                          }
-                        });
-                        onChange(selectedOptions);
-                      }}
-                      required
-                    />
-                  )}
-                />
+                        <Controller
+                          name="gender"
+                          control={control}
+                          render={({ field }) => (
+                            <ComboBox
+                              label="Gender"
+                              options={[
+                                { label: 'Male', value: 'male' },
+                                { label: 'Female', value: 'female' },
+                              ]}
+                              optionKeys={{ label: 'label', value: 'value' }}
+                              placeholder="Select Gender"
+                              {...field}
+                            />
+                          )}
+                        />
+                      </>
+                    ) : null}
 
-                <div>
-                  <p className="input-label ">
-                    Price & Stock <span className="text-danger-500">*</span>
-                  </p>
-
-                  {/* multiple value input to the variant combination table */}
-                  <div className="w-full flex flex-wrap items-center gap-3">
-                    <Input placeholder="SKU/Barcode" className="min-w-40" {...register('sku')} />
-                    <Input placeholder="Sub-Style" className="min-w-40" {...register('subStyle')} />
-                    <Input placeholder="Stock" className="w-24" {...register('stock')} />
-                    <Input placeholder="DP" className="w-28" {...register('dpPrice')} />
-
-                    <Input placeholder="MRP" className="w-28" {...register('mrp')} />
-
-                    {getValues('sellingPrice') ? (
-                      <div className="min-w-28 flex items-center border border-neutral-300 py-1 px-2 leading-normal rounded hover:bg-white-700">
-                        <span>{getValues('sellingPrice')}</span>
-                        <button
-                          type="button"
-                          onClick={() => setSellingPriceModal(true)}
-                          aria-label="Edit selling price"
-                          className="ms-auto cursor-pointer text-neutral-300 hover:text-secondary-500"
-                        >
-                          <EditIcon className="w-5 h-5" />
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => handleSellingPriceReset()}
-                          aria-label="Reset selling price"
-                          className="ms-1 cursor-pointer text-neutral-300 hover:text-danger-500"
-                        >
-                          <DeleteIcon className="w-5 h-5" />
-                        </button>
-                      </div>
-                    ) : (
-                      <button
-                        type="button"
-                        onClick={() => setSellingPriceModal(true)}
-                        className="max-w-28 leading-normal whitespace-nowrap cursor-pointer text-secondary-500 hover:text-secondary-600 text-sm font-medium"
-                      >
-                        Add Selling Price
-                      </button>
-                    )}
-
-                    <Button
-                      variant="apply"
-                      className="ms-5 max-w-28"
-                      onClick={() => handleGroupApply()}
+                    <button
+                      type="button"
+                      onClick={() => setExpandAtt((prev) => !prev)}
+                      className="cursor-pointer col-span-full font-medium text-primary-500 hover:text-primary-600 flex justify-center gap-1.5"
                     >
-                      Apply to All
-                    </Button>
-                  </div>
-
-                  {/* variant wise price combination table */}
-                  <div className="mt-4 overflow-hidden rounded-lg border border-neutral-300">
-                    <VariantPriceTable colors={watchColor} sizes={watchSize} control={control} />
+                      {isExpandAtt ? 'See Less' : 'See Less'} <ArrowLongIcon className="h-5 w-5" />
+                    </button>
                   </div>
                 </div>
-              </div>
-            </div>
 
-            <div className="bg-surface rounded-xl border border-border px-5 py-4 space-y-4">
-              <h2 className="text-lg font-bold">Product Info </h2>
-              <div className="space-y-4">
-                <div>
-                  <p className="input-label mb-1">
-                    Description <span className="text-danger-500">*</span>
-                  </p>
-                  <Controller
-                    name="description"
-                    control={control}
-                    render={({ field: { value, onChange } }) => (
-                      <Editor
-                        value={value}
-                        onChange={onChange}
-                        toolbarClassName="custom-toolbar"
-                        editorClassName="custom-editor"
-                      />
-                    )}
-                  />
-                  <p className="input-error">{errors.description?.message}</p>
-                </div>
-                <div>
-                  <p className="input-label mb-1">
-                    Product Specification <span className="text-danger-500">*</span>
-                  </p>
-                  <Controller
-                    name="specification"
-                    control={control}
-                    render={({ field: { value, onChange } }) => (
-                      <Editor
-                        value={value}
-                        onChange={onChange}
-                        toolbarClassName="custom-toolbar"
-                        editorClassName="custom-editor"
-                      />
-                    )}
-                  />
-                  <p className="input-error">{errors.specification?.message}</p>
-                </div>
-
-                <div className="grid grid-cols-4 gap-3">
-                  <div>
-                    <p className="input-label mb-1">Has EMI?</p>
-                    <Controller
-                      name="hasEmi"
-                      control={control}
-                      render={({ field: { value, onChange } }) => (
-                        <Checkbox
-                          label="Yes"
-                          checked={value === 'Y'}
-                          onChange={(e) => onChange(e.target.checked ? 'Y' : 'N')}
-                        />
-                      )}
-                    />
-                  </div>
-                  <div>
-                    <p className="input-label mb-1">Is Returnable?</p>
-                    <Controller
-                      name="isReturnable"
-                      control={control}
-                      render={({ field: { value, onChange } }) => (
-                        <Checkbox
-                          label="Yes"
-                          checked={value === 'Y'}
-                          onChange={(e) => onChange(e.target.checked ? 'Y' : 'N')}
-                        />
-                      )}
-                    />
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-surface rounded-xl border border-border px-5 py-4 space-y-4">
-              <h2 className="text-lg font-bold">Size Chart</h2>
-              <div className="grid grid-cols-2 gap-3">
-                <Controller
-                  name="sizeChartId"
-                  control={control}
-                  render={({ field }) => (
-                    <ComboBox
-                      label="Size Chart Category"
-                      options={[
-                        { label: 'Mens Formal Shirt', value: 1 },
-                        { label: 'Mens Casual Shirt', value: 2 },
-                        { label: 'Mens T-shirt', value: 3 },
-                        { label: 'Mens Panjabi Regular', value: 4 },
-                      ]}
-                      optionKeys={{ label: 'label', value: 'value' }}
-                      placeholder="Select a Size Chart"
-                      error={errors.sizeChartId?.message}
-                      required
-                      {...field}
-                    />
-                  )}
-                />
-                <button
-                  type="button"
-                  className="mt-[27.97px] h-[35.72px] rounded-lg text-sm font-medium text-white bg-secondary-500"
+                <div
+                  ref={sectionsRef.variants}
+                  className="bg-surface rounded-xl border border-border px-5 py-4 space-y-4 scroll-mt-20"
                 >
-                  Create New
-                </button>
-              </div>
-            </div>
+                  <h2 className="text-lg font-bold">Price, Stock & Variants</h2>
+                  <div className="space-y-4">
+                    <Controller
+                      name={`variantDimensions.0.options`}
+                      control={control}
+                      render={({ field: { value, onChange } }) => (
+                        <ComboBox
+                          isMulti
+                          label="Color"
+                          options={colorVariants ?? []}
+                          optionKeys={{ label: 'variantOptionText', value: 'variantOptionId' }}
+                          error={errors.variantDimensions?.[0]?.options?.message}
+                          isLoading={false}
+                          placeholder="Select/Search Color"
+                          value={value.map((v) => v.variantOptionId) ?? []}
+                          onChange={(ids: number[]) => {
+                            const colorSet = new Set(ids);
+                            const colorOptions = colorVariants.filter((c) => {
+                              if (colorSet.has(c.variantOptionId)) {
+                                return (c.variantOptionId, c.variantOptionText);
+                              }
+                            });
+                            onChange(colorOptions);
+                          }}
+                          search={{
+                            enabled: true,
+                            onSearch: shopSearch.setKeyword,
+                          }}
+                          required
+                        />
+                      )}
+                    />
 
-            <div className="bg-surface rounded-xl border border-border px-5 py-4 space-y-4">
-              <h2 className="text-lg font-bold">URL</h2>
-              <div className="grid grid-cols-2 gap-3">
-                <Input
-                  label="Product URL"
-                  placeholder="Enter Product URL"
-                  error={errors.productUrl?.message}
-                  {...register('productUrl')}
-                  required
-                />
-                <Input
-                  label="Video URL"
-                  placeholder="Enter Video URL"
-                  error={errors.videoUrl?.message}
-                  {...register('videoUrl')}
-                />
-              </div>
-            </div>
+                    <div>
+                      <div className="flex items-center gap-1">
+                        <Checkbox
+                          label="Product Image"
+                          disabled={watchColor.length === 0}
+                          checked={hasVariantImages}
+                          onChange={(e) => setHasVariantImages(e.target.checked)}
+                          className="input-label"
+                        />
+                        <WarningIcon className="w-5 h-5 stroke-neutral-300" />
+                      </div>
 
-            <div className="bg-surface rounded-xl border border-border px-5 py-4 space-y-4">
-              <h2 className="text-lg font-bold">Meta & OG Info</h2>
+                      {hasVariantImages && (
+                        <div className="space-y-4">
+                          {imageFields.map((v, index) => (
+                            <Controller
+                              key={v.id}
+                              name={`variantImages.${index}.images`}
+                              control={control}
+                              render={({ field: { value, onChange } }) => (
+                                <ImageUploader
+                                  value={value}
+                                  onChangeImage={(img) => onChange(img)}
+                                  instructions={`Color: ${v.variantOptionText}`}
+                                  error={errors.thumbnailImages?.message}
+                                />
+                              )}
+                            />
+                          ))}
+                        </div>
+                      )}
+                    </div>
 
-              <div className="space-y-4">
-                <Input
-                  label="Meta Title"
-                  placeholder="Enter Meta Title"
-                  error={errors.metaTitle?.message}
-                  {...register('metaTitle')}
-                />
-                <div className="grid grid-cols-2 gap-3">
-                  <TextArea
-                    label="Meta Description"
-                    placeholder="Enter Meta Description"
-                    {...register('metaDescription')}
-                  />
-                  <TextArea
-                    label="Meta Keywords"
-                    placeholder="Enter Meta Keywords"
-                    required={false}
-                    {...register('metaKeywords')}
-                  />
+                    <Controller
+                      name={`variantDimensions.1.options`}
+                      control={control}
+                      render={({ field: { value, onChange } }) => (
+                        <ComboBox
+                          isMulti
+                          label="Size"
+                          options={sizeVariants ?? []}
+                          optionKeys={{ label: 'variantOptionText', value: 'variantOptionId' }}
+                          error={errors.variantDimensions?.[1]?.options?.message}
+                          isLoading={false}
+                          placeholder="Select Size"
+                          value={value.map((v) => v.variantOptionId) ?? []}
+                          onChange={(ids: number[]) => {
+                            const sizeSet = new Set(ids);
+                            const selectedOptions = sizeVariants.filter((s) => {
+                              if (sizeSet.has(s.variantOptionId)) {
+                                return (s.variantOptionId, s.variantOptionText);
+                              }
+                            });
+                            onChange(selectedOptions);
+                          }}
+                          required
+                        />
+                      )}
+                    />
+
+                    <div>
+                      <p className="input-label ">
+                        Price & Stock <span className="text-danger-500">*</span>
+                      </p>
+
+                      <div className="w-full flex flex-wrap items-center gap-3">
+                        <Input
+                          placeholder="SKU/Barcode"
+                          className="min-w-40"
+                          {...register('sku')}
+                        />
+                        <Input
+                          placeholder="Sub-Style"
+                          className="min-w-40"
+                          {...register('subStyle')}
+                        />
+                        <Input placeholder="Stock" className="w-24" {...register('stock')} />
+                        <Input placeholder="DP" className="w-28" {...register('dpPrice')} />
+
+                        <Input placeholder="MRP" className="w-28" {...register('mrp')} />
+
+                        {getValues('sellingPrice') ? (
+                          <div className="min-w-28 flex items-center border border-neutral-300 py-1 px-2 leading-normal rounded hover:bg-white-700">
+                            <span>{getValues('sellingPrice')}</span>
+                            <button
+                              type="button"
+                              onClick={() => setSellingPriceModal(true)}
+                              aria-label="Edit selling price"
+                              className="ms-auto cursor-pointer text-neutral-300 hover:text-secondary-500"
+                            >
+                              <EditIcon className="w-5 h-5" />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleSellingPriceReset()}
+                              aria-label="Reset selling price"
+                              className="ms-1 cursor-pointer text-neutral-300 hover:text-danger-500"
+                            >
+                              <DeleteIcon className="w-5 h-5" />
+                            </button>
+                          </div>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={() => setSellingPriceModal(true)}
+                            className="max-w-28 leading-normal whitespace-nowrap cursor-pointer text-secondary-500 hover:text-secondary-600 text-sm font-medium"
+                          >
+                            Add Selling Price
+                          </button>
+                        )}
+
+                        <Button
+                          variant="apply"
+                          className="ms-5 max-w-28"
+                          onClick={() => handleGroupApply()}
+                        >
+                          Apply to All
+                        </Button>
+                      </div>
+
+                      <div className="mt-4 overflow-hidden rounded-lg border border-neutral-300">
+                        <VariantPriceTable
+                          colors={watchColor}
+                          sizes={watchSize}
+                          control={control}
+                        />
+                      </div>
+                    </div>
+                  </div>
                 </div>
 
-                <div>
-                  <p className="input-label mb-1">OG Same As Meta??</p>
-                  <Checkbox
-                    label="Yes"
-                    // checked={value === 'Y'}
-                    onChange={(e) => handleSameAsMeta(e)}
-                  />
-                </div>
-
-                <div className="grid grid-cols-3 gap-3">
-                  <Controller
-                    name="ogType"
-                    control={control}
-                    render={({ field }) => (
-                      <ComboBox
-                        label="OG Type"
-                        options={[
-                          { label: 'Product', value: 'product' },
-                          { label: 'Blog', value: 'blog' },
-                          { label: 'Content', value: 'content' },
-                          { label: 'Career', value: 'career' },
-                        ]}
-                        optionKeys={{ label: 'label', value: 'value' }}
-                        placeholder="Select og type"
-                        {...field}
+                <div
+                  ref={sectionsRef.productInfo}
+                  className="bg-surface rounded-xl border border-border px-5 py-4 space-y-4 scroll-mt-20"
+                >
+                  <h2 className="text-lg font-bold">Product Info </h2>
+                  <div className="space-y-4">
+                    <div>
+                      <p className="input-label mb-1">
+                        Description <span className="text-danger-500">*</span>
+                      </p>
+                      <Controller
+                        name="description"
+                        control={control}
+                        render={({ field: { value, onChange } }) => (
+                          <Editor
+                            value={value}
+                            onChange={onChange}
+                            toolbarClassName="custom-toolbar"
+                            editorClassName="custom-editor"
+                          />
+                        )}
                       />
-                    )}
-                  />
-                  <Input label="OG Title" placeholder="Enter OG Title" {...register('ogTitle')} />
-                  <Input label="OG Url" placeholder="Enter OG Url" {...register('ogUrl')} />
-                </div>
-
-                <div className="grid grid-cols-2 gap-3">
-                  <TextArea
-                    label="OG Description"
-                    placeholder="Enter OG Description"
-                    {...register('ogDescription')}
-                  />
-                  <Controller
-                    name="ogImage"
-                    control={control}
-                    render={({ field: { value, onChange } }) => (
-                      <FileInput
-                        label="Photo"
-                        error={errors.ogImage?.message}
-                        errorSameRow={errors.ogDescription?.message}
-                        accept="image/png,image/jpeg"
-                        value={value}
-                        className="row-span-1"
-                        onChange={(e) => {
-                          const file = e.target.files?.[0];
-                          if (file) onChange(file);
-                        }}
-                        onDrop={(e) => onChange(e)}
+                      <p className="input-error">{errors.description?.message}</p>
+                    </div>
+                    <div>
+                      <p className="input-label mb-1">
+                        Product Specification <span className="text-danger-500">*</span>
+                      </p>
+                      <Controller
+                        name="specification"
+                        control={control}
+                        render={({ field: { value, onChange } }) => (
+                          <Editor
+                            value={value}
+                            onChange={onChange}
+                            toolbarClassName="custom-toolbar"
+                            editorClassName="custom-editor"
+                          />
+                        )}
                       />
-                    )}
-                  />
+                      <p className="input-error">{errors.specification?.message}</p>
+                    </div>
+
+                    <div className="grid grid-cols-4 gap-3">
+                      <div>
+                        <p className="input-label mb-1">Has EMI?</p>
+                        <Controller
+                          name="hasEmi"
+                          control={control}
+                          render={({ field: { value, onChange } }) => (
+                            <Checkbox
+                              label="Yes"
+                              checked={value === 'Y'}
+                              onChange={(e) => onChange(e.target.checked ? 'Y' : 'N')}
+                            />
+                          )}
+                        />
+                      </div>
+                      <div>
+                        <p className="input-label mb-1">Is Returnable?</p>
+                        <Controller
+                          name="isReturnable"
+                          control={control}
+                          render={({ field: { value, onChange } }) => (
+                            <Checkbox
+                              label="Yes"
+                              checked={value === 'Y'}
+                              onChange={(e) => onChange(e.target.checked ? 'Y' : 'N')}
+                            />
+                          )}
+                        />
+                      </div>
+                    </div>
+                  </div>
                 </div>
+
+                <div
+                  ref={sectionsRef.sizeChart}
+                  className="bg-surface rounded-xl border border-border px-5 py-4 space-y-4 scroll-mt-20"
+                >
+                  <h2 className="text-lg font-bold">Size Chart</h2>
+                  <div className="grid grid-cols-2 gap-3">
+                    <Controller
+                      name="sizeChartId"
+                      control={control}
+                      render={({ field }) => (
+                        <ComboBox
+                          label="Size Chart Category"
+                          options={[
+                            { label: 'Mens Formal Shirt', value: 1 },
+                            { label: 'Mens Casual Shirt', value: 2 },
+                            { label: 'Mens T-shirt', value: 3 },
+                            { label: 'Mens Panjabi Regular', value: 4 },
+                          ]}
+                          optionKeys={{ label: 'label', value: 'value' }}
+                          placeholder="Select a Size Chart"
+                          error={errors.sizeChartId?.message}
+                          required
+                          {...field}
+                        />
+                      )}
+                    />
+                    <button
+                      type="button"
+                      className="mt-[27.97px] h-[35.72px] rounded-lg text-sm font-medium text-white bg-secondary-500"
+                    >
+                      Create New
+                    </button>
+                  </div>
+                </div>
+
+                <div
+                  ref={sectionsRef.url}
+                  className="bg-surface rounded-xl border border-border px-5 py-4 space-y-4 scroll-mt-20"
+                >
+                  <h2 className="text-lg font-bold">URL</h2>
+                  <div className="grid grid-cols-2 gap-3">
+                    <Input
+                      label="Product URL"
+                      placeholder="Enter Product URL"
+                      error={errors.productUrl?.message}
+                      {...register('productUrl')}
+                      required
+                    />
+                    <Input
+                      label="Video URL"
+                      placeholder="Enter Video URL"
+                      error={errors.videoUrl?.message}
+                      {...register('videoUrl')}
+                    />
+                  </div>
+                </div>
+
+                <div
+                  ref={sectionsRef.meta}
+                  className="bg-surface rounded-xl border border-border px-5 py-4 space-y-4 scroll-mt-20"
+                >
+                  <h2 className="text-lg font-bold">Meta & OG Info</h2>
+
+                  <div className="space-y-4">
+                    <Input
+                      label="Meta Title"
+                      placeholder="Enter Meta Title"
+                      error={errors.metaTitle?.message}
+                      {...register('metaTitle')}
+                    />
+                    <div className="grid grid-cols-2 gap-3">
+                      <TextArea
+                        label="Meta Description"
+                        placeholder="Enter Meta Description"
+                        {...register('metaDescription')}
+                      />
+                      <TextArea
+                        label="Meta Keywords"
+                        placeholder="Enter Meta Keywords"
+                        required={false}
+                        {...register('metaKeywords')}
+                      />
+                    </div>
+
+                    <div>
+                      <p className="input-label mb-1">OG Same As Meta??</p>
+                      <Checkbox label="Yes" onChange={(e) => handleSameAsMeta(e)} />
+                    </div>
+
+                    <div className="grid grid-cols-3 gap-3">
+                      <Controller
+                        name="ogType"
+                        control={control}
+                        render={({ field }) => (
+                          <ComboBox
+                            label="OG Type"
+                            options={[
+                              { label: 'Product', value: 'product' },
+                              { label: 'Blog', value: 'blog' },
+                              { label: 'Content', value: 'content' },
+                              { label: 'Career', value: 'career' },
+                            ]}
+                            optionKeys={{ label: 'label', value: 'value' }}
+                            placeholder="Select og type"
+                            {...field}
+                          />
+                        )}
+                      />
+                      <Input
+                        label="OG Title"
+                        placeholder="Enter OG Title"
+                        {...register('ogTitle')}
+                      />
+                      <Input label="OG Url" placeholder="Enter OG Url" {...register('ogUrl')} />
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-3">
+                      <TextArea
+                        label="OG Description"
+                        placeholder="Enter OG Description"
+                        {...register('ogDescription')}
+                      />
+                      <Controller
+                        name="ogImage"
+                        control={control}
+                        render={({ field: { value, onChange } }) => (
+                          <FileInput
+                            label="Photo"
+                            error={errors.ogImage?.message}
+                            errorSameRow={errors.ogDescription?.message}
+                            accept="image/png,image/jpeg"
+                            value={value}
+                            className="row-span-1"
+                            onChange={(e) => {
+                              const file = e.target.files?.[0];
+                              if (file) onChange(file);
+                            }}
+                            onDrop={(e) => onChange(e)}
+                          />
+                        )}
+                      />
+                    </div>
+                  </div>
+                </div>
+              </>
+            ) : null}
+
+            {watchedCategory && (
+              <div className="flex justify-end gap-4">
+                <Button variant="draft">Save As Draft</Button>
+
+                <Button type="submit" variant="submit" disabled={isSubmitting}>
+                  Submit Now
+                </Button>
               </div>
-            </div>
-
-            <div className="flex justify-end gap-4">
-              <Button variant="draft">Save As Draft</Button>
-
-              <Button type="submit" variant="submit" disabled={isSubmitting}>
-                {/* {submitLabel(mode, isSubmitting)} */}
-                Submit Now
-              </Button>
-            </div>
+            )}
           </form>
         </div>
-        <div className="bg-surface rounded-xl border border-border px-5 py-4 w-[212px]">
-          <h2 className="text-lg font-bold text-primary-500">Basic Information</h2>
-          <p className="text-sm mt-3">
-            Many desktop publishing packages and web page editors now use Lorem Ipsum as their still
-            in their infancy.
-          </p>
+
+        <div className="sticky top-20">
+          <div className="bg-surface rounded-xl border border-border px-5 py-4">
+            {watchedCategory && (
+              <div>
+                <h2 className="text-lg font-bold text-primary-500">Product Roadmap</h2>
+                <ul className="text-sm mt-1 text-neutral-300">
+                  {productCreateSteps.map((s, index) => {
+                    return (
+                      <li
+                        key={s.id}
+                        className={`relative py-2 ${index > 0 && 'after:absolute after:bg-neutral-100 after:-top-1/2 after:left-[7.5px] after:h-full after:w-[1px] after:content-[""]'}`}
+                      >
+                        <button
+                          onClick={() => scrollToSection(index)}
+                          className="flex items-center gap-1.5 cursor-pointer"
+                        >
+                          <div
+                            className={`bg-white z-10 p-1 rounded-full border ${step === index ? ' border-primary-500' : 'border-transparent'}`}
+                          >
+                            <div
+                              className={`size-2 rounded-full ${step === index ? 'bg-primary-500' : 'bg-neutral-100'}`}
+                            />
+                          </div>
+                          {s.name}
+                        </button>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </div>
+            )}
+
+            {step === -1 && (
+              <div>
+                <h2 className="text-lg font-bold text-primary-500">Recommendations</h2>
+                <p className="text-sm mt-3">
+                  It is a long established fact that a reader will be distracted by the readable
+                  content of a page when looking at its layout.
+                </p>
+              </div>
+            )}
+
+            <div>
+              <h2 className="text-lg font-bold text-primary-500">Product Name</h2>
+              <p className="text-sm mt-3">
+                Many desktop publishing packages and web page editors now use Lorem Ipsum as their
+                still in their infancy.
+              </p>
+            </div>
+
+            <div>
+              <h2 className="text-lg font-bold text-primary-500">Product Category</h2>
+              <p className="text-sm mt-3">
+                it will frequently occur that pleasures have to be repudiated and annoyancesmatters
+                to this principle of selection.
+              </p>
+            </div>
+          </div>
         </div>
       </div>
 

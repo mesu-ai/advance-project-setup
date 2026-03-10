@@ -6,7 +6,10 @@ import { useForm } from 'react-hook-form';
 import * as z from 'zod';
 
 const PriceModalSchema = z.object({
-  sellingPrice: z.coerce.number<number>('Invalid price').positive('Selling price must be positive').optional(),
+  sellingPrice: z.coerce
+    .number<number>('Invalid price')
+    .positive('Selling price must be positive')
+    .optional(),
   sellingDate: z.iso.datetime({ local: true }),
 });
 

@@ -34,7 +34,7 @@ const Select = <T extends OptionType>({
       <div className="relative">
         <select
           id={generatedId}
-          className={cn('input-field appearance-none peer capitalize bg-surface', className)}
+          className={cn('input-field appearance-none peer capitalize', className)}
           {...props}
         >
           <option className="text-neutral-300 font-medium" value="">

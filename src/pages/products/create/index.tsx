@@ -6,10 +6,9 @@ import useSearchKeyword from '@/hooks/useSearchKeyword';
 import { useGetShopsQuery } from '@/store/api/endpoints/shopEndpoints';
 import type { SelectedCategoryT } from '@/types/category';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useEffect, useMemo, useRef, useState, type ChangeEvent } from 'react';
+import { useEffect, useRef, useState, type ChangeEvent } from 'react';
 import { Controller, useFieldArray, useForm, useWatch } from 'react-hook-form';
 import Editor from 'textcrafter';
-import * as z from 'zod';
 import ArrowLongIcon from '@/assets/svg/ArrowLongIcon';
 import Checkbox from '@/components/atoms/Checkbox';
 import FileInput from '@/components/atoms/FileInput';
@@ -19,11 +18,12 @@ import ComboBox from '@/components/atoms/ComboBox';
 import WarningIcon from '@/assets/svg/WarningIcon';
 import SellingPriceModal, {
   type PriceFormData,
-} from '@/features/products/components/modal/SellingPriceModal';
-import VariantPriceTable from '@/features/products/components/table/VariantPriceTable';
+} from '@/features/products/components/SellingPriceModal';
+import VariantPriceTable from '@/features/products/components/VariantPriceTable';
 import EditIcon from '@/assets/svg/EditIcon';
 import DeleteIcon from '@/assets/svg/DeleteIcon';
 import { productCreateSteps } from '@/assets/data/productCreateSteps';
+import { productSchema, type ProductFormData } from '@/features/products/schema';
 
 const categorySuggessions: SelectedCategoryT[] = [
   {
@@ -63,110 +63,19 @@ const sizeVariants: { variantOptionId: number; variantOptionText: string }[] = [
   { variantOptionId: 447, variantOptionText: 'XXL' },
 ];
 
-const productImagesSchema = z.object({
-  variantOptionId: z.number('Option id required'),
-  variantOptionText: z.string('Option label required'),
-  images: z.array(z.url('Invalid image URL')).nonempty('Select at least one image'),
-});
+const sectionKeys = [
+  'basisInfo',
+  'images',
+  'attributes',
+  'variants',
+  'productInfo',
+  'sizeChart',
+  'warranty',
+  'url',
+  'meta',
+] as const;
 
-const variantOptionSchema = z.object({
-  variantOptionId: z.number('Option id required'),
-  variantOptionText: z.string('Option label required'),
-});
-
-const variantDimensionSchema = z.object({
-  dimensionId: z.string('Dimension id required'),
-  name: z.string('Dimension name required'),
-  options: z.array(variantOptionSchema).nonempty('At least one option required'),
-});
-
-const combinationOptionSchema = z.object({
-  variantOptionId: z.number('Option id required'),
-  variantOptionText: z.string('Option label required'),
-});
-
-const variantCombinationSchema = z.object({
-  sku: z.string(),
-  subStyle: z.string().optional(),
-
-  stock: z.coerce.number<number>('Invalid price').positive('Price must be positive').optional(),
-  dpPrice: z.coerce.number<number>('Invalid price').positive('Price must be positive').optional(),
-  mrp: z.coerce.number<number>('Invalid price').positive('Price must be positive').optional(),
-  sellingPrice: z.coerce
-    .number<number>('Invalid price')
-    .positive('Price must be positive')
-    .optional(),
-  sellingDate: z.iso.datetime({ local: true }),
-  burnAmount: z.coerce
-    .number<number>('Invalid price')
-    .positive('Price must be positive')
-    .optional(),
-  commissionAmount: z.coerce
-    .number<number>('Invalid price')
-    .positive('Price must be positive')
-    .optional(),
-  options: z.array(combinationOptionSchema),
-  status: z.enum(['Y', 'N'], { message: 'Status is required' }),
-});
-
-const productSchema = z.object({
-  productName: z.string().min(3, 'Product name is required'),
-  categoryId: z.number('Product category is required'),
-  unit: z.string('Product unit is required'),
-  shopId: z.number('Shop name is required'),
-  displayOrder: z.string().optional(),
-  thumbnailImages: z.array(z.url('Invalid image URL')).nonempty('Select at least one image'),
-  brandId: z.number('Brand is required'),
-  strapMeterial: z.string().optional(),
-  fitType: z.string().optional(),
-  gender: z.string().optional(),
-  variantDimensions: z.array(variantDimensionSchema).nonempty('error'),
-  variantImages: z.array(productImagesSchema).optional(),
-  variantCombinations: z.array(variantCombinationSchema).nonempty('error'),
-
-  sku: z.string().optional(),
-  subStyle: z.string().optional(),
-  stock: z.coerce.number<number>('Invalid price').positive('Price must be positive').optional(),
-  dpPrice: z.coerce.number<number>('Invalid price').positive('Price must be positive').optional(),
-  mrp: z.coerce.number<number>('Invalid price').positive('Price must be positive').optional(),
-  sellingPrice: z.coerce
-    .number<number>('Invalid price')
-    .positive('Price must be positive')
-    .optional(),
-  sellingDate: z.iso.datetime({ local: true }).optional(),
-
-  description: z.string().min(3, 'Description is required'),
-  specification: z.string().min(3, 'Specification is required'),
-  hasEmi: z.enum(['Y', 'N']).optional(),
-  isReturnable: z.enum(['Y', 'N']).optional(),
-  sizeChartId: z.number('Size chart is required'),
-  productUrl: z.string().min(1, 'Product url is required'),
-  videoUrl: z.string().optional(),
-  metaTitle: z.string().optional(),
-  metaKeywords: z.string().optional(),
-  metaDescription: z.string().optional(),
-  ogType: z.string().optional(),
-  ogTitle: z.string().optional(),
-  ogUrl: z.string().optional(),
-  ogDescription: z.string().optional(),
-  ogImage: z
-    .union([z.string().min(1), z.instanceof(File)])
-    .optional()
-    .refine((val) => {
-      if (val instanceof File) {
-        return val.size <= 5_000_000;
-      }
-      return true;
-    }, 'Max file size is 5MB')
-    .refine((val) => {
-      if (val instanceof File) {
-        return ['image/jpeg', 'image/jpg', 'image/png'].includes(val.type);
-      }
-      return true;
-    }, 'Only .jpg, .jpeg, .png formats are supported'),
-});
-
-export type ProductFormData = z.infer<typeof productSchema>;
+type SectionKeyT = (typeof sectionKeys)[number];
 
 const CreateProductPage = () => {
   const [step, setStep] = useState<number>(-1);
@@ -187,17 +96,34 @@ const CreateProductPage = () => {
 
   const shopSearch = useSearchKeyword(500);
   const brandSearch = useSearchKeyword(500);
+  const isScrollingRef = useRef(false);
+  const scrollTimeRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const sectionsRef = {
-    basisInfo: useRef<HTMLDivElement>(null),
-    images: useRef<HTMLDivElement>(null),
-    attributes: useRef<HTMLDivElement>(null),
-    variants: useRef<HTMLDivElement>(null),
-    productInfo: useRef<HTMLDivElement>(null),
-    sizeChart: useRef<HTMLDivElement>(null),
-    warranty: useRef<HTMLDivElement>(null),
-    url: useRef<HTMLDivElement>(null),
-    meta: useRef<HTMLDivElement>(null),
+  const sectionsRef = useRef<Record<SectionKeyT, HTMLDivElement | null>>({
+    basisInfo: null,
+    images: null,
+    attributes: null,
+    variants: null,
+    productInfo: null,
+    sizeChart: null,
+    warranty: null,
+    url: null,
+    meta: null,
+  });
+
+  const scrollToSection = (index: number) => {
+    isScrollingRef.current = true;
+    setStep(index);
+
+    sectionsRef.current[sectionKeys[index]]?.scrollIntoView({
+      behavior: 'smooth',
+      block: 'start',
+    });
+
+    if (scrollTimeRef.current) clearTimeout(scrollTimeRef.current);
+    scrollTimeRef.current = setTimeout(() => {
+      isScrollingRef.current = false;
+    }, 800);
   };
 
   const { data: shops, isLoading: isShopLoading } = useGetShopsQuery({
@@ -301,30 +227,6 @@ const CreateProductPage = () => {
   const watchColor = useWatch({ control, name: 'variantDimensions.0.options' });
   const watchSize = useWatch({ control, name: 'variantDimensions.1.options' });
 
-  const sectionRefsList = useMemo(
-    () => [
-      sectionsRef.basisInfo,
-      sectionsRef.images,
-      sectionsRef.attributes,
-      sectionsRef.variants,
-      sectionsRef.productInfo,
-      sectionsRef.sizeChart,
-      sectionsRef.warranty,
-      sectionsRef.url,
-      sectionsRef.meta,
-    ],
-    [sectionsRef]
-  );
-
-  const scrollToSection = (index: number) => {
-    sectionRefsList[index].current?.scrollIntoView({
-      behavior: 'smooth',
-      block: 'start',
-    });
-
-    setStep(index);
-  };
-
   const handleSameAsMeta = (e: ChangeEvent<HTMLInputElement>) => {
     const isChecked = e.target.checked;
     if (isChecked) {
@@ -400,25 +302,27 @@ const CreateProductPage = () => {
   useEffect(() => {
     const observer = new IntersectionObserver(
       (entries) => {
+        if (isScrollingRef.current) return;
+
         entries.forEach((entry) => {
           if (entry.isIntersecting) {
-            const index = sectionRefsList.findIndex((ref) => ref.current === entry.target);
-            console.log({ index });
+            const index = sectionKeys.findIndex((key) => sectionsRef.current[key] === entry.target);
             if (index !== -1) {
               setStep(index);
             }
           }
         });
       },
-      { root: null, rootMargin: '-30% 0px -60% 0px', threshold: 0 }
+      { root: null, rootMargin: '-40% 0px -40% 0px', threshold: 0 }
     );
 
-    sectionRefsList.forEach((ref) => {
-      if (ref.current) observer.observe(ref.current);
+    sectionKeys.forEach((key) => {
+      const el = sectionsRef.current[key];
+      if (el) observer.observe(el);
     });
 
     return () => observer.disconnect();
-  }, [sectionRefsList]);
+  }, [watchedCategory]);
 
   return (
     <div>
@@ -427,7 +331,9 @@ const CreateProductPage = () => {
         <div className="min-w-0">
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
             <div
-              ref={sectionsRef.basisInfo}
+              ref={(el) => {
+                sectionsRef.current.basisInfo = el;
+              }}
               className="bg-surface rounded-xl border border-border px-5 py-4 space-y-4 scroll-mt-20"
             >
               <h2 className="text-lg font-bold">Basic Information</h2>
@@ -437,6 +343,7 @@ const CreateProductPage = () => {
                   placeholder="EX. Men's Stylish Casual Shirt"
                   error={errors.productName?.message}
                   {...register('productName')}
+                  title="Must be 8-12 characters long."
                   required
                 />
 
@@ -537,7 +444,9 @@ const CreateProductPage = () => {
             {watchedCategory ? (
               <>
                 <div
-                  ref={sectionsRef.images}
+                  ref={(el) => {
+                    sectionsRef.current.images = el;
+                  }}
                   className="bg-surface rounded-xl border border-border px-5 py-4 space-y-4 scroll-mt-20"
                 >
                   <h2 className="text-lg font-bold">Images</h2>
@@ -559,7 +468,9 @@ const CreateProductPage = () => {
                 </div>
 
                 <div
-                  ref={sectionsRef.attributes}
+                  ref={(el) => {
+                    sectionsRef.current.attributes = el;
+                  }}
                   className="bg-surface rounded-xl border border-border px-5 py-4 space-y-4 scroll-mt-20"
                 >
                   <h2 className="text-lg font-bold">Brand & Attributes</h2>
@@ -649,7 +560,9 @@ const CreateProductPage = () => {
                 </div>
 
                 <div
-                  ref={sectionsRef.variants}
+                  ref={(el) => {
+                    sectionsRef.current.variants = el;
+                  }}
                   className="bg-surface rounded-xl border border-border px-5 py-4 space-y-4 scroll-mt-20"
                 >
                   <h2 className="text-lg font-bold">Price, Stock & Variants</h2>
@@ -817,7 +730,9 @@ const CreateProductPage = () => {
                 </div>
 
                 <div
-                  ref={sectionsRef.productInfo}
+                  ref={(el) => {
+                    sectionsRef.current.productInfo = el;
+                  }}
                   className="bg-surface rounded-xl border border-border px-5 py-4 space-y-4 scroll-mt-20"
                 >
                   <h2 className="text-lg font-bold">Product Info </h2>
@@ -893,7 +808,9 @@ const CreateProductPage = () => {
                 </div>
 
                 <div
-                  ref={sectionsRef.sizeChart}
+                  ref={(el) => {
+                    sectionsRef.current.sizeChart = el;
+                  }}
                   className="bg-surface rounded-xl border border-border px-5 py-4 space-y-4 scroll-mt-20"
                 >
                   <h2 className="text-lg font-bold">Size Chart</h2>
@@ -928,7 +845,96 @@ const CreateProductPage = () => {
                 </div>
 
                 <div
-                  ref={sectionsRef.url}
+                  ref={(el) => {
+                    sectionsRef.current.warranty = el;
+                  }}
+                  className="bg-surface rounded-xl border border-border px-5 py-4 space-y-4 scroll-mt-20"
+                >
+                  <h2 className="text-lg font-bold">Warranty & Package</h2>
+                  <div className="grid grid-cols-2 gap-3">
+                    <Controller
+                      name="warrantyTypeId"
+                      control={control}
+                      render={({ field }) => (
+                        <ComboBox
+                          label="Warranty Type"
+                          options={[
+                            { label: 'No Warranty', value: 1 },
+                            { label: 'Brand Warranty', value: 2 },
+                            { label: 'Local Seller Warranty', value: 3 },
+                            { label: 'International Warranty', value: 4 },
+                          ]}
+                          optionKeys={{ label: 'label', value: 'value' }}
+                          placeholder="Select Warranty Type"
+                          error={errors.sizeChartId?.message}
+                          required
+                          {...field}
+                        />
+                      )}
+                    />
+                    <Controller
+                      name="warrantyPeriodId"
+                      control={control}
+                      render={({ field }) => (
+                        <ComboBox
+                          label="Warranty Period"
+                          options={[
+                            { label: '1 Month', value: 1 },
+                            { label: '2 Months', value: 2 },
+                            { label: '3 Months', value: 3 },
+                            { label: '4 Months', value: 4 },
+                            { label: '5 Months', value: 5 },
+                          ]}
+                          optionKeys={{ label: 'label', value: 'value' }}
+                          placeholder="Select Warranty Period"
+                          error={errors.sizeChartId?.message}
+                          required
+                          {...field}
+                        />
+                      )}
+                    />
+                  </div>
+                  <TextArea
+                    label="Warranty Policy"
+                    placeholder="Enter Warranty Policy"
+                    {...register('warrantyPolicy')}
+                  />
+                  <div className="grid grid-cols-4 gap-3">
+                    <Input
+                      label="Package Weight (kg)"
+                      placeholder="Enter Package Weight (kg)"
+                      error={errors.packageWeight?.message}
+                      {...register('packageWeight')}
+                      required
+                    />
+                    <Input
+                      label="Package Length (cm)"
+                      placeholder="Enter Package Length (cm)"
+                      error={errors.packageLength?.message}
+                      {...register('packageLength')}
+                      required
+                    />
+                    <Input
+                      label="Package Width (cm)"
+                      placeholder="Enter Package Width (cm)"
+                      error={errors.packageWidth?.message}
+                      {...register('packageWidth')}
+                      required
+                    />
+                    <Input
+                      label="Package Height (cm)"
+                      placeholder="Enter Package Height (cm)"
+                      error={errors.packageHeight?.message}
+                      {...register('packageHeight')}
+                      required
+                    />
+                  </div>
+                </div>
+
+                <div
+                  ref={(el) => {
+                    sectionsRef.current.url = el;
+                  }}
                   className="bg-surface rounded-xl border border-border px-5 py-4 space-y-4 scroll-mt-20"
                 >
                   <h2 className="text-lg font-bold">URL</h2>
@@ -950,7 +956,9 @@ const CreateProductPage = () => {
                 </div>
 
                 <div
-                  ref={sectionsRef.meta}
+                  ref={(el) => {
+                    sectionsRef.current.meta = el;
+                  }}
                   className="bg-surface rounded-xl border border-border px-5 py-4 space-y-4 scroll-mt-20"
                 >
                   <h2 className="text-lg font-bold">Meta & OG Info</h2>
@@ -1071,7 +1079,7 @@ const CreateProductPage = () => {
                             className={`bg-white z-10 p-1 rounded-full border ${step === index ? ' border-primary-500' : 'border-transparent'}`}
                           >
                             <div
-                              className={`size-2 rounded-full ${step === index ? 'bg-primary-500' : 'bg-neutral-100'}`}
+                              className={`size-2 rounded-full ${step === index ? 'bg-primary-500' : 'bg-neutral-100 dark:bg-neutral-200'}`}
                             />
                           </div>
                           {s.name}
@@ -1083,31 +1091,26 @@ const CreateProductPage = () => {
               </div>
             )}
 
-            {step === -1 && (
+            {!watchedCategory && (
               <div>
                 <h2 className="text-lg font-bold text-primary-500">Recommendations</h2>
                 <p className="text-sm mt-3">
-                  It is a long established fact that a reader will be distracted by the readable
-                  content of a page when looking at its layout.
+                  Start by entering a product name and selecting a category. The full form sections
+                  will unlock once a category is chosen.
                 </p>
               </div>
             )}
 
-            <div>
-              <h2 className="text-lg font-bold text-primary-500">Product Name</h2>
-              <p className="text-sm mt-3">
-                Many desktop publishing packages and web page editors now use Lorem Ipsum as their
-                still in their infancy.
-              </p>
-            </div>
-
-            <div>
-              <h2 className="text-lg font-bold text-primary-500">Product Category</h2>
-              <p className="text-sm mt-3">
-                it will frequently occur that pleasures have to be repudiated and annoyancesmatters
-                to this principle of selection.
-              </p>
-            </div>
+            {watchedCategory && step >= 0 && productCreateSteps[step] && (
+              <div className="mt-4 border-t border-border pt-4">
+                <h2 className="text-lg font-bold text-primary-500">
+                  {productCreateSteps[step].name}
+                </h2>
+                <p className="text-sm mt-2 text-neutral-300">
+                  {productCreateSteps[step].description}
+                </p>
+              </div>
+            )}
           </div>
         </div>
       </div>

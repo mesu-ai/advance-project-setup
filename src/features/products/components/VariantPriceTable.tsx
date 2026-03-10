@@ -1,13 +1,13 @@
 import DeleteIcon from '@/assets/svg/DeleteIcon';
 import Input from '@/components/atoms/Input';
-import type { ProductFormData } from '@/pages/products/create';
 import { useEffect, useMemo, useRef, useState, type ChangeEvent } from 'react';
 import { Controller, useFieldArray, useWatch, type Control } from 'react-hook-form';
-import SellingPriceModal, { type PriceFormData } from '../modal/SellingPriceModal';
+import SellingPriceModal, { type PriceFormData } from './SellingPriceModal';
 import Select from '@/components/atoms/Select';
 import EditIcon from '@/assets/svg/EditIcon';
-import { calculateBurn, calculateCommission } from '../../utils/priceHelpers';
+import { calculateBurn, calculateCommission } from '../utils/priceHelpers';
 import Switch from '@/components/atoms/Switch';
+import type { ProductFormData } from '../schema';
 
 type VariantOption = { variantOptionId: number; variantOptionText: string };
 
@@ -335,7 +335,7 @@ const VariantPriceTable = ({ colors, sizes, control }: VariantPriceTableProps) =
                           type="button"
                           disabled={fieldValue.status === 'N'}
                           onClick={() => setActiveFieldIndex(fieldIndex)}
-                          className="w-fit cursor-pointer text-secondary-500 hover:text-secondary-600 text-sm font-medium"
+                          className="w-fit cursor-pointer text-secondary-500 hover:text-secondary-600 disabled:text-secondary-200 text-sm font-medium"
                         >
                           Add Selling Price
                         </button>
@@ -343,13 +343,13 @@ const VariantPriceTable = ({ colors, sizes, control }: VariantPriceTableProps) =
                     </td>
                     <td className={`px-3 py-1.5 ${rowPadding}`}>
                       {/* burn= mrp- selling */}
-                      <div className="border border-neutral-300 py-1 px-2 leading-normal rounded bg-white-700">
+                      <div className="border border-neutral-300 py-1 px-2 leading-normal rounded bg-white-700 dark:bg-black-300">
                         {burnAmount || 0}
                       </div>
                     </td>
                     <td className={`px-3 py-1.5 ${rowPadding}`}>
                       {/* commission = selling -dp */}
-                      <div className="border border-neutral-300 py-1 px-2 leading-normal rounded bg-white-700">
+                      <div className="border border-neutral-300 py-1 px-2 leading-normal rounded bg-white-700 dark:bg-black-300">
                         {commissionAmount || 0}
                       </div>
                     </td>
@@ -361,7 +361,8 @@ const VariantPriceTable = ({ colors, sizes, control }: VariantPriceTableProps) =
                         ]}
                         optionKeys={{ label: 'label', value: 'value' }}
                         placeholder="Select"
-                        className="rounded py-1 mt-0"
+                        className="rounded py-1 mt-0 "
+                        disabled={fieldValue.status === 'N'}
                         onChange={(e) => handleUpdateThrough(e, fieldIndex)}
                       />
                     </td>

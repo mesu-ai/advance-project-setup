@@ -8,24 +8,18 @@ import EditIcon from '@/assets/svg/EditIcon';
 import { calculateBurn, calculateCommission } from '../utils/priceHelpers';
 import Switch from '@/components/atoms/Switch';
 import type { ProductFormData } from '../schema';
-
-type VariantOption = { variantOptionId: number; variantOptionText: string };
+import type { VariantOptionT } from '../types';
+import { getCombinationKey, shopProductSkuGenerator } from '../utils/variantHelpers';
 
 interface VariantPriceTableProps {
-  colors: VariantOption[];
-  sizes?: VariantOption[];
+  colors: VariantOptionT[];
+  sizes?: VariantOptionT[];
   control: Control<ProductFormData>;
 }
 
-const getCombinationKey = (options: VariantOption[]): string => {
-  return options
-    .map((o) => o.variantOptionId)
-    .sort((a, b) => a - b)
-    .join('-');
-};
-
-const createCombination = (options: VariantOption[]) => ({
+const createCombination = (options: VariantOptionT[]) => ({
   sku: '',
+  shopProductSku: shopProductSkuGenerator(options),
   subStyle: '',
   stock: undefined,
   dpPrice: undefined,
@@ -207,10 +201,10 @@ const VariantPriceTable = ({ colors, sizes, control }: VariantPriceTableProps) =
 
                 const fieldValue = watchCombinations[fieldIndex];
 
-                const burnAmount = calculateBurn(fieldValue.mrp, fieldValue.sellingPrice);
+                const burnAmount = calculateBurn(fieldValue?.mrp, fieldValue?.sellingPrice);
                 const commissionAmount = calculateCommission(
-                  fieldValue.sellingPrice,
-                  fieldValue.dpPrice
+                  fieldValue?.sellingPrice,
+                  fieldValue?.dpPrice
                 );
 
                 const isFirstRow = rowIndex === 0;
@@ -219,7 +213,7 @@ const VariantPriceTable = ({ colors, sizes, control }: VariantPriceTableProps) =
 
                 return (
                   <tr
-                    key={field.id}
+                    key={field?.id}
                     className={`${
                       fieldValue?.status === 'N' &&
                       (showColorCell
@@ -247,7 +241,7 @@ const VariantPriceTable = ({ colors, sizes, control }: VariantPriceTableProps) =
                           <Input
                             placeholder="SKU/Barcode"
                             className="min-w-36 rounded py-1 mt-0"
-                            disabled={fieldValue.status === 'N'}
+                            disabled={fieldValue?.status === 'N'}
                             {...field}
                           />
                         )}
@@ -261,7 +255,7 @@ const VariantPriceTable = ({ colors, sizes, control }: VariantPriceTableProps) =
                           <Input
                             placeholder="Sub-Style"
                             className="min-w-36 rounded py-1 mt-0"
-                            disabled={fieldValue.status === 'N'}
+                            disabled={fieldValue?.status === 'N'}
                             {...field}
                           />
                         )}
@@ -275,7 +269,7 @@ const VariantPriceTable = ({ colors, sizes, control }: VariantPriceTableProps) =
                           <Input
                             placeholder="Stock"
                             className="min-w-24 rounded py-1 mt-0"
-                            disabled={fieldValue.status === 'N'}
+                            disabled={fieldValue?.status === 'N'}
                             {...field}
                           />
                         )}
@@ -289,7 +283,7 @@ const VariantPriceTable = ({ colors, sizes, control }: VariantPriceTableProps) =
                           <Input
                             placeholder="DP"
                             className="min-w-24 rounded py-1 mt-0"
-                            disabled={fieldValue.status === 'N'}
+                            disabled={fieldValue?.status === 'N'}
                             {...field}
                           />
                         )}
@@ -303,7 +297,7 @@ const VariantPriceTable = ({ colors, sizes, control }: VariantPriceTableProps) =
                           <Input
                             placeholder="MRP"
                             className="min-w-24 rounded py-1 mt-0"
-                            disabled={fieldValue.status === 'N'}
+                            disabled={fieldValue?.status === 'N'}
                             {...field}
                           />
                         )}
@@ -333,7 +327,7 @@ const VariantPriceTable = ({ colors, sizes, control }: VariantPriceTableProps) =
                       ) : (
                         <button
                           type="button"
-                          disabled={fieldValue.status === 'N'}
+                          disabled={fieldValue?.status === 'N'}
                           onClick={() => setActiveFieldIndex(fieldIndex)}
                           className="w-fit cursor-pointer text-secondary-500 hover:text-secondary-600 disabled:text-secondary-200 text-sm font-medium"
                         >
@@ -362,7 +356,7 @@ const VariantPriceTable = ({ colors, sizes, control }: VariantPriceTableProps) =
                         optionKeys={{ label: 'label', value: 'value' }}
                         placeholder="Select"
                         className="rounded py-1 mt-0 "
-                        disabled={fieldValue.status === 'N'}
+                        disabled={fieldValue?.status === 'N'}
                         onChange={(e) => handleUpdateThrough(e, fieldIndex)}
                       />
                     </td>

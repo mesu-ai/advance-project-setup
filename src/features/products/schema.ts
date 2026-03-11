@@ -24,6 +24,7 @@ const combinationOptionSchema = z.object({
 
 const variantCombinationSchema = z.object({
   sku: z.string(),
+  shopProductSku: z.string(),
   subStyle: z.string().optional(),
 
   stock: z.coerce.number<number>('Invalid price').positive('Price must be positive').optional(),
@@ -80,10 +81,10 @@ export const productSchema = z.object({
   warrantyTypeId: z.number('Warranty height is required'),
   warrantyPeriodId: z.number('Warranty period is required'),
   warrantyPolicy: z.string().optional(),
-  packageWeight: z.number('Package weight is required'),
-  packageLength: z.number('Package length is required'),
-  packageWidth: z.number('Package width is required'),
-  packageHeight: z.number('Package height is required'),
+  packageWeight: z.coerce.number<number>('Invalid weight').positive('Weight must be positive'),
+  packageLength: z.coerce.number<number>('Invalid length').positive('Length must be positive'),
+  packageWidth: z.coerce.number<number>('Invalid width').positive('Width must be positive'),
+  packageHeight: z.coerce.number<number>('Invalid height').positive('Height must be positive'),
   productUrl: z.string().min(1, 'Product url is required'),
   videoUrl: z.string().optional(),
   metaTitle: z.string().optional(),

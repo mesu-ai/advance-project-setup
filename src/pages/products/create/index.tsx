@@ -79,6 +79,7 @@ type SectionKeyT = (typeof sectionKeys)[number];
 
 const CreateProductPage = () => {
   const [step, setStep] = useState<number>(-1);
+  const [fieldFocus, setFieldFocus] = useState<string>('');
   const [isCategoryOpen, setCategoryOpen] = useState<boolean>(false);
   const [selectedCategory, setSelectedCategory] = useState<SelectedCategoryT>({
     id: null,
@@ -343,7 +344,7 @@ const CreateProductPage = () => {
                   placeholder="EX. Men's Stylish Casual Shirt"
                   error={errors.productName?.message}
                   {...register('productName')}
-                  title="Must be 8-12 characters long."
+                  onFocus={() => setFieldFocus('productName')}
                   required
                 />
 
@@ -354,6 +355,7 @@ const CreateProductPage = () => {
                   <button
                     type="button"
                     onClick={() => setCategoryOpen((prev) => !prev)}
+                    onFocus={() => setFieldFocus('categoryId')}
                     className={`cursor-pointer text-start input-field flex justify-between items-center ${!watchedCategory && 'text-neutral-300'}`}
                   >
                     {watchedCategory ? (
@@ -441,8 +443,11 @@ const CreateProductPage = () => {
               </div>
             </div>
 
-            {watchedCategory ? (
-              <>
+            <div
+              className={`grid transition-[grid-template-rows] duration-1000 ease-out 
+                ${watchedCategory ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'}`}
+            >
+              <div className="space-y-5 overflow-hidden">
                 <div
                   ref={(el) => {
                     sectionsRef.current.images = el;
@@ -554,7 +559,7 @@ const CreateProductPage = () => {
                       onClick={() => setExpandAtt((prev) => !prev)}
                       className="cursor-pointer col-span-full font-medium text-primary-500 hover:text-primary-600 flex justify-center gap-1.5"
                     >
-                      {isExpandAtt ? 'See Less' : 'See Less'} <ArrowLongIcon className="h-5 w-5" />
+                      {isExpandAtt ? 'See Less' : 'See More'} <ArrowLongIcon className="h-5 w-5" />
                     </button>
                   </div>
                 </div>
@@ -1044,8 +1049,8 @@ const CreateProductPage = () => {
                     </div>
                   </div>
                 </div>
-              </>
-            ) : null}
+              </div>
+            </div>
 
             {watchedCategory && (
               <div className="flex justify-end gap-4">
@@ -1061,6 +1066,36 @@ const CreateProductPage = () => {
 
         <div className="sticky top-20">
           <div className="bg-surface rounded-xl border border-border px-5 py-4">
+            {!fieldFocus && !watchedCategory && (
+              <div>
+                <h2 className="text-lg font-bold text-primary-500">Recommendations</h2>
+                <p className="text-sm mt-3">
+                  Start by entering a product name and selecting a category. The full form sections
+                  will unlock once a category is chosen.
+                </p>
+              </div>
+            )}
+
+            {fieldFocus === 'productName' && !watchedCategory && (
+              <div>
+                <h2 className="text-lg font-bold text-primary-500">Product Name</h2>
+                <p className="text-sm mt-3">
+                  Start by entering a product name and selecting a category. The full form sections
+                  will unlock once a category is chosen.
+                </p>
+              </div>
+            )}
+
+            {fieldFocus === 'categoryId' && !watchedCategory && (
+              <div>
+                <h2 className="text-lg font-bold text-primary-500">Product Category</h2>
+                <p className="text-sm mt-3">
+                  Start by entering a product name and selecting a category. The full form sections
+                  will unlock once a category is chosen.
+                </p>
+              </div>
+            )}
+
             {watchedCategory && (
               <div>
                 <h2 className="text-lg font-bold text-primary-500">Product Roadmap</h2>
@@ -1088,16 +1123,6 @@ const CreateProductPage = () => {
                     );
                   })}
                 </ul>
-              </div>
-            )}
-
-            {!watchedCategory && (
-              <div>
-                <h2 className="text-lg font-bold text-primary-500">Recommendations</h2>
-                <p className="text-sm mt-3">
-                  Start by entering a product name and selecting a category. The full form sections
-                  will unlock once a category is chosen.
-                </p>
               </div>
             )}
 

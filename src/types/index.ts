@@ -7,3 +7,4 @@ export * from './category';
 export * from './media';
 export * from './product';
 export * from './shop';
+export * from './inventory';

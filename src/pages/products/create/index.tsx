@@ -24,6 +24,7 @@ import EditIcon from '@/assets/svg/EditIcon';
 import DeleteIcon from '@/assets/svg/DeleteIcon';
 import { productCreateSteps } from '@/assets/data/productCreateSteps';
 import { productSchema, type ProductFormData } from '@/features/products/schema';
+import { generateSlug } from '@/utils/generateSlug';
 
 const categorySuggessions: SelectedCategoryT[] = [
   {
@@ -239,7 +240,8 @@ const CreateProductPage = () => {
 
   const handleSellingPriceReset = () => {
     setValue('sellingPrice', undefined);
-    setValue('sellingDate', '');
+    setValue('startDate', '');
+    setValue('endDate', '');
   };
 
   const handleGroupApply = () => {
@@ -252,7 +254,8 @@ const CreateProductPage = () => {
       dpPrice,
       mrp,
       sellingPrice,
-      sellingDate = '',
+      startDate = '',
+      endDate = '',
       variantCombinations = [],
     } = values;
 
@@ -266,7 +269,8 @@ const CreateProductPage = () => {
       setValue(`variantCombinations.${index}.dpPrice`, dpPrice);
       setValue(`variantCombinations.${index}.mrp`, mrp);
       setValue(`variantCombinations.${index}.sellingPrice`, sellingPrice);
-      setValue(`variantCombinations.${index}.sellingDate`, sellingDate);
+      setValue(`variantCombinations.${index}.startDate`, startDate);
+      setValue(`variantCombinations.${index}.endDate`, endDate);
       setValue(`variantCombinations.${index}.burnAmount`, burnAmount);
       setValue(`variantCombinations.${index}.commissionAmount`, commissionAmount);
     });
@@ -274,7 +278,8 @@ const CreateProductPage = () => {
 
   const onPriceSubmit = (data: PriceFormData) => {
     setValue('sellingPrice', data.sellingPrice);
-    setValue('sellingDate', data.sellingDate);
+    setValue('startDate', data.startDate);
+    setValue('endDate', data.endDate);
 
     setSellingPriceModal(false);
   };
@@ -282,6 +287,12 @@ const CreateProductPage = () => {
   const onSubmit = (data: ProductFormData) => {
     console.log({ data });
   };
+
+  useEffect(() => {
+    if (!watchedProductName) return;
+
+    setValue('productUrl', generateSlug(watchedProductName));
+  }, [watchedProductName, setValue]);
 
   useEffect(() => {
     if (!hasVariantImages) return;
@@ -951,6 +962,20 @@ const CreateProductPage = () => {
                       {...register('productUrl')}
                       required
                     />
+                    {/* <Controller
+                      name="productUrl"
+                      control={control}
+                      render={({ field: { value, onChange } }) => (
+                        <Input
+                          label="Product URL"
+                          placeholder="Enter Product URL"
+                          error={errors.productUrl?.message}
+                          required
+                          value={value}
+                          onChange={(e)=> onChange(generateSlug(e.target.value))}
+                        />
+                      )}
+                    /> */}
                     <Input
                       label="Video URL"
                       placeholder="Enter Video URL"
@@ -1147,7 +1172,8 @@ const CreateProductPage = () => {
           onSubmit={onPriceSubmit}
           initialValues={{
             sellingPrice: getValues('sellingPrice'),
-            sellingDate: getValues('sellingDate') ?? '',
+            startDate: getValues('startDate') ?? '',
+            endDate: getValues('endDate') ?? '',
           }}
         />
       )}

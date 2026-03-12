@@ -10,6 +10,8 @@ import Switch from '@/components/atoms/Switch';
 import type { ProductFormData } from '../schema';
 import type { VariantOptionT } from '../types';
 import { getCombinationKey, shopProductSkuGenerator } from '../utils/variantHelpers';
+import { useGetInventoryStockMutation } from '@/store/api/endpoints/inventoryEndpoints';
+import { useApiError } from '@/hooks/useApiError';
 
 interface VariantPriceTableProps {
   colors: VariantOptionT[];
@@ -25,7 +27,8 @@ const createCombination = (options: VariantOptionT[]) => ({
   dpPrice: undefined,
   mrp: undefined,
   sellingPrice: undefined,
-  sellingDate: '',
+  startDate: '',
+  endDate: '',
   burnAmount: 0,
   commissionAmount: 0,
   options: options,
@@ -44,6 +47,9 @@ const VariantPriceTable = ({ colors, sizes, control }: VariantPriceTableProps) =
   const prevSignatureRef = useRef<string>('');
   // ✅ Tracks live store values (not the stale `fields` snapshot)
   const watchCombinationsRef = useRef(watchCombinations);
+
+  const { handleApiError } = useApiError();
+  const [checkInventory] = useGetInventoryStockMutation();
 
   const grouped = fields.reduce<
     Record<number, { field: (typeof fields)[number]; fieldIndex: number }[]>
@@ -69,7 +75,8 @@ const VariantPriceTable = ({ colors, sizes, control }: VariantPriceTableProps) =
     update(index, {
       ...currField,
       sellingPrice: sellingPrice,
-      sellingDate: '',
+      startDate: '',
+      endDate: '',
       burnAmount: mrp - sellingPrice,
       commissionAmount: sellingPrice - dpPrice,
     });
@@ -86,7 +93,8 @@ const VariantPriceTable = ({ colors, sizes, control }: VariantPriceTableProps) =
     update(activeFieldIndex, {
       ...currField,
       sellingPrice: sellingPrice,
-      sellingDate: data.sellingDate,
+      startDate: data.startDate,
+      endDate: data.endDate,
       burnAmount: mrp - sellingPrice,
       commissionAmount: sellingPrice - dpPrice,
     });
@@ -94,8 +102,35 @@ const VariantPriceTable = ({ colors, sizes, control }: VariantPriceTableProps) =
     setActiveFieldIndex(null);
   };
 
-  const handleUpdateThrough = (e: ChangeEvent<HTMLSelectElement>, index: number) => {
+  const handleUpdateBy = async (e: ChangeEvent<HTMLSelectElement>, index: number) => {
     console.log(e.target.value, index);
+    const { value } = e.target;
+    if (value === 'self') return;
+    const currField = watchCombinations[index];
+    if (!currField.sku) return;
+
+    try {
+      const { data } = await checkInventory({ sellerProductSku: currField.sku });
+      console.log(data);
+
+      // if (data?.success) {
+      //   const {subStyle,currentStock,salePrice,startingDate,expiringDate,discountPercentage} = data.data;
+
+      //   update(index, {
+      //     ...currField,
+      //     stock: data.data?.currentStock,
+      //     dpPrice: undefined,
+      //     mrp: data.data?.salePrice,
+      //     sellingPrice: data.data?.salePrice * data.data?.discountPercentage,
+      //     startDate: data.data?.startingDate,
+      //     endDate: data.data?.expiringDate,
+      //     burnAmount: 0,
+      //     commissionAmount: 0,
+      //   });
+      // }
+    } catch (error) {
+      handleApiError(error);
+    }
   };
 
   const expectedCombinations = useMemo(() => {
@@ -357,7 +392,7 @@ const VariantPriceTable = ({ colors, sizes, control }: VariantPriceTableProps) =
                         placeholder="Select"
                         className="rounded py-1 mt-0 "
                         disabled={fieldValue?.status === 'N'}
-                        onChange={(e) => handleUpdateThrough(e, fieldIndex)}
+                        onChange={(e) => handleUpdateBy(e, fieldIndex)}
                       />
                     </td>
                     <td className={` px-3 py-1.5 ${rowPadding}`}>
@@ -386,7 +421,8 @@ const VariantPriceTable = ({ colors, sizes, control }: VariantPriceTableProps) =
           onSubmit={handleSellingPriceSubmit}
           initialValues={{
             sellingPrice: watchCombinations[activeFieldIndex].sellingPrice,
-            sellingDate: watchCombinations[activeFieldIndex].sellingDate,
+            startDate: watchCombinations[activeFieldIndex].startDate,
+            endDate: watchCombinations[activeFieldIndex].endDate,
           }}
         />
       )}

@@ -10,7 +10,8 @@ const PriceModalSchema = z.object({
     .number<number>('Invalid price')
     .positive('Selling price must be positive')
     .optional(),
-  sellingDate: z.iso.datetime({ local: true }),
+  startDate: z.iso.datetime({ local: true }),
+  endDate: z.iso.datetime({ local: true }),
 });
 
 export type PriceFormData = z.infer<typeof PriceModalSchema>;
@@ -62,14 +63,25 @@ const SellingPriceModal = ({
           {...register('sellingPrice')}
           required
         />
-        <Input
-          type="datetime-local"
-          label="Selling Date"
-          placeholder="Select Selling Date"
-          error={errors.sellingDate?.message}
-          {...register('sellingDate')}
-          required
-        />
+
+        <div className="grid grid-cols-2 gap-3">
+          <Input
+            type="datetime-local"
+            label="Start Date"
+            placeholder="Select Selling Date"
+            error={errors.startDate?.message}
+            {...register('startDate')}
+            required
+          />
+          <Input
+            type="datetime-local"
+            label="End Date"
+            placeholder="Select Selling Date"
+            error={errors.endDate?.message}
+            {...register('endDate')}
+            required
+          />
+        </div>
 
         <div className="flex justify-end gap-4 pt-4">
           <Button onClick={handleClose} variant="cancel">

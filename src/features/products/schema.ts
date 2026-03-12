@@ -1,3 +1,4 @@
+import { SLUG_REGEX } from '@/constants/regex';
 import * as z from 'zod';
 
 const productImagesSchema = z.object({
@@ -34,7 +35,8 @@ const variantCombinationSchema = z.object({
     .number<number>('Invalid price')
     .positive('Price must be positive')
     .optional(),
-  sellingDate: z.iso.datetime({ local: true }),
+  startDate: z.iso.datetime({ local: true }),
+  endDate: z.iso.datetime({ local: true }),
   burnAmount: z.coerce
     .number<number>('Invalid price')
     .positive('Price must be positive')
@@ -71,7 +73,8 @@ export const productSchema = z.object({
     .number<number>('Invalid price')
     .positive('Price must be positive')
     .optional(),
-  sellingDate: z.iso.datetime({ local: true }).optional(),
+  startDate: z.iso.datetime({ local: true }).optional(),
+  endDate: z.iso.datetime({ local: true }).optional(),
 
   description: z.string().min(3, 'Description is required'),
   specification: z.string().min(3, 'Specification is required'),
@@ -85,7 +88,10 @@ export const productSchema = z.object({
   packageLength: z.coerce.number<number>('Invalid length').positive('Length must be positive'),
   packageWidth: z.coerce.number<number>('Invalid width').positive('Width must be positive'),
   packageHeight: z.coerce.number<number>('Invalid height').positive('Height must be positive'),
-  productUrl: z.string().min(1, 'Product url is required'),
+  productUrl: z
+    .string()
+    .min(1, 'Product url is required')
+    .regex(SLUG_REGEX, 'Only lowercase letters, numbers, and hyphens are allowed'),
   videoUrl: z.string().optional(),
   metaTitle: z.string().optional(),
   metaKeywords: z.string().optional(),

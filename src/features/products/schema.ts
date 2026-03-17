@@ -23,31 +23,54 @@ const combinationOptionSchema = z.object({
   variantOptionText: z.string('Option label required'),
 });
 
-const variantCombinationSchema = z.object({
-  sku: z.string(),
-  shopProductSku: z.string(),
-  subStyle: z.string().optional(),
+const variantCombinationSchema = z
+  .object({
+    sku: z.string(),
+    shopProductSku: z.string(),
+    subStyle: z.string().optional(),
 
-  stock: z.coerce.number<number>('Invalid price').positive('Price must be positive').optional(),
-  dpPrice: z.coerce.number<number>('Invalid price').positive('Price must be positive').optional(),
-  mrp: z.coerce.number<number>('Invalid price').positive('Price must be positive').optional(),
-  sellingPrice: z.coerce
-    .number<number>('Invalid price')
-    .positive('Price must be positive')
-    .optional(),
-  startDate: z.iso.datetime({ local: true }),
-  endDate: z.iso.datetime({ local: true }),
-  burnAmount: z.coerce
-    .number<number>('Invalid price')
-    .positive('Price must be positive')
-    .optional(),
-  commissionAmount: z.coerce
-    .number<number>('Invalid price')
-    .positive('Price must be positive')
-    .optional(),
-  options: z.array(combinationOptionSchema),
-  status: z.enum(['Y', 'N'], { message: 'Status is required' }),
-});
+    stock: z.coerce
+      .number<number>('Invalid stock')
+      .nonnegative('Stock must be positive')
+      .optional(),
+    dpPrice: z.coerce.number<number>('Invalid price').positive('DP must be positive').optional(),
+    mrp: z.coerce.number<number>('Invalid price').positive('MRP must be positive').optional(),
+    sellingPrice: z.coerce
+      .number<number>('Invalid price')
+      .positive('Price must be positive')
+      .optional(),
+    startDate: z.iso.datetime({ local: true }).optional(),
+    endDate: z.iso.datetime({ local: true }).optional(),
+    burnAmount: z.coerce
+      .number<number>('Invalid price')
+      .nonnegative('Burn must be positive')
+      .optional(),
+    commissionAmount: z.coerce
+      .number<number>('Invalid price')
+      .positive('Commission must be positive')
+      .optional(),
+    options: z.array(combinationOptionSchema),
+    inventoryTypeId: z.number().optional(),
+    status: z.enum(['Y', 'N'], { message: 'Status is required' }),
+  })
+  .superRefine((val, ctx) => {
+    const { dpPrice, mrp, sellingPrice } = val;
+    if (dpPrice && mrp && mrp <= dpPrice) {
+      ctx.addIssue({
+        path: ['mrp'],
+        code: 'custom',
+        message: 'MRP must be greater than DP',
+      });
+    }
+
+    if (dpPrice && sellingPrice && dpPrice <= sellingPrice) {
+      ctx.addIssue({
+        path: ['sellingPrice'],
+        code: 'custom',
+        message: 'Selling pro must be greater than DP',
+      });
+    }
+  });
 
 export const productSchema = z.object({
   productName: z.string().min(3, 'Product name is required'),
@@ -66,12 +89,12 @@ export const productSchema = z.object({
 
   sku: z.string().optional(),
   subStyle: z.string().optional(),
-  stock: z.coerce.number<number>('Invalid price').positive('Price must be positive').optional(),
-  dpPrice: z.coerce.number<number>('Invalid price').positive('Price must be positive').optional(),
-  mrp: z.coerce.number<number>('Invalid price').positive('Price must be positive').optional(),
+  stock: z.coerce.number<number>('Invalid stock').nonnegative('Stock must be positive').optional(),
+  dpPrice: z.coerce.number<number>('Invalid price').nonnegative('DP must be positive').optional(),
+  mrp: z.coerce.number<number>('Invalid price').nonnegative('MRP must be positive').optional(),
   sellingPrice: z.coerce
     .number<number>('Invalid price')
-    .positive('Price must be positive')
+    .positive('Selling price must be positive')
     .optional(),
   startDate: z.iso.datetime({ local: true }).optional(),
   endDate: z.iso.datetime({ local: true }).optional(),

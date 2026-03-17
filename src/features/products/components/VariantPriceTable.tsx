@@ -12,6 +12,7 @@ import type { VariantOptionT } from '../types';
 import { getCombinationKey, shopProductSkuGenerator } from '../utils/variantHelpers';
 import { useGetInventoryStockMutation } from '@/store/api/endpoints/inventoryEndpoints';
 import { useApiError } from '@/hooks/useApiError';
+import toast from 'react-hot-toast';
 
 interface VariantPriceTableProps {
   colors: VariantOptionT[];
@@ -27,11 +28,12 @@ const createCombination = (options: VariantOptionT[]) => ({
   dpPrice: undefined,
   mrp: undefined,
   sellingPrice: undefined,
-  startDate: '',
-  endDate: '',
+  startDate: undefined,
+  endDate: undefined,
   burnAmount: 0,
-  commissionAmount: 0,
+  commissionAmount: undefined,
   options: options,
+  inventoryTypeId: 1,
   status: 'Y' as const,
 });
 
@@ -75,10 +77,11 @@ const VariantPriceTable = ({ colors, sizes, control }: VariantPriceTableProps) =
     update(index, {
       ...currField,
       sellingPrice: sellingPrice,
-      startDate: '',
-      endDate: '',
+      startDate: undefined,
+      endDate: undefined,
       burnAmount: mrp - sellingPrice,
-      commissionAmount: sellingPrice - dpPrice,
+      // commissionAmount: sellingPrice - dpPrice,
+      commissionAmount: mrp - dpPrice,
     });
   };
 
@@ -103,31 +106,48 @@ const VariantPriceTable = ({ colors, sizes, control }: VariantPriceTableProps) =
   };
 
   const handleUpdateBy = async (e: ChangeEvent<HTMLSelectElement>, index: number) => {
-    console.log(e.target.value, index);
-    const { value } = e.target;
-    if (value === 'self') return;
+    const inventoryTypeId = Number(e.target.value);
     const currField = watchCombinations[index];
-    if (!currField.sku) return;
+
+    if (!currField.sku) return toast.error('Invalid SKU/Barcode');
 
     try {
+      if (inventoryTypeId === 1) {
+        update(index, {
+          ...currField,
+          subStyle: '',
+          stock: undefined,
+          dpPrice: undefined,
+          mrp: undefined,
+          sellingPrice: undefined,
+          startDate: '',
+          endDate: '',
+          inventoryTypeId,
+        });
+        return;
+      }
+
       const { data } = await checkInventory({ sellerProductSku: currField.sku });
-      console.log(data);
+      // console.log({ data });
 
-      // if (data?.success) {
-      //   const {subStyle,currentStock,salePrice,startingDate,expiringDate,discountPercentage} = data.data;
+      if (!data?.success) {
+        return toast.error('Something went wrong');
+      }
 
-      //   update(index, {
-      //     ...currField,
-      //     stock: data.data?.currentStock,
-      //     dpPrice: undefined,
-      //     mrp: data.data?.salePrice,
-      //     sellingPrice: data.data?.salePrice * data.data?.discountPercentage,
-      //     startDate: data.data?.startingDate,
-      //     endDate: data.data?.expiringDate,
-      //     burnAmount: 0,
-      //     commissionAmount: 0,
-      //   });
-      // }
+      const mrp = data.data?.salePrice ?? 0;
+      const discountAmount = mrp * ((data.data?.discountPercentage ?? 0) / 100);
+      const sellingPrice = mrp - discountAmount;
+
+      update(index, {
+        ...currField,
+        subStyle: data.data?.subStyle,
+        stock: data.data?.currentStock,
+        mrp,
+        sellingPrice,
+        startDate: data.data?.startingDate ?? '',
+        endDate: data.data?.expiringDate ?? '',
+        inventoryTypeId,
+      });
     } catch (error) {
       handleApiError(error);
     }
@@ -192,8 +212,6 @@ const VariantPriceTable = ({ colors, sizes, control }: VariantPriceTableProps) =
     prevSignatureRef.current = expectedSignatureKeys;
   }, [expectedCombinations, expectedSignatureKeys, replace]);
 
-  console.log({ watchCombinations });
-
   return (
     <>
       <div className="w-full overflow-x-auto">
@@ -238,8 +256,9 @@ const VariantPriceTable = ({ colors, sizes, control }: VariantPriceTableProps) =
 
                 const burnAmount = calculateBurn(fieldValue?.mrp, fieldValue?.sellingPrice);
                 const commissionAmount = calculateCommission(
-                  fieldValue?.sellingPrice,
-                  fieldValue?.dpPrice
+                  fieldValue?.dpPrice,
+                  fieldValue?.mrp,
+                  fieldValue?.sellingPrice
                 );
 
                 const isFirstRow = rowIndex === 0;
@@ -338,9 +357,9 @@ const VariantPriceTable = ({ colors, sizes, control }: VariantPriceTableProps) =
                         )}
                       />
                     </td>
-                    <td className={`px-3 py-1.5 ${rowPadding}`}>
+                    <td className={`px-3 py-1.5 min-w-28 ${rowPadding}`}>
                       {fieldValue?.sellingPrice ? (
-                        <div className="min-w-28 flex items-center border border-neutral-300 py-1 px-2 leading-normal rounded hover:bg-white-700">
+                        <div className=" flex items-center border border-neutral-300 py-1 px-2 leading-normal rounded hover:bg-white-700">
                           <span>{fieldValue?.sellingPrice}</span>
                           <button
                             type="button"
@@ -385,13 +404,14 @@ const VariantPriceTable = ({ colors, sizes, control }: VariantPriceTableProps) =
                     <td className={`px-3 py-1.5 ${rowPadding}`}>
                       <Select
                         options={[
-                          { label: 'Self', value: 'self' },
-                          { label: 'Through API', value: 'api' },
+                          { label: 'Self', value: '1' },
+                          { label: 'Through API', value: '2' },
                         ]}
                         optionKeys={{ label: 'label', value: 'value' }}
                         placeholder="Select"
                         className="rounded py-1 mt-0 "
                         disabled={fieldValue?.status === 'N'}
+                        value={fieldValue?.inventoryTypeId}
                         onChange={(e) => handleUpdateBy(e, fieldIndex)}
                       />
                     </td>
@@ -421,8 +441,8 @@ const VariantPriceTable = ({ colors, sizes, control }: VariantPriceTableProps) =
           onSubmit={handleSellingPriceSubmit}
           initialValues={{
             sellingPrice: watchCombinations[activeFieldIndex].sellingPrice,
-            startDate: watchCombinations[activeFieldIndex].startDate,
-            endDate: watchCombinations[activeFieldIndex].endDate,
+            startDate: watchCombinations[activeFieldIndex].startDate ?? '',
+            endDate: watchCombinations[activeFieldIndex].endDate ?? '',
           }}
         />
       )}

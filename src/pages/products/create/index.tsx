@@ -25,6 +25,7 @@ import DeleteIcon from '@/assets/svg/DeleteIcon';
 import { productCreateSteps } from '@/assets/data/productCreateSteps';
 import { productSchema, type ProductFormData } from '@/features/products/schema';
 import { generateSlug } from '@/utils/generateSlug';
+import { calculateBurn, calculateCommission } from '@/features/products/utils/priceHelpers';
 
 const categorySuggessions: SelectedCategoryT[] = [
   {
@@ -156,7 +157,10 @@ const CreateProductPage = () => {
         {
           dimensionId: 'color',
           name: 'Color',
-          options: [{ variantOptionId: 425, variantOptionText: 'Green' }],
+          options: [
+            { variantOptionId: 425, variantOptionText: 'Green' },
+            { variantOptionId: 426, variantOptionText: 'Ash' },
+          ],
         },
         {
           dimensionId: 'size',
@@ -171,6 +175,15 @@ const CreateProductPage = () => {
         {
           variantOptionId: 425,
           variantOptionText: 'Green',
+          images: [
+            'https://prod.saraemart.com/uploads/images/e26107e8-992c-4d5f-845a-b3328a6a00c5.png',
+            'https://prod.saraemart.com/uploads/images/979a4366-b217-43d0-a7f9-1245b8ae9eb4.png',
+            'https://prod.saraemart.com/uploads/images/ba8cf1fa-442d-43f6-8128-6426053f1dad.jpg',
+          ],
+        },
+        {
+          variantOptionId: 426,
+          variantOptionText: 'Ash',
           images: [
             'https://prod.saraemart.com/uploads/images/e26107e8-992c-4d5f-845a-b3328a6a00c5.png',
             'https://prod.saraemart.com/uploads/images/979a4366-b217-43d0-a7f9-1245b8ae9eb4.png',
@@ -240,8 +253,8 @@ const CreateProductPage = () => {
 
   const handleSellingPriceReset = () => {
     setValue('sellingPrice', undefined);
-    setValue('startDate', '');
-    setValue('endDate', '');
+    setValue('startDate', undefined);
+    setValue('endDate', undefined);
   };
 
   const handleGroupApply = () => {
@@ -254,13 +267,15 @@ const CreateProductPage = () => {
       dpPrice,
       mrp,
       sellingPrice,
-      startDate = '',
-      endDate = '',
+      startDate = undefined,
+      endDate = undefined,
       variantCombinations = [],
     } = values;
 
-    const burnAmount = (Number(mrp) || 0) - (Number(sellingPrice) || 0);
-    const commissionAmount = (Number(sellingPrice) || 0) - (Number(dpPrice) || 0);
+    // const burnAmount = (Number(mrp) || 0) - (Number(sellingPrice) || 0);
+    // const commissionAmount = (Number(sellingPrice) || 0) - (Number(dpPrice) || 0);
+    const burnAmount = calculateBurn(mrp, sellingPrice);
+    const commissionAmount = calculateCommission(dpPrice, mrp, sellingPrice);
 
     variantCombinations.forEach((_, index) => {
       setValue(`variantCombinations.${index}.sku`, sku);
@@ -284,6 +299,7 @@ const CreateProductPage = () => {
     setSellingPriceModal(false);
   };
 
+  console.log({ errors });
   const onSubmit = (data: ProductFormData) => {
     console.log({ data });
   };

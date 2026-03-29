@@ -185,11 +185,7 @@ const ImageUploader = ({
                     onDragOver={(e) => e.preventDefault()}
                     className="size-10 border border-white-700 rounded cursor-move grid place-items-center"
                   >
-                    <Image
-                      src={item}
-                      alt={`preview-image-${index}`}
-                      className="rounded aspect-square"
-                    />
+                    <Image src={item} alt={`img-${index}`} className="rounded aspect-square" />
                   </div>
                 ))}
                 {isUploading && (

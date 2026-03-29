@@ -158,38 +158,38 @@ const CreateProductPage = () => {
           dimensionId: 'color',
           name: 'Color',
           options: [
-            { variantOptionId: 425, variantOptionText: 'Green' },
-            { variantOptionId: 426, variantOptionText: 'Ash' },
+            // { variantOptionId: 425, variantOptionText: 'Green' },
+            // { variantOptionId: 426, variantOptionText: 'Ash' },
           ],
         },
-        {
-          dimensionId: 'size',
-          name: 'Size',
-          options: [
-            { variantOptionId: 442, variantOptionText: 'XS' },
-            { variantOptionId: 443, variantOptionText: 'S' },
-          ],
-        },
+        // {
+        //   dimensionId: 'size',
+        //   name: 'Size',
+        //   options: [
+        //     { variantOptionId: 442, variantOptionText: 'XS' },
+        //     { variantOptionId: 443, variantOptionText: 'S' },
+        //   ],
+        // },
       ],
       variantImages: [
-        {
-          variantOptionId: 425,
-          variantOptionText: 'Green',
-          images: [
-            'https://prod.saraemart.com/uploads/images/e26107e8-992c-4d5f-845a-b3328a6a00c5.png',
-            'https://prod.saraemart.com/uploads/images/979a4366-b217-43d0-a7f9-1245b8ae9eb4.png',
-            'https://prod.saraemart.com/uploads/images/ba8cf1fa-442d-43f6-8128-6426053f1dad.jpg',
-          ],
-        },
-        {
-          variantOptionId: 426,
-          variantOptionText: 'Ash',
-          images: [
-            'https://prod.saraemart.com/uploads/images/e26107e8-992c-4d5f-845a-b3328a6a00c5.png',
-            'https://prod.saraemart.com/uploads/images/979a4366-b217-43d0-a7f9-1245b8ae9eb4.png',
-            'https://prod.saraemart.com/uploads/images/ba8cf1fa-442d-43f6-8128-6426053f1dad.jpg',
-          ],
-        },
+        // {
+        //   variantOptionId: 425,
+        //   variantOptionText: 'Green',
+        //   images: [
+        //     'https://prod.saraemart.com/uploads/images/e26107e8-992c-4d5f-845a-b3328a6a00c5.png',
+        //     'https://prod.saraemart.com/uploads/images/979a4366-b217-43d0-a7f9-1245b8ae9eb4.png',
+        //     'https://prod.saraemart.com/uploads/images/ba8cf1fa-442d-43f6-8128-6426053f1dad.jpg',
+        //   ],
+        // },
+        // {
+        //   variantOptionId: 426,
+        //   variantOptionText: 'Ash',
+        //   images: [
+        //     'https://prod.saraemart.com/uploads/images/e26107e8-992c-4d5f-845a-b3328a6a00c5.png',
+        //     'https://prod.saraemart.com/uploads/images/979a4366-b217-43d0-a7f9-1245b8ae9eb4.png',
+        //     'https://prod.saraemart.com/uploads/images/ba8cf1fa-442d-43f6-8128-6426053f1dad.jpg',
+        //   ],
+        // },
       ],
 
       // burn= mrp- selling
@@ -237,10 +237,14 @@ const CreateProductPage = () => {
 
   const watchedProductName = useWatch({ control, name: 'productName' });
   const watchedCategory = useWatch({ control, name: 'categoryId' });
-  // const watchedVariants = useWatch({ control, name: 'variantDimensions' });
+  const watchedDimension = useWatch({ control, name: 'variantDimensions' });
 
-  const watchColor = useWatch({ control, name: 'variantDimensions.0.options' });
-  const watchSize = useWatch({ control, name: 'variantDimensions.1.options' });
+  const sizeIndex = watchedDimension.findIndex((d) => d.dimensionId === 'size');
+  const colorIndex = watchedDimension.findIndex((d) => d.dimensionId === 'color');
+  const hasSizeDimension = sizeIndex !== -1;
+
+  const watchColor = watchedDimension[colorIndex]?.options;
+  const watchSize = watchedDimension[sizeIndex]?.options;
 
   const handleSameAsMeta = (e: ChangeEvent<HTMLInputElement>) => {
     const isChecked = e.target.checked;
@@ -272,8 +276,6 @@ const CreateProductPage = () => {
       variantCombinations = [],
     } = values;
 
-    // const burnAmount = (Number(mrp) || 0) - (Number(sellingPrice) || 0);
-    // const commissionAmount = (Number(sellingPrice) || 0) - (Number(dpPrice) || 0);
     const burnAmount = calculateBurn(mrp, sellingPrice);
     const commissionAmount = calculateCommission(dpPrice, mrp, sellingPrice);
 
@@ -309,6 +311,33 @@ const CreateProductPage = () => {
 
     setValue('productUrl', generateSlug(watchedProductName));
   }, [watchedProductName, setValue]);
+
+  useEffect(() => {
+    const dims = getValues('variantDimensions') ?? [];
+    const hasSize = dims.some((d) => d.dimensionId === 'size');
+
+    // If NO size variants available, remove size dimension
+    if (!sizeVariants.length) {
+      if (hasSize) {
+        const updatedDims = dims.filter((d) => d.dimensionId !== 'size');
+        setValue('variantDimensions', updatedDims);
+      }
+      return;
+    }
+
+    // If size variants exist but dimension missing, add it
+    if (!hasSize) {
+      const newDims = [
+        ...dims,
+        {
+          dimensionId: 'size',
+          name: 'Size',
+          options: [],
+        },
+      ];
+      setValue('variantDimensions', newDims);
+    }
+  }, [watchedCategory, getValues, setValue]);
 
   useEffect(() => {
     if (!hasVariantImages) return;
@@ -600,7 +629,7 @@ const CreateProductPage = () => {
                   <h2 className="text-lg font-bold">Price, Stock & Variants</h2>
                   <div className="space-y-4">
                     <Controller
-                      name={`variantDimensions.0.options`}
+                      name={`variantDimensions.${colorIndex}.options`}
                       control={control}
                       render={({ field: { value, onChange } }) => (
                         <ComboBox
@@ -611,7 +640,7 @@ const CreateProductPage = () => {
                           error={errors.variantDimensions?.[0]?.options?.message}
                           isLoading={false}
                           placeholder="Select/Search Color"
-                          value={value.map((v) => v.variantOptionId) ?? []}
+                          value={value?.map((v) => v?.variantOptionId) ?? []}
                           onChange={(ids: number[]) => {
                             const colorSet = new Set(ids);
                             const colorOptions = colorVariants.filter((c) => {
@@ -634,7 +663,7 @@ const CreateProductPage = () => {
                       <div className="flex items-center gap-1">
                         <Checkbox
                           label="Product Image"
-                          disabled={watchColor.length === 0}
+                          disabled={watchColor?.length === 0}
                           checked={hasVariantImages}
                           onChange={(e) => setHasVariantImages(e.target.checked)}
                           className="input-label"
@@ -663,32 +692,35 @@ const CreateProductPage = () => {
                       )}
                     </div>
 
-                    <Controller
-                      name={`variantDimensions.1.options`}
-                      control={control}
-                      render={({ field: { value, onChange } }) => (
-                        <ComboBox
-                          isMulti
-                          label="Size"
-                          options={sizeVariants ?? []}
-                          optionKeys={{ label: 'variantOptionText', value: 'variantOptionId' }}
-                          error={errors.variantDimensions?.[1]?.options?.message}
-                          isLoading={false}
-                          placeholder="Select Size"
-                          value={value.map((v) => v.variantOptionId) ?? []}
-                          onChange={(ids: number[]) => {
-                            const sizeSet = new Set(ids);
-                            const selectedOptions = sizeVariants.filter((s) => {
-                              if (sizeSet.has(s.variantOptionId)) {
-                                return (s.variantOptionId, s.variantOptionText);
-                              }
-                            });
-                            onChange(selectedOptions);
-                          }}
-                          required
-                        />
-                      )}
-                    />
+                    {/* is size available then shows */}
+                    {hasSizeDimension ? (
+                      <Controller
+                        name={`variantDimensions.${sizeIndex}.options`}
+                        control={control}
+                        render={({ field: { value, onChange } }) => (
+                          <ComboBox
+                            isMulti
+                            label="Size"
+                            options={sizeVariants ?? []}
+                            optionKeys={{ label: 'variantOptionText', value: 'variantOptionId' }}
+                            error={errors.variantDimensions?.[1]?.options?.message}
+                            isLoading={false}
+                            placeholder="Select Size"
+                            value={value?.map((v) => v.variantOptionId) ?? []}
+                            onChange={(ids: number[]) => {
+                              const sizeSet = new Set(ids);
+                              const selectedOptions = sizeVariants.filter((s) => {
+                                if (sizeSet.has(s.variantOptionId)) {
+                                  return (s.variantOptionId, s.variantOptionText);
+                                }
+                              });
+                              onChange(selectedOptions);
+                            }}
+                            required
+                          />
+                        )}
+                      />
+                    ) : null}
 
                     <div>
                       <p className="input-label ">

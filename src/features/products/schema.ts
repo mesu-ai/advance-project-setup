@@ -4,7 +4,7 @@ import * as z from 'zod';
 const productImagesSchema = z.object({
   variantOptionId: z.number('Option id required'),
   variantOptionText: z.string('Option label required'),
-  images: z.array(z.url('Invalid image URL')).nonempty('Select at least one image'),
+  images: z.array(z.url('Invalid image URL')).optional(),
 });
 
 const variantOptionSchema = z.object({
@@ -83,9 +83,9 @@ export const productSchema = z.object({
   strapMeterial: z.string().optional(),
   fitType: z.string().optional(),
   gender: z.string().optional(),
-  variantDimensions: z.array(variantDimensionSchema).nonempty('error'),
+  variantDimensions: z.array(variantDimensionSchema),
   variantImages: z.array(productImagesSchema).optional(),
-  variantCombinations: z.array(variantCombinationSchema).nonempty('error'),
+  variantCombinations: z.array(variantCombinationSchema).nonempty('Variant is '),
 
   sku: z.string().optional(),
   subStyle: z.string().optional(),

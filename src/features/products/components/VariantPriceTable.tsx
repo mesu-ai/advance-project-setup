@@ -13,6 +13,7 @@ import { getCombinationKey, shopProductSkuGenerator } from '../utils/variantHelp
 import { useGetInventoryStockMutation } from '@/store/api/endpoints/inventoryEndpoints';
 import { useApiError } from '@/hooks/useApiError';
 import toast from 'react-hot-toast';
+import { cn } from '@/lib/cn';
 
 interface VariantPriceTableProps {
   colors: VariantOptionT[];
@@ -59,7 +60,6 @@ const VariantPriceTable = ({ colors, sizes, control }: VariantPriceTableProps) =
     const colorId = field.options?.[0]?.variantOptionId;
 
     if (!colorId) return acc;
-
     if (!acc[colorId]) acc[colorId] = [];
 
     acc[colorId].push({ field, fieldIndex });
@@ -128,7 +128,6 @@ const VariantPriceTable = ({ colors, sizes, control }: VariantPriceTableProps) =
       }
 
       const { data } = await checkInventory({ sellerProductSku: currField.sku });
-      // console.log({ data });
 
       if (!data?.success) {
         return toast.error('Something went wrong');
@@ -154,7 +153,7 @@ const VariantPriceTable = ({ colors, sizes, control }: VariantPriceTableProps) =
   };
 
   const expectedCombinations = useMemo(() => {
-    if (!colors.length) return [];
+    if (!colors?.length) return [];
     return sizes?.length
       ? colors.flatMap((color) => sizes.map((size) => ({ options: [color, size] })))
       : colors.map((color) => ({ options: [color] }));
@@ -174,8 +173,17 @@ const VariantPriceTable = ({ colors, sizes, control }: VariantPriceTableProps) =
     watchCombinationsRef.current = watchCombinations;
   });
 
+  const expectedKeys = useMemo(
+    () => new Set(expectedCombinations.map((combo) => getCombinationKey(combo.options))),
+    [expectedCombinations]
+  );
+
   useEffect(() => {
-    if (!expectedCombinations.length) return;
+    if (!expectedCombinations.length) {
+      replace([]);
+      prevSignatureRef.current = expectedSignatureKeys;
+      return;
+    }
 
     if (prevSignatureRef.current === expectedSignatureKeys) return;
 
@@ -187,12 +195,15 @@ const VariantPriceTable = ({ colors, sizes, control }: VariantPriceTableProps) =
       .sort()
       .join('|');
 
-    if (currentSignatureKeys === expectedSignatureKeys) return;
+    if (currentSignatureKeys === expectedSignatureKeys) {
+      prevSignatureRef.current = expectedSignatureKeys;
+      return;
+    }
 
     // ✅ Create a Set of expected combination keys
-    const expectedKeys = new Set(
-      expectedCombinations.map((combo) => getCombinationKey(combo.options))
-    );
+    // const expectedKeys = new Set(
+    //   expectedCombinations.map((combo) => getCombinationKey(combo.options))
+    // );
 
     // ✅ Build existingMap from live values so user-entered data is preserved
     const existingMap = new Map(liveValues.map((f) => [getCombinationKey(f.options), f]));
@@ -210,7 +221,7 @@ const VariantPriceTable = ({ colors, sizes, control }: VariantPriceTableProps) =
 
     replace(mergedCombinations);
     prevSignatureRef.current = expectedSignatureKeys;
-  }, [expectedCombinations, expectedSignatureKeys, replace]);
+  }, [expectedCombinations, expectedSignatureKeys, replace, expectedKeys]);
 
   return (
     <>
@@ -253,17 +264,14 @@ const VariantPriceTable = ({ colors, sizes, control }: VariantPriceTableProps) =
                 const showColorCell = rowIndex === 0;
 
                 const fieldValue = watchCombinations[fieldIndex];
+                const { dpPrice, mrp, sellingPrice } = fieldValue || {};
 
-                const burnAmount = calculateBurn(fieldValue?.mrp, fieldValue?.sellingPrice);
-                const commissionAmount = calculateCommission(
-                  fieldValue?.dpPrice,
-                  fieldValue?.mrp,
-                  fieldValue?.sellingPrice
-                );
+                const burnAmount = calculateBurn(mrp, sellingPrice);
+                const commissionAmount = calculateCommission(dpPrice, mrp, sellingPrice);
 
                 const isFirstRow = rowIndex === 0;
                 const isLastRow = rowIndex === rows.length - 1;
-                const rowPadding = `${isFirstRow ? 'pt-3' : isLastRow ? 'pb-3' : ''}`;
+                const rowPadding = cn({ 'pt-3': isFirstRow, 'pb-3': isLastRow });
 
                 return (
                   <tr

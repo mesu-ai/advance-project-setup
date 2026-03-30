@@ -22,10 +22,11 @@ import SellingPriceModal, {
 import VariantPriceTable from '@/features/products/components/VariantPriceTable';
 import EditIcon from '@/assets/svg/EditIcon';
 import DeleteIcon from '@/assets/svg/DeleteIcon';
-import { productCreateSteps } from '@/assets/data/productCreateSteps';
 import { productSchema, type ProductFormData } from '@/features/products/schema';
 import { generateSlug } from '@/utils/generateSlug';
 import { calculateBurn, calculateCommission } from '@/features/products/utils/priceHelpers';
+import type { SectionsKeyT, ProductFieldFocusT } from '@/features/products/types';
+import ProductStepper from '@/features/products/components/ProductStepper';
 
 const categorySuggessions: SelectedCategoryT[] = [
   {
@@ -65,23 +66,8 @@ const sizeVariants: { variantOptionId: number; variantOptionText: string }[] = [
   { variantOptionId: 447, variantOptionText: 'XXL' },
 ];
 
-const sectionKeys = [
-  'basisInfo',
-  'images',
-  'attributes',
-  'variants',
-  'productInfo',
-  'sizeChart',
-  'warranty',
-  'url',
-  'meta',
-] as const;
-
-type SectionKeyT = (typeof sectionKeys)[number];
-
 const CreateProductPage = () => {
-  const [step, setStep] = useState<number>(-1);
-  const [fieldFocus, setFieldFocus] = useState<string>('');
+  const [fieldFocus, setFieldFocus] = useState<ProductFieldFocusT>('');
   const [isCategoryOpen, setCategoryOpen] = useState<boolean>(false);
   const [selectedCategory, setSelectedCategory] = useState<SelectedCategoryT>({
     id: null,
@@ -99,10 +85,8 @@ const CreateProductPage = () => {
 
   const shopSearch = useSearchKeyword(500);
   const brandSearch = useSearchKeyword(500);
-  const isScrollingRef = useRef(false);
-  const scrollTimeRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const sectionsRef = useRef<Record<SectionKeyT, HTMLDivElement | null>>({
+  const sectionsRef = useRef<Record<SectionsKeyT, HTMLDivElement | null>>({
     basisInfo: null,
     images: null,
     attributes: null,
@@ -113,21 +97,6 @@ const CreateProductPage = () => {
     url: null,
     meta: null,
   });
-
-  const scrollToSection = (index: number) => {
-    isScrollingRef.current = true;
-    setStep(index);
-
-    sectionsRef.current[sectionKeys[index]]?.scrollIntoView({
-      behavior: 'smooth',
-      block: 'start',
-    });
-
-    if (scrollTimeRef.current) clearTimeout(scrollTimeRef.current);
-    scrollTimeRef.current = setTimeout(() => {
-      isScrollingRef.current = false;
-    }, 800);
-  };
 
   const { data: shops, isLoading: isShopLoading } = useGetShopsQuery({
     keyword: shopSearch?.debouncedKeyword,
@@ -355,31 +324,6 @@ const CreateProductPage = () => {
 
     replaceImagFields(mappedImageFields);
   }, [hasVariantImages, watchColor, replaceImagFields, getValues]);
-
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (isScrollingRef.current) return;
-
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            const index = sectionKeys.findIndex((key) => sectionsRef.current[key] === entry.target);
-            if (index !== -1) {
-              setStep(index);
-            }
-          }
-        });
-      },
-      { root: null, rootMargin: '-40% 0px -40% 0px', threshold: 0 }
-    );
-
-    sectionKeys.forEach((key) => {
-      const el = sectionsRef.current[key];
-      if (el) observer.observe(el);
-    });
-
-    return () => observer.disconnect();
-  }, [watchedCategory]);
 
   return (
     <div>
@@ -1138,78 +1082,11 @@ const CreateProductPage = () => {
         </div>
 
         <div className="sticky top-20">
-          <div className="bg-surface rounded-xl border border-border px-5 py-4">
-            {!fieldFocus && !watchedCategory && (
-              <div>
-                <h2 className="text-lg font-bold text-primary-500">Recommendations</h2>
-                <p className="text-sm mt-3">
-                  Start by entering a product name and selecting a category. The full form sections
-                  will unlock once a category is chosen.
-                </p>
-              </div>
-            )}
-
-            {fieldFocus === 'productName' && !watchedCategory && (
-              <div>
-                <h2 className="text-lg font-bold text-primary-500">Product Name</h2>
-                <p className="text-sm mt-3">
-                  Start by entering a product name and selecting a category. The full form sections
-                  will unlock once a category is chosen.
-                </p>
-              </div>
-            )}
-
-            {fieldFocus === 'categoryId' && !watchedCategory && (
-              <div>
-                <h2 className="text-lg font-bold text-primary-500">Product Category</h2>
-                <p className="text-sm mt-3">
-                  Start by entering a product name and selecting a category. The full form sections
-                  will unlock once a category is chosen.
-                </p>
-              </div>
-            )}
-
-            {watchedCategory && (
-              <div>
-                <h2 className="text-lg font-bold text-primary-500">Product Roadmap</h2>
-                <ul className="text-sm mt-1 text-neutral-300">
-                  {productCreateSteps.map((s, index) => {
-                    return (
-                      <li
-                        key={s.id}
-                        className={`relative py-2 ${index > 0 && 'after:absolute after:bg-neutral-100 after:-top-1/2 after:left-[7.5px] after:h-full after:w-[1px] after:content-[""]'}`}
-                      >
-                        <button
-                          onClick={() => scrollToSection(index)}
-                          className="flex items-center gap-1.5 cursor-pointer"
-                        >
-                          <div
-                            className={`bg-white z-10 p-1 rounded-full border ${step === index ? ' border-primary-500' : 'border-transparent'}`}
-                          >
-                            <div
-                              className={`size-2 rounded-full ${step === index ? 'bg-primary-500' : 'bg-neutral-100 dark:bg-neutral-200'}`}
-                            />
-                          </div>
-                          {s.name}
-                        </button>
-                      </li>
-                    );
-                  })}
-                </ul>
-              </div>
-            )}
-
-            {watchedCategory && step >= 0 && productCreateSteps[step] && (
-              <div className="mt-4 border-t border-border pt-4">
-                <h2 className="text-lg font-bold text-primary-500">
-                  {productCreateSteps[step].name}
-                </h2>
-                <p className="text-sm mt-2 text-neutral-300">
-                  {productCreateSteps[step].description}
-                </p>
-              </div>
-            )}
-          </div>
+          <ProductStepper
+            fieldFocus={fieldFocus}
+            hasCategory={!!watchedCategory}
+            sectionsRef={sectionsRef}
+          />
         </div>
       </div>
 

@@ -27,6 +27,7 @@ import { generateSlug } from '@/utils/generateSlug';
 import { calculateBurn, calculateCommission } from '@/features/products/utils/priceHelpers';
 import type { SectionsKeyT, ProductFieldFocusT } from '@/features/products/types';
 import ProductStepper from '@/features/products/components/ProductStepper';
+import { motion } from 'motion/react';
 
 const categorySuggessions: SelectedCategoryT[] = [
   {
@@ -210,10 +211,13 @@ const CreateProductPage = () => {
 
   const sizeIndex = watchedDimension.findIndex((d) => d.dimensionId === 'size');
   const colorIndex = watchedDimension.findIndex((d) => d.dimensionId === 'color');
-  const hasSizeDimension = sizeIndex !== -1;
 
-  const watchColor = watchedDimension[colorIndex]?.options;
-  const watchSize = watchedDimension[sizeIndex]?.options;
+  const colorOptions = watchedDimension[colorIndex]?.options;
+  const sizeOptions = watchedDimension[sizeIndex]?.options;
+
+  // const hasColorDimension = colorIndex !== -1;
+  const hasSizeDimension = sizeIndex !== -1;
+  const hasColor = colorOptions.length > 0;
 
   const handleSameAsMeta = (e: ChangeEvent<HTMLInputElement>) => {
     const isChecked = e.target.checked;
@@ -270,7 +274,7 @@ const CreateProductPage = () => {
     setSellingPriceModal(false);
   };
 
-  console.log({ errors });
+  // console.log({ errors });
   const onSubmit = (data: ProductFormData) => {
     console.log({ data });
   };
@@ -311,7 +315,7 @@ const CreateProductPage = () => {
   useEffect(() => {
     if (!hasVariantImages) return;
     const variantWiseImages = getValues('variantImages');
-    const mappedImageFields = watchColor.map((c) => {
+    const mappedImageFields = colorOptions.map((c) => {
       const found = variantWiseImages?.find((v_img) => v_img.variantOptionId === c.variantOptionId);
       return (
         found ?? {
@@ -323,7 +327,7 @@ const CreateProductPage = () => {
     });
 
     replaceImagFields(mappedImageFields);
-  }, [hasVariantImages, watchColor, replaceImagFields, getValues]);
+  }, [hasVariantImages, colorOptions, replaceImagFields, getValues]);
 
   return (
     <div>
@@ -509,8 +513,6 @@ const CreateProductPage = () => {
                             { strapId: 1, strapName: 'Plastic' },
                           ]}
                           optionKeys={{ label: 'strapName', value: 'strapName' }}
-                          // error={errors.strapMeterial?.message}
-                          // required
                           {...field}
                         />
                       )}
@@ -587,12 +589,12 @@ const CreateProductPage = () => {
                           value={value?.map((v) => v?.variantOptionId) ?? []}
                           onChange={(ids: number[]) => {
                             const colorSet = new Set(ids);
-                            const colorOptions = colorVariants.filter((c) => {
+                            const selectedColor = colorVariants.filter((c) => {
                               if (colorSet.has(c.variantOptionId)) {
                                 return (c.variantOptionId, c.variantOptionText);
                               }
                             });
-                            onChange(colorOptions);
+                            onChange(selectedColor);
                           }}
                           search={{
                             enabled: true,
@@ -607,7 +609,7 @@ const CreateProductPage = () => {
                       <div className="flex items-center gap-1">
                         <Checkbox
                           label="Product Image"
-                          disabled={watchColor?.length === 0}
+                          disabled={!hasColor}
                           checked={hasVariantImages}
                           onChange={(e) => setHasVariantImages(e.target.checked)}
                           className="input-label"
@@ -653,12 +655,12 @@ const CreateProductPage = () => {
                             value={value?.map((v) => v.variantOptionId) ?? []}
                             onChange={(ids: number[]) => {
                               const sizeSet = new Set(ids);
-                              const selectedOptions = sizeVariants.filter((s) => {
+                              const selectedSize = sizeVariants.filter((s) => {
                                 if (sizeSet.has(s.variantOptionId)) {
                                   return (s.variantOptionId, s.variantOptionText);
                                 }
                               });
-                              onChange(selectedOptions);
+                              onChange(selectedSize);
                             }}
                             required
                           />
@@ -666,72 +668,80 @@ const CreateProductPage = () => {
                       />
                     ) : null}
 
-                    <div>
-                      <p className="input-label ">
-                        Price & Stock <span className="text-danger-500">*</span>
-                      </p>
+                    <div
+                      className={`grid overflow-hidden transition-[grid-template-rows,opacity] duration-500 ease-in-out ${hasColor ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'}`}
+                    >
+                      <div className="overflow-hidden">
+                        <p className="input-label ">
+                          Price & Stock <span className="text-danger-500">*</span>
+                        </p>
 
-                      <div className="w-full flex flex-wrap items-center gap-3">
-                        <Input
-                          placeholder="SKU/Barcode"
-                          className="min-w-40"
-                          {...register('sku')}
-                        />
-                        <Input
-                          placeholder="Sub-Style"
-                          className="min-w-40"
-                          {...register('subStyle')}
-                        />
-                        <Input placeholder="Stock" className="w-24" {...register('stock')} />
-                        <Input placeholder="DP" className="w-28" {...register('dpPrice')} />
+                        <div className="w-full flex flex-wrap items-center gap-3">
+                          <Input
+                            placeholder="SKU/Barcode"
+                            className="min-w-40"
+                            {...register('sku')}
+                          />
+                          <Input
+                            placeholder="Sub-Style"
+                            className="min-w-40"
+                            {...register('subStyle')}
+                          />
+                          <Input placeholder="Stock" className="w-24" {...register('stock')} />
+                          <Input placeholder="DP" className="w-28" {...register('dpPrice')} />
 
-                        <Input placeholder="MRP" className="w-28" {...register('mrp')} />
+                          <Input placeholder="MRP" className="w-28" {...register('mrp')} />
 
-                        {getValues('sellingPrice') ? (
-                          <div className="min-w-28 flex items-center border border-neutral-300 py-1 px-2 leading-normal rounded hover:bg-white-700">
-                            <span>{getValues('sellingPrice')}</span>
+                          {getValues('sellingPrice') ? (
+                            <div className="min-w-28 flex items-center border border-neutral-300 py-1 px-2 leading-normal rounded hover:bg-white-700">
+                              <span>{getValues('sellingPrice')}</span>
+                              <button
+                                type="button"
+                                onClick={() => setSellingPriceModal(true)}
+                                aria-label="Edit selling price"
+                                className="ms-auto cursor-pointer text-neutral-300 hover:text-secondary-500"
+                              >
+                                <EditIcon className="w-5 h-5" />
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => handleSellingPriceReset()}
+                                aria-label="Reset selling price"
+                                className="ms-1 cursor-pointer text-neutral-300 hover:text-danger-500"
+                              >
+                                <DeleteIcon className="w-5 h-5" />
+                              </button>
+                            </div>
+                          ) : (
                             <button
                               type="button"
                               onClick={() => setSellingPriceModal(true)}
-                              aria-label="Edit selling price"
-                              className="ms-auto cursor-pointer text-neutral-300 hover:text-secondary-500"
+                              className="max-w-28 leading-normal whitespace-nowrap cursor-pointer text-secondary-500 hover:text-secondary-600 text-sm font-medium"
                             >
-                              <EditIcon className="w-5 h-5" />
+                              Add Selling Price
                             </button>
-                            <button
-                              type="button"
-                              onClick={() => handleSellingPriceReset()}
-                              aria-label="Reset selling price"
-                              className="ms-1 cursor-pointer text-neutral-300 hover:text-danger-500"
-                            >
-                              <DeleteIcon className="w-5 h-5" />
-                            </button>
-                          </div>
-                        ) : (
-                          <button
-                            type="button"
-                            onClick={() => setSellingPriceModal(true)}
-                            className="max-w-28 leading-normal whitespace-nowrap cursor-pointer text-secondary-500 hover:text-secondary-600 text-sm font-medium"
+                          )}
+
+                          <Button
+                            variant="apply"
+                            className="ms-5 max-w-28"
+                            onClick={() => handleGroupApply()}
                           >
-                            Add Selling Price
-                          </button>
-                        )}
+                            Apply to All
+                          </Button>
+                        </div>
 
-                        <Button
-                          variant="apply"
-                          className="ms-5 max-w-28"
-                          onClick={() => handleGroupApply()}
+                        <motion.div
+                          layout
+                          transition={{ duration: 0.3 }}
+                          className="mt-4 overflow-hidden rounded-lg border border-neutral-300"
                         >
-                          Apply to All
-                        </Button>
-                      </div>
-
-                      <div className="mt-4 overflow-hidden rounded-lg border border-neutral-300">
-                        <VariantPriceTable
-                          colors={watchColor}
-                          sizes={watchSize}
-                          control={control}
-                        />
+                          <VariantPriceTable
+                            colors={colorOptions}
+                            sizes={sizeOptions}
+                            control={control}
+                          />
+                        </motion.div>
                       </div>
                     </div>
                   </div>

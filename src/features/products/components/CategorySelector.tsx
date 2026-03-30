@@ -16,6 +16,7 @@ import type {
   SelectedCategoryT,
   ThirdChildT,
 } from '@/types/category';
+import { AnimatePresence, motion } from 'motion/react';
 import { useCallback, useMemo, type ChangeEvent } from 'react';
 
 const recentUsed: SelectedCategoryT[] = [
@@ -236,155 +237,166 @@ const CategorySelector = ({
         )}
       </div>
 
-      <div
-        className={`absolute top-0 right-0 left-0 z-10 bg-surface border border-neutral-300 p-5 rounded-xl space-y-4 ${isOpen ? 'block' : 'hidden'}`}
-      >
-        <div>
-          <SearchSelect
-            onSelect={(c: SelectedCategoryT) => handleCategorySelected(c, true)}
-            onChange={setKeyword}
-            options={searchCategories?.data ?? []}
-            optionKeys={{ label: 'name', value: 'id' }}
-          />
-        </div>
-        <div className="text-sm flex items-center gap-4">
-          <p>Recently Used:</p>
-          <ul className="text-neutral-300 flex gap-4">
-            {recentUsed.map((item) => (
-              <li
-                key={item?.id}
-                role="button"
-                onClick={() => handleCategorySelected(item, true)}
-                className="cursor-pointer rounded px-2 py-0.5 bg-white-600 w-fit hover:bg-secondary-50 hover:text-secondary-500"
-              >
-                {item.name}
-              </li>
-            ))}
-          </ul>
-        </div>
-        <div className="text-sm border border-neutral-300 rounded-lg grid grid-cols-4 divide-x divide-neutral-300">
-          <div>
-            <SearchBar
-              onSearch={baseSearch.setKeyword}
-              className="rounded-none rounded-tl-lg border-0 border-b border-neutral-300"
-            />
-            <ul className="max-h-[320px] overflow-y-auto">
-              {!isLoading &&
-                baseSearch?.result?.map((category: CategoryT) => {
-                  const isSelected = selected.layer?.base === category.categoryName;
-
-                  return (
-                    <li
-                      role="button"
-                      key={category.categoryId}
-                      onClick={() => handleBaseCategory(category)}
-                      className={`cursor-default flex justify-between py-1.5 px-3 hover:bg-primary-50 hover:text-primary-500 ${isSelected && 'bg-primary-50 text-primary-500'}`}
-                    >
-                      {category?.categoryName} <ArrowIcon className="w-4 h-4 rotate-90" />
-                    </li>
-                  );
-                })}
-            </ul>
-          </div>
-          <div>
-            <SearchBar
-              disabled={!firstChild.length}
-              onSearch={firstSearch.setKeyword}
-              className="rounded-none border-0 border-b border-neutral-300"
-            />
-            <ul className="max-h-[320px] overflow-y-auto">
-              {firstSearch?.result?.map((category: FirstChildT) => {
-                const isSelected = selected.layer?.first === category.categoryName;
-                return (
-                  <li
-                    role="button"
-                    key={category.categoryId}
-                    onClick={() => handleFirstChild(category)}
-                    className={`cursor-default flex justify-between py-1.5 px-3 hover:bg-primary-50 hover:text-primary-500 ${isSelected && 'bg-primary-50 text-primary-500'}`}
-                  >
-                    {category?.categoryName}
-                    {category.secondChildren.length > 0 && (
-                      <ArrowIcon className="w-4 h-4 rotate-90" />
-                    )}
-                  </li>
-                );
-              })}
-            </ul>
-          </div>
-          <div>
-            <SearchBar
-              disabled={!secondChild.length}
-              onSearch={secondSearch?.setKeyword}
-              className="rounded-none border-0 border-b border-neutral-300"
-            />
-            <ul className="max-h-[320px] overflow-y-auto">
-              {secondSearch?.result?.map((category: SecondChildT) => {
-                const isSelected = selected.layer?.second === category.categoryName;
-                return (
-                  <li
-                    role="button"
-                    key={category.categoryId}
-                    onClick={() => handleSecondChild(category)}
-                    className={`cursor-default flex justify-between py-1.5 px-3 hover:bg-primary-50 hover:text-primary-500 ${isSelected && 'bg-primary-50 text-primary-500'}`}
-                  >
-                    {category?.categoryName}{' '}
-                    {category.thirdChild.length > 0 && <ArrowIcon className="w-4 h-4 rotate-90" />}
-                  </li>
-                );
-              })}
-            </ul>
-          </div>
-          <div>
-            <SearchBar
-              disabled={!thirdChild.length}
-              onSearch={thirdSearch.setKeyword}
-              className="rounded-none rounded-tr-lg border-0 border-b border-neutral-300"
-            />
-            <ul className="max-h-[320px] overflow-y-auto">
-              {thirdSearch?.result?.map((category: ThirdChildT) => {
-                const isSelected = selected.layer?.third === category.categoryName;
-                return (
-                  <li
-                    role="button"
-                    key={category.categoryId}
-                    onClick={() => handleThirdChild(category)}
-                    className={`cursor-default flex justify-between py-1.5 px-3 hover:bg-primary-50 hover:text-primary-500 ${isSelected && 'bg-primary-50 text-primary-500'}`}
-                  >
-                    {category?.categoryName}
-                  </li>
-                );
-              })}
-            </ul>
-          </div>
-        </div>
-        <div>
-          <p>
-            Selected Category :{' '}
-            {selected.layer?.base ? (
-              <span className="px-2.5 py-1 rounded bg-secondary-500 text-white text-sm">
-                {selected.layer?.base && `${selected.layer?.base}`}{' '}
-                {selected.layer?.first && `> ${selected.layer?.first}`}{' '}
-                {selected.layer?.second && `> ${selected.layer?.second}`}{' '}
-                {selected.layer?.third && `> ${selected.layer?.third}`}
-              </span>
-            ) : (
-              '---'
-            )}
-          </p>
-        </div>
-        <div className="flex justify-end gap-4">
-          <Button variant="cancel" onClick={() => onClose?.()}>
-            Cancel
-          </Button>
-          <Button
-            variant="confirm"
-            disabled={!selected.layer?.base}
-            onClick={() => handleCategorySelected(selected)}
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div
+            key="category-selector-panel"
+            initial={{ opacity: 0, y: -8, scale: 0.98 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -8, scale: 0.98 }}
+            transition={{ duration: 0.2, ease: 'easeOut' }}
+            className="absolute top-0 right-0 left-0 z-10 bg-surface border border-neutral-300 p-5 rounded-xl space-y-4"
           >
-            Confirm
-          </Button>
-        </div>
-      </div>
+            <div>
+              <SearchSelect
+                onSelect={(c: SelectedCategoryT) => handleCategorySelected(c, true)}
+                onChange={setKeyword}
+                options={searchCategories?.data ?? []}
+                optionKeys={{ label: 'name', value: 'id' }}
+              />
+            </div>
+            <div className="text-sm flex items-center gap-4">
+              <p>Recently Used:</p>
+              <ul className="text-neutral-300 flex gap-4">
+                {recentUsed.map((item) => (
+                  <li
+                    key={item?.id}
+                    role="button"
+                    onClick={() => handleCategorySelected(item, true)}
+                    className="cursor-pointer rounded px-2 py-0.5 bg-white-600 w-fit hover:bg-secondary-50 hover:text-secondary-500"
+                  >
+                    {item.name}
+                  </li>
+                ))}
+              </ul>
+            </div>
+            <div className="text-sm border border-neutral-300 rounded-lg grid grid-cols-4 divide-x divide-neutral-300">
+              <div>
+                <SearchBar
+                  onSearch={baseSearch.setKeyword}
+                  className="rounded-none rounded-tl-lg border-0 border-b border-neutral-300"
+                />
+                <ul className="max-h-[320px] overflow-y-auto">
+                  {!isLoading &&
+                    baseSearch?.result?.map((category: CategoryT) => {
+                      const isSelected = selected.layer?.base === category.categoryName;
+
+                      return (
+                        <li
+                          role="button"
+                          key={category.categoryId}
+                          onClick={() => handleBaseCategory(category)}
+                          className={`cursor-default flex justify-between py-1.5 px-3 hover:bg-primary-50 hover:text-primary-500 ${isSelected && 'bg-primary-50 text-primary-500'}`}
+                        >
+                          {category?.categoryName} <ArrowIcon className="w-4 h-4 rotate-90" />
+                        </li>
+                      );
+                    })}
+                </ul>
+              </div>
+              <div>
+                <SearchBar
+                  disabled={!firstChild.length}
+                  onSearch={firstSearch.setKeyword}
+                  className="rounded-none border-0 border-b border-neutral-300"
+                />
+                <ul className="max-h-[320px] overflow-y-auto">
+                  {firstSearch?.result?.map((category: FirstChildT) => {
+                    const isSelected = selected.layer?.first === category.categoryName;
+                    return (
+                      <li
+                        role="button"
+                        key={category.categoryId}
+                        onClick={() => handleFirstChild(category)}
+                        className={`cursor-default flex justify-between py-1.5 px-3 hover:bg-primary-50 hover:text-primary-500 ${isSelected && 'bg-primary-50 text-primary-500'}`}
+                      >
+                        {category?.categoryName}
+                        {category.secondChildren.length > 0 && (
+                          <ArrowIcon className="w-4 h-4 rotate-90" />
+                        )}
+                      </li>
+                    );
+                  })}
+                </ul>
+              </div>
+              <div>
+                <SearchBar
+                  disabled={!secondChild.length}
+                  onSearch={secondSearch?.setKeyword}
+                  className="rounded-none border-0 border-b border-neutral-300"
+                />
+                <ul className="max-h-[320px] overflow-y-auto">
+                  {secondSearch?.result?.map((category: SecondChildT) => {
+                    const isSelected = selected.layer?.second === category.categoryName;
+                    return (
+                      <li
+                        role="button"
+                        key={category.categoryId}
+                        onClick={() => handleSecondChild(category)}
+                        className={`cursor-default flex justify-between py-1.5 px-3 hover:bg-primary-50 hover:text-primary-500 ${isSelected && 'bg-primary-50 text-primary-500'}`}
+                      >
+                        {category?.categoryName}{' '}
+                        {category.thirdChild.length > 0 && (
+                          <ArrowIcon className="w-4 h-4 rotate-90" />
+                        )}
+                      </li>
+                    );
+                  })}
+                </ul>
+              </div>
+              <div>
+                <SearchBar
+                  disabled={!thirdChild.length}
+                  onSearch={thirdSearch.setKeyword}
+                  className="rounded-none rounded-tr-lg border-0 border-b border-neutral-300"
+                />
+                <ul className="max-h-[320px] overflow-y-auto">
+                  {thirdSearch?.result?.map((category: ThirdChildT) => {
+                    const isSelected = selected.layer?.third === category.categoryName;
+                    return (
+                      <li
+                        role="button"
+                        key={category.categoryId}
+                        onClick={() => handleThirdChild(category)}
+                        className={`cursor-default flex justify-between py-1.5 px-3 hover:bg-primary-50 hover:text-primary-500 ${isSelected && 'bg-primary-50 text-primary-500'}`}
+                      >
+                        {category?.categoryName}
+                      </li>
+                    );
+                  })}
+                </ul>
+              </div>
+            </div>
+            <div>
+              <p>
+                Selected Category :{' '}
+                {selected.layer?.base ? (
+                  <span className="px-2.5 py-1 rounded bg-secondary-500 text-white text-sm">
+                    {selected.layer?.base && `${selected.layer?.base}`}{' '}
+                    {selected.layer?.first && `> ${selected.layer?.first}`}{' '}
+                    {selected.layer?.second && `> ${selected.layer?.second}`}{' '}
+                    {selected.layer?.third && `> ${selected.layer?.third}`}
+                  </span>
+                ) : (
+                  '---'
+                )}
+              </p>
+            </div>
+            <div className="flex justify-end gap-4">
+              <Button variant="cancel" onClick={() => onClose?.()}>
+                Cancel
+              </Button>
+              <Button
+                variant="confirm"
+                disabled={!selected.layer?.base}
+                onClick={() => handleCategorySelected(selected)}
+              >
+                Confirm
+              </Button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };

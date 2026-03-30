@@ -98,27 +98,29 @@ const ProductStepper = ({ fieldFocus, hasCategory, sectionsRef }: ProductStepper
 
       {hasCategory && (
         <div>
-          <h2 className="text-lg font-bold text-primary-500">Product Roadmap</h2>
+          <h2 className="text-lg font-bold">Product Roadmap</h2>
           <ul className="text-sm mt-1 text-neutral-300">
             {productSteps.map((s, index) => {
+              const isActive = step === index;
               return (
                 <li
                   key={s.key}
-                  className={`relative py-2 ${index > 0 && 'after:absolute after:bg-neutral-100 after:-top-1/2 after:left-[7.5px] after:h-full after:w-[1px] after:content-[""]'}`}
+                  className={`relative py-2 ${index > 0 ? 'after:absolute after:bg-neutral-100 after:-top-1/2 after:left-[7.5px] after:h-full after:w-[1px] after:content-[""]' : ''}`}
                 >
                   <button
                     type="button"
                     onClick={() => scrollToSection(index)}
-                    className="flex items-center gap-1.5 cursor-pointer"
+                    aria-current={isActive ? 'step' : undefined}
+                    className="w-full flex items-center gap-1.5 cursor-pointer text-left"
                   >
                     <div
-                      className={`bg-white z-10 p-1 rounded-full border ${step === index ? ' border-primary-500' : 'border-transparent'}`}
+                      className={`bg-white z-10 p-1 rounded-full border ${isActive ? 'border-primary-500' : 'border-transparent'}`}
                     >
                       <div
-                        className={`size-2 rounded-full ${step === index ? 'bg-primary-500' : 'bg-neutral-100 dark:bg-neutral-200'}`}
+                        className={`size-2 rounded-full ${isActive ? 'bg-primary-500' : 'bg-neutral-100 dark:bg-neutral-200'}`}
                       />
                     </div>
-                    {s.name}
+                    <span className={isActive ? 'text-primary-500' : ''}>{s.name}</span>
                   </button>
                 </li>
               );

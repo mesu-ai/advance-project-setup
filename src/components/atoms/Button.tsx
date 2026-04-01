@@ -9,6 +9,8 @@ type ButtonVariantT =
   | 'view'
   | 'confirm'
   | 'draft'
+  | 'filter'
+  | 'column'
   | 'apply'
   | 'submit';
 
@@ -36,6 +38,10 @@ const Button = ({
     confirm: 'py-2 bg-primary-500 text-white hover:bg-primary-600 w-full max-w-[180px]',
     apply: 'py-[5.87px] bg-secondary-500 text-white hover:bg-secondary-600 w-full',
     draft: 'py-2 bg-primary-500 text-white hover:bg-primary-600 w-full max-w-[180px]',
+    filter:
+      'py-1.5 bg-info-50 text-info-500 border border-info-500 hover:bg-info-600 hover:text-white w-[150px]',
+    column:
+      'py-1.5 bg-processing-50 text-processing-500 border border-processing-500 hover:text-white hover:bg-processing-600 w-[150px]',
     submit: 'py-2 bg-success-500 text-white hover:bg-success-600 w-full max-w-[180px]',
   };
 

@@ -61,6 +61,14 @@
   --color-secondary-500: #007bff;
   --color-secondary-600: #0070e8;
 
+  --color-info-50: #e6f8f8;
+  --color-info-500: #00b6ba;
+  --color-info-600: #00a6a9;
+
+  --color-processing-50: #f0eefd;
+  --color-processing-500: #6d54eb;
+  --color-processing-600: #5261ad;
+
   --color-neutral-50: #f2f2f2;
   --color-neutral-100: #d8d8d8;
   --color-neutral-200: #c4c4c4;
@@ -93,6 +101,7 @@
 
   --shadow-custom-1: 0 5px 10px 0 rgba(0, 0, 0, 0.15);
   --shadow-custom-2: 0 0 25px 0 rgba(0, 0, 0, 0.1);
+  --shadow-custom-3: 0 0 15px 0 rgba(0, 0, 0, 0.25);
 }
 
 body {

@@ -91,7 +91,7 @@ const Modal: FC<ModalProps> = ({ title, isOpen, onClose, children, className = '
             <CloseIcon />
           </button>
         </div>
-        <div className="px-5 py-4 max-h-[70vh] overflow-y-auto">{children}</div>
+        <div className="px-5 py-4 max-h-[70vh] overflow-y-auto scrollbar-hidden">{children}</div>
       </div>
     </div>
   );

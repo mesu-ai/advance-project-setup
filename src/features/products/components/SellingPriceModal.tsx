@@ -5,7 +5,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import * as z from 'zod';
 
-const PriceModalSchema = z.object({
+const priceModalSchema = z.object({
   sellingPrice: z.coerce
     .number<number>('Invalid price')
     .positive('Selling price must be positive')
@@ -14,7 +14,7 @@ const PriceModalSchema = z.object({
   endDate: z.iso.datetime({ local: true }),
 });
 
-export type PriceFormData = z.infer<typeof PriceModalSchema>;
+export type PriceFormData = z.infer<typeof priceModalSchema>;
 
 interface SellingPriceModalProps {
   isOpen: boolean;
@@ -35,7 +35,7 @@ const SellingPriceModal = ({
     reset,
     formState: { isSubmitting, errors },
   } = useForm<PriceFormData>({
-    resolver: zodResolver(PriceModalSchema),
+    resolver: zodResolver(priceModalSchema),
     defaultValues: initialValues ?? {},
   });
 

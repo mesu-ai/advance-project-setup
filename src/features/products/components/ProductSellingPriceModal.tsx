@@ -23,7 +23,7 @@ interface SellingPriceModalProps {
   initialValues?: PriceFormData;
 }
 
-const SellingPriceModal = ({
+const ProductSellingPriceModal = ({
   isOpen,
   onClose,
   onSubmit,
@@ -96,4 +96,4 @@ const SellingPriceModal = ({
   );
 };
 
-export default SellingPriceModal;
+export default ProductSellingPriceModal;

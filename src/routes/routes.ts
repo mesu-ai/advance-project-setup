@@ -7,7 +7,8 @@ const Contact = lazy(() => import('../pages/contact/index'));
 
 // products
 const Products = lazy(() => import('../pages/products/index'));
-const CreateProduct = lazy(() => import('../pages/products/create'));
+const CreateProduct = lazy(() => import('../pages/products/create/index'));
+const EditProduct = lazy(() => import('../pages/products/edit/index'));
 const ManageProduct = lazy(() => import('../pages/products/manage/index'));
 
 // order
@@ -22,7 +23,7 @@ const EmployeeList = lazy(() => import('../pages/access-control/employees/index'
 const CreateEmployee = lazy(() => import('../pages/access-control/employees/create/index'));
 const EditEmployee = lazy(() => import('../pages/access-control/employees/edit/index'));
 const RolePermission = lazy(() => import('../pages/access-control/roles/index'));
-const CreateRole = lazy(() => import('../pages/access-control/roles/create/'));
+const CreateRole = lazy(() => import('../pages/access-control/roles/create/index'));
 const EditRole = lazy(() => import('../pages/access-control/roles/edit/index'));
 
 // auth
@@ -60,6 +61,7 @@ export const appRoutes: AppRouteProps[] = [
     children: [
       { index: true, Component: Products },
       { path: 'create', Component: CreateProduct },
+      { path: ':productId/edit', Component: EditProduct },
       { path: 'manage', Component: ManageProduct },
     ],
   },

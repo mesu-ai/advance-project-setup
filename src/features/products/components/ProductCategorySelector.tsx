@@ -83,7 +83,7 @@ interface CategorySelectorProps {
   };
 }
 
-const CategorySelector = ({
+const ProductCategorySelector = ({
   isOpen,
   onClose,
   onConfirm,
@@ -401,4 +401,4 @@ const CategorySelector = ({
   );
 };
 
-export default CategorySelector;
+export default ProductCategorySelector;

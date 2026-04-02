@@ -9,7 +9,7 @@ const productApprovalStatus = [
   { name: 'All', status: 'all', count: '10580' },
 ];
 
-const ProductStatustab = () => {
+const ProductStatusTabs = () => {
   const [searchParams] = useSearchParams();
 
   const activeApprovalStatus = searchParams.get('approvalStatus') ?? 'approved';
@@ -43,4 +43,4 @@ const ProductStatustab = () => {
   );
 };
 
-export default ProductStatustab;
+export default ProductStatusTabs;

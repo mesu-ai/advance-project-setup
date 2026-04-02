@@ -80,9 +80,6 @@ const CreateProductPage = () => {
       third: '',
     },
   });
-
-  console.log({ selectedCategory });
-
   const [isExpandAtt, setExpandAtt] = useState(false);
   const [hasVariantImages, setHasVariantImages] = useState(true);
   const [isSellingPriceModal, setSellingPriceModal] = useState(false);

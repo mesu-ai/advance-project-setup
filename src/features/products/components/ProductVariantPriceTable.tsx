@@ -2,7 +2,7 @@ import DeleteIcon from '@/assets/svg/DeleteIcon';
 import Input from '@/components/atoms/Input';
 import { useEffect, useMemo, useRef, useState, type ChangeEvent } from 'react';
 import { Controller, useFieldArray, useWatch, type Control } from 'react-hook-form';
-import SellingPriceModal, { type PriceFormData } from './SellingPriceModal';
+import SellingPriceModal, { type PriceFormData } from './ProductSellingPriceModal';
 import Select from '@/components/atoms/Select';
 import EditIcon from '@/assets/svg/EditIcon';
 import { calculateBurn, calculateCommission } from '../utils/priceHelpers';
@@ -38,7 +38,7 @@ const createCombination = (options: VariantOptionT[]) => ({
   status: 'Y' as const,
 });
 
-const VariantPriceTable = ({ colors, sizes, control }: VariantPriceTableProps) => {
+const ProductVariantPriceTable = ({ colors, sizes, control }: VariantPriceTableProps) => {
   const [activeFieldIndex, setActiveFieldIndex] = useState<number | null>(null);
   const { fields, replace, update } = useFieldArray({
     control,
@@ -458,4 +458,4 @@ const VariantPriceTable = ({ colors, sizes, control }: VariantPriceTableProps) =
   );
 };
 
-export default VariantPriceTable;
+export default ProductVariantPriceTable;

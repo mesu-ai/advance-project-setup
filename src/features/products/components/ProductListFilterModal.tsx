@@ -24,7 +24,7 @@ interface ProductFilterModalProps {
   initialValues?: FilterFormData;
 }
 
-const ProductFilterModal = ({ isOpen, onClose, initialValues }: ProductFilterModalProps) => {
+const ProductListFilterModal = ({ isOpen, onClose, initialValues }: ProductFilterModalProps) => {
   const [searchParams, setSearchParams] = useSearchParams();
 
   const categorySearch = useSearchKeyword(500);
@@ -191,4 +191,4 @@ const ProductFilterModal = ({ isOpen, onClose, initialValues }: ProductFilterMod
   );
 };
 
-export default ProductFilterModal;
+export default ProductListFilterModal;

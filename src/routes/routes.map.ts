@@ -3,6 +3,7 @@ import type { RoutePermissionMapT } from '@/types';
 const productRoutePermissions: RoutePermissionMapT = {
   '/products': { page: 'products.index', showInTable: false },
   '/products/create': { page: 'products.create', pageLabel: 'Product Create' },
+  '/products/:productId/edit': { page: 'products.edit', pageLabel: 'Product Edit' },
   '/products/manage': {
     page: 'products.manage',
     actions: ['edit', 'view'],

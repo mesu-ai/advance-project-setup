@@ -67,7 +67,13 @@ const sizeVariants: { variantOptionId: number; variantOptionText: string }[] = [
   { variantOptionId: 447, variantOptionText: 'XXL' },
 ];
 
-const CreateProductPage = () => {
+interface ProductFormProps {
+  mode: 'create' | 'edit';
+  initialValues?: ProductFormData;
+  onSubmit: (data: ProductFormData) => Promise<void>;
+}
+
+const ProductForm = ({ mode, initialValues, onSubmit }: ProductFormProps) => {
   const [fieldFocus, setFieldFocus] = useState<ProductFieldFocusT>('');
   const [isCategoryOpen, setCategoryOpen] = useState<boolean>(false);
   const [selectedCategory, setSelectedCategory] = useState<SelectedCategoryT>({
@@ -80,9 +86,6 @@ const CreateProductPage = () => {
       third: '',
     },
   });
-
-  console.log({ selectedCategory });
-
   const [isExpandAtt, setExpandAtt] = useState(false);
   const [hasVariantImages, setHasVariantImages] = useState(true);
   const [isSellingPriceModal, setSellingPriceModal] = useState(false);
@@ -132,38 +135,38 @@ const CreateProductPage = () => {
           dimensionId: 'color',
           name: 'Color',
           options: [
-            // { variantOptionId: 425, variantOptionText: 'Green' },
-            // { variantOptionId: 426, variantOptionText: 'Ash' },
+            { variantOptionId: 425, variantOptionText: 'Green' },
+            { variantOptionId: 426, variantOptionText: 'Ash' },
           ],
         },
-        // {
-        //   dimensionId: 'size',
-        //   name: 'Size',
-        //   options: [
-        //     { variantOptionId: 442, variantOptionText: 'XS' },
-        //     { variantOptionId: 443, variantOptionText: 'S' },
-        //   ],
-        // },
+        {
+          dimensionId: 'size',
+          name: 'Size',
+          options: [
+            { variantOptionId: 442, variantOptionText: 'XS' },
+            { variantOptionId: 443, variantOptionText: 'S' },
+          ],
+        },
       ],
       variantImages: [
-        // {
-        //   variantOptionId: 425,
-        //   variantOptionText: 'Green',
-        //   images: [
-        //     'https://prod.saraemart.com/uploads/images/e26107e8-992c-4d5f-845a-b3328a6a00c5.png',
-        //     'https://prod.saraemart.com/uploads/images/979a4366-b217-43d0-a7f9-1245b8ae9eb4.png',
-        //     'https://prod.saraemart.com/uploads/images/ba8cf1fa-442d-43f6-8128-6426053f1dad.jpg',
-        //   ],
-        // },
-        // {
-        //   variantOptionId: 426,
-        //   variantOptionText: 'Ash',
-        //   images: [
-        //     'https://prod.saraemart.com/uploads/images/e26107e8-992c-4d5f-845a-b3328a6a00c5.png',
-        //     'https://prod.saraemart.com/uploads/images/979a4366-b217-43d0-a7f9-1245b8ae9eb4.png',
-        //     'https://prod.saraemart.com/uploads/images/ba8cf1fa-442d-43f6-8128-6426053f1dad.jpg',
-        //   ],
-        // },
+        {
+          variantOptionId: 425,
+          variantOptionText: 'Green',
+          images: [
+            'https://prod.saraemart.com/uploads/images/e26107e8-992c-4d5f-845a-b3328a6a00c5.png',
+            'https://prod.saraemart.com/uploads/images/979a4366-b217-43d0-a7f9-1245b8ae9eb4.png',
+            'https://prod.saraemart.com/uploads/images/ba8cf1fa-442d-43f6-8128-6426053f1dad.jpg',
+          ],
+        },
+        {
+          variantOptionId: 426,
+          variantOptionText: 'Ash',
+          images: [
+            'https://prod.saraemart.com/uploads/images/e26107e8-992c-4d5f-845a-b3328a6a00c5.png',
+            'https://prod.saraemart.com/uploads/images/979a4366-b217-43d0-a7f9-1245b8ae9eb4.png',
+            'https://prod.saraemart.com/uploads/images/ba8cf1fa-442d-43f6-8128-6426053f1dad.jpg',
+          ],
+        },
       ],
 
       // burn= mrp- selling
@@ -279,10 +282,10 @@ const CreateProductPage = () => {
     setSellingPriceModal(false);
   };
 
-  // console.log({ errors });
-  const onSubmit = (data: ProductFormData) => {
-    console.log({ data });
-  };
+  console.log({ errors, initialValues });
+  //   const onSubmit = (data: ProductFormData) => {
+  //     console.log({ data });
+  //   };
 
   useEffect(() => {
     if (!watchedProductName) return;
@@ -336,7 +339,7 @@ const CreateProductPage = () => {
 
   return (
     <div>
-      <h1 className="heading-1">Add New Product</h1>
+      <h1 className="heading-1">{mode === 'create' ? 'Add New Product' : 'Edit Product'}</h1>
       <div className="mt-3 grid grid-cols-[1fr_212px] items-start gap-5">
         <div className="min-w-0">
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
@@ -1125,4 +1128,4 @@ const CreateProductPage = () => {
   );
 };
 
-export default CreateProductPage;
+export default ProductForm;

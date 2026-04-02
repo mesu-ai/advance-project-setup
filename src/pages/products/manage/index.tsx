@@ -7,19 +7,45 @@ import Switch from '@/components/atoms/Switch';
 import ActionButtons from '@/components/molecules/ActionButtons';
 import Pagination from '@/components/molecules/Pagination';
 import DataTable from '@/components/organisms/DataTable';
-import ProductFilterMoldal from '@/features/products/components/ProductFilterModal';
-import ProductStatustab from '@/features/products/components/ProductStatustab';
+import ColumnSettingsModal, {
+  type ColumnSetting,
+} from '@/components/molecules/modal/ColumnSettingsModal';
+import ProductFilterMoldal from '@/features/products/components/ProductListFilterModal';
+import ProductStatusTabs from '@/features/products/components/ProductStatusTabs';
 import { useGetProductsQuery } from '@/store/api/endpoints/productEndpoints';
 import type { ProductT } from '@/types';
 import { useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router';
 
+const columns: ColumnSetting[] = [
+  { label: 'Product ID', value: 'productId', isVisible: true },
+  { label: 'Product Name', value: 'productName', disabled: true, isVisible: true },
+  { label: 'Shop Name', value: 'shopName', disabled: true, isVisible: true },
+  { label: 'SKU', value: 'sku', disabled: true, isVisible: true },
+  { label: 'Category', value: 'category', disabled: true, isVisible: true },
+  { label: 'Brand', value: 'brand', isVisible: true },
+  { label: 'DP', value: 'dp', disabled: true, isVisible: true },
+  { label: 'MRP', value: 'mrp', disabled: true, isVisible: true },
+  { label: 'Selling Price', value: 'sellingPrice', disabled: true, isVisible: true },
+  { label: 'Burn', value: 'burn' },
+  { label: 'Discount', value: 'discount' },
+  { label: 'Commission', value: 'commission', isVisible: true },
+  { label: 'Display Order', value: 'displayOrder' },
+  { label: 'Stock', value: 'stock' },
+  { label: 'Warranty Type', value: 'warrantyType' },
+  { label: 'Warranty Period', value: 'warrantyPeriod' },
+  { label: 'Created By', value: 'createdBy' },
+  { label: 'Updated By', value: 'updatedBy' },
+  { label: 'Review Rating', value: 'reviewRating' },
+];
+
 const parseId = (val: string) => (val ? Number(val) : undefined);
 
 const ManageProductPage = () => {
   const [isFilterModal, setFilterModal] = useState(false);
+  const [isColumnModal, setColumnModal] = useState(false);
   const [currPage, setCurrPage] = useState<number>(1);
-  // const { user } = useAuth();
+
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
 
@@ -46,7 +72,7 @@ const ManageProductPage = () => {
   };
 
   const handleEdit = (id: number) => {
-    navigate(`/access-control/employees/${id}/edit`);
+    navigate(`/products/${id}/edit`);
   };
 
   const handleDeactivate = (id: number) => {
@@ -68,7 +94,7 @@ const ManageProductPage = () => {
         </Button>
       </div>
       <div className="bg-surface mt-3 rounded-xl border border-border">
-        <ProductStatustab />
+        <ProductStatusTabs />
         <div className="flex justify-between px-5 py-4">
           <Search className="max-w-[350px]" onSearch={(keyword) => console.log(keyword)} />
           <div className="flex gap-4">
@@ -81,7 +107,7 @@ const ManageProductPage = () => {
             </Button>
             <Button
               variant="column"
-              onClick={() => navigate('/access-control/employees/create')}
+              onClick={() => setColumnModal(true)}
               className="flex justify-center items-center gap-2"
             >
               <ColumnIcon /> Columns
@@ -166,6 +192,13 @@ const ManageProductPage = () => {
           isOpen={isFilterModal}
           onClose={() => setFilterModal(false)}
           initialValues={filterParams}
+        />
+      )}
+      {isColumnModal && (
+        <ColumnSettingsModal
+          isOpen={isColumnModal}
+          onClose={() => setColumnModal(false)}
+          columns={columns}
         />
       )}
     </div>

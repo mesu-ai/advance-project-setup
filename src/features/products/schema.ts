@@ -55,6 +55,7 @@ const variantCombinationSchema = z
   })
   .superRefine((val, ctx) => {
     const { dpPrice, mrp, sellingPrice } = val;
+    console.log({ dpPrice, mrp, sellingPrice });
     if (dpPrice && mrp && mrp <= dpPrice) {
       ctx.addIssue({
         path: ['mrp'],
@@ -63,11 +64,11 @@ const variantCombinationSchema = z
       });
     }
 
-    if (dpPrice && sellingPrice && dpPrice <= sellingPrice) {
+    if (dpPrice && sellingPrice && sellingPrice <= dpPrice) {
       ctx.addIssue({
         path: ['sellingPrice'],
         code: 'custom',
-        message: 'Selling pro must be greater than DP',
+        message: 'Selling price must be greater than DP',
       });
     }
   });

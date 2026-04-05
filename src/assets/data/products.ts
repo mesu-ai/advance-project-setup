@@ -1,3 +1,11 @@
+export const productSections = [
+  { key: 'basisInfo', name: 'Basic Information' },
+  { key: 'variants', name: 'Price, Stock & Variants' },
+  { key: 'productInfo', name: 'Product Info' },
+  { key: 'returnPolicy', name: 'Return Policy' },
+  { key: 'metadata', name: 'Meta & OG Info' },
+];
+
 export const productSteps = [
   { key: 'basisInfo', name: 'Basic Information', description: 'Product basic info descriptions' },
   { key: 'images', name: 'Product Images', description: 'Product images descriptions' },

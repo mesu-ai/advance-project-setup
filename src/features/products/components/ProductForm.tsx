@@ -70,22 +70,25 @@ const sizeVariants: { variantOptionId: number; variantOptionText: string }[] = [
 interface ProductFormProps {
   mode: 'create' | 'edit';
   initialValues?: ProductFormData;
+  initialCategory?: SelectedCategoryT;
   onSubmit: (data: ProductFormData) => Promise<void>;
 }
 
-const ProductForm = ({ mode, initialValues, onSubmit }: ProductFormProps) => {
+const ProductForm = ({ mode, initialValues, initialCategory, onSubmit }: ProductFormProps) => {
   const [fieldFocus, setFieldFocus] = useState<ProductFieldFocusT>('');
   const [isCategoryOpen, setCategoryOpen] = useState<boolean>(false);
-  const [selectedCategory, setSelectedCategory] = useState<SelectedCategoryT>({
-    id: null,
-    name: '',
-    layer: {
-      base: '',
-      first: '',
-      second: '',
-      third: '',
-    },
-  });
+  const [selectedCategory, setSelectedCategory] = useState<SelectedCategoryT>(
+    initialCategory ?? {
+      id: null,
+      name: '',
+      layer: {
+        base: '',
+        first: '',
+        second: '',
+        third: '',
+      },
+    }
+  );
   const [isExpandAtt, setExpandAtt] = useState(false);
   const [hasVariantImages, setHasVariantImages] = useState(true);
   const [isSellingPriceModal, setSellingPriceModal] = useState(false);
@@ -120,90 +123,19 @@ const ProductForm = ({ mode, initialValues, onSubmit }: ProductFormProps) => {
     formState: { errors, isSubmitting },
   } = useForm<ProductFormData>({
     resolver: zodResolver(productSchema),
-    defaultValues: {
+    defaultValues: initialValues ?? {
       description: '',
       specification: '',
-      thumbnailImages: [
-        'https://prod.saraemart.com/uploads/images/e26107e8-992c-4d5f-845a-b3328a6a00c5.png',
-        'https://prod.saraemart.com/uploads/images/979a4366-b217-43d0-a7f9-1245b8ae9eb4.png',
-        'https://prod.saraemart.com/uploads/images/ba8cf1fa-442d-43f6-8128-6426053f1dad.jpg',
-        'https://prod.saraemart.com/uploads/images/89d781cf-0e16-4ede-a0ad-ad63e1a63a5e.jpg',
-        'https://prod.saraemart.com/uploads/images/b012a4a9-dc68-4788-9415-ff8d38327768.jpg',
-      ],
+      thumbnailImages: [],
       variantDimensions: [
         {
           dimensionId: 'color',
           name: 'Color',
-          options: [
-            { variantOptionId: 425, variantOptionText: 'Green' },
-            { variantOptionId: 426, variantOptionText: 'Ash' },
-          ],
-        },
-        {
-          dimensionId: 'size',
-          name: 'Size',
-          options: [
-            { variantOptionId: 442, variantOptionText: 'XS' },
-            { variantOptionId: 443, variantOptionText: 'S' },
-          ],
+          options: [],
         },
       ],
-      variantImages: [
-        {
-          variantOptionId: 425,
-          variantOptionText: 'Green',
-          images: [
-            'https://prod.saraemart.com/uploads/images/e26107e8-992c-4d5f-845a-b3328a6a00c5.png',
-            'https://prod.saraemart.com/uploads/images/979a4366-b217-43d0-a7f9-1245b8ae9eb4.png',
-            'https://prod.saraemart.com/uploads/images/ba8cf1fa-442d-43f6-8128-6426053f1dad.jpg',
-          ],
-        },
-        {
-          variantOptionId: 426,
-          variantOptionText: 'Ash',
-          images: [
-            'https://prod.saraemart.com/uploads/images/e26107e8-992c-4d5f-845a-b3328a6a00c5.png',
-            'https://prod.saraemart.com/uploads/images/979a4366-b217-43d0-a7f9-1245b8ae9eb4.png',
-            'https://prod.saraemart.com/uploads/images/ba8cf1fa-442d-43f6-8128-6426053f1dad.jpg',
-          ],
-        },
-      ],
-
-      // burn= mrp- selling
-      // discount= mrp - selling
-      // commission = selling -dp
-      variantCombinations: [
-        // {
-        //   sku: 'dsewes',
-        //   subStyle: 'dffrr',
-        //   stock: 20,
-        //   dpPrice: 500,
-        //   mrp: 700,
-        //   sellingPrice: 600,
-        //   sellingDate: '2026-03-17T19:14',
-        //   burnAmount: 100,
-        //   commissionAmount: 100,
-        //   options: [
-        //     { variantOptionId: 425, variantOptionText: 'Green' },
-        //     { variantOptionId: 442, variantOptionText: 'XS' },
-        //   ],
-        // },
-        // {
-        //   sku: 'aas',
-        //   subStyle: 'ddeet',
-        //   stock: 50,
-        //   dpPrice: 300,
-        //   mrp: 400,
-        //   sellingPrice: 350,
-        //   sellingDate: '2026-02-28T04:12',
-        //   burnAmount: 50,
-        //   commissionAmount: 50,
-        //   options: [
-        //     { variantOptionId: 425, variantOptionText: 'Green' },
-        //     { variantOptionId: 443, variantOptionText: 'S' },
-        //   ],
-        // },
-      ],
+      variantImages: [],
+      variantCombinations: [],
     },
   });
 
@@ -215,6 +147,7 @@ const ProductForm = ({ mode, initialValues, onSubmit }: ProductFormProps) => {
   const watchedProductName = useWatch({ control, name: 'productName' });
   const watchedCategory = useWatch({ control, name: 'categoryId' });
   const watchedDimension = useWatch({ control, name: 'variantDimensions' });
+  const watchIsReturnable = useWatch({ control, name: 'isReturnable' });
 
   const sizeIndex = watchedDimension.findIndex((d) => d.dimensionId === 'size');
   const colorIndex = watchedDimension.findIndex((d) => d.dimensionId === 'color');
@@ -224,7 +157,8 @@ const ProductForm = ({ mode, initialValues, onSubmit }: ProductFormProps) => {
 
   // const hasColorDimension = colorIndex !== -1;
   const hasSizeDimension = sizeIndex !== -1;
-  const hasColor = colorOptions.length > 0;
+  const hasColor = (colorOptions?.length ?? 0) > 0;
+  const isReturnable = watchIsReturnable === 'Y';
 
   const handleSameAsMeta = (e: ChangeEvent<HTMLInputElement>) => {
     const isChecked = e.target.checked;
@@ -282,11 +216,6 @@ const ProductForm = ({ mode, initialValues, onSubmit }: ProductFormProps) => {
     setSellingPriceModal(false);
   };
 
-  console.log({ errors, initialValues });
-  //   const onSubmit = (data: ProductFormData) => {
-  //     console.log({ data });
-  //   };
-
   useEffect(() => {
     if (!watchedProductName) return;
 
@@ -336,6 +265,8 @@ const ProductForm = ({ mode, initialValues, onSubmit }: ProductFormProps) => {
 
     replaceImagFields(mappedImageFields);
   }, [hasVariantImages, colorOptions, replaceImagFields, getValues]);
+
+  console.log('errors', errors);
 
   return (
     <div>
@@ -829,6 +760,43 @@ const ProductForm = ({ mode, initialValues, onSubmit }: ProductFormProps) => {
                           )}
                         />
                       </div>
+
+                      <div
+                        className={`grid transition-[grid-template-rows] duration-300 ease-in-out ${isReturnable ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'}`}
+                      >
+                        <div className="overflow-hidden">
+                          <Input
+                            label="Return Duration (Days)"
+                            placeholder="EX. 15 days"
+                            error={errors.returnDuration?.message}
+                            {...register('returnDuration')}
+                            required
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    <div
+                      className={`grid transition-[grid-template-rows] duration-300 ease-in-out ${isReturnable ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'}`}
+                    >
+                      <div className="overflow-hidden">
+                        <p className="input-label mb-1">
+                          Return Policy <span className="text-danger-500">*</span>
+                        </p>
+                        <Controller
+                          name="returnPolicy"
+                          control={control}
+                          render={({ field: { value, onChange } }) => (
+                            <Editor
+                              value={value ?? ''}
+                              onChange={onChange}
+                              toolbarClassName="custom-toolbar"
+                              editorClassName="custom-editor"
+                            />
+                          )}
+                        />
+                        <p className="input-error">{errors.returnPolicy?.message}</p>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -892,7 +860,7 @@ const ProductForm = ({ mode, initialValues, onSubmit }: ProductFormProps) => {
                           ]}
                           optionKeys={{ label: 'label', value: 'value' }}
                           placeholder="Select Warranty Type"
-                          error={errors.sizeChartId?.message}
+                          error={errors.warrantyTypeId?.message}
                           required
                           {...field}
                         />
@@ -913,7 +881,7 @@ const ProductForm = ({ mode, initialValues, onSubmit }: ProductFormProps) => {
                           ]}
                           optionKeys={{ label: 'label', value: 'value' }}
                           placeholder="Select Warranty Period"
-                          error={errors.sizeChartId?.message}
+                          error={errors.warrantyPeriodId?.message}
                           required
                           {...field}
                         />
@@ -972,20 +940,6 @@ const ProductForm = ({ mode, initialValues, onSubmit }: ProductFormProps) => {
                       {...register('productUrl')}
                       required
                     />
-                    {/* <Controller
-                      name="productUrl"
-                      control={control}
-                      render={({ field: { value, onChange } }) => (
-                        <Input
-                          label="Product URL"
-                          placeholder="Enter Product URL"
-                          error={errors.productUrl?.message}
-                          required
-                          value={value}
-                          onChange={(e)=> onChange(generateSlug(e.target.value))}
-                        />
-                      )}
-                    /> */}
                     <Input
                       label="Video URL"
                       placeholder="Enter Video URL"

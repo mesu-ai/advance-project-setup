@@ -128,6 +128,9 @@ input:-webkit-autofill {
   .heading-1 {
     @apply text-lg font-bold text-neutral-300;
   }
+  .heading-2 {
+    @apply text-lg font-bold text-black-500 dark:text-white-600;
+  }
 }
 
 @layer components {

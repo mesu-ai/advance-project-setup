@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type RefObject } from 'react';
 import type { SectionsKeyT, ProductFieldFocusT } from '../types';
-import { productSteps } from '@/assets/data/productSteps';
+import { productSteps } from '@/assets/data/products';
 
 type SectionsRef = RefObject<Record<SectionsKeyT, HTMLDivElement | null>>;
 

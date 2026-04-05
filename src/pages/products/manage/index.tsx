@@ -13,9 +13,10 @@ import ColumnSettingsModal, {
 import ProductFilterMoldal from '@/features/products/components/ProductListFilterModal';
 import ProductStatusTabs from '@/features/products/components/ProductStatusTabs';
 import { useGetProductsQuery } from '@/store/api/endpoints/productEndpoints';
-import type { ProductT } from '@/types';
+import type { ProductSummaryT } from '@/types';
 import { useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router';
+import ProductDetailsModal from '@/features/products/components/ProductDetailsModal';
 
 const columns: ColumnSetting[] = [
   { label: 'Product ID', value: 'productId', isVisible: true },
@@ -44,6 +45,10 @@ const parseId = (val: string) => (val ? Number(val) : undefined);
 const ManageProductPage = () => {
   const [isFilterModal, setFilterModal] = useState(false);
   const [isColumnModal, setColumnModal] = useState(false);
+  const [isDetailModal, setDetailModal] = useState(false);
+
+  const [selProductId, setSelProductId] = useState<number | null>(null);
+
   const [currPage, setCurrPage] = useState<number>(1);
 
   const navigate = useNavigate();
@@ -65,10 +70,10 @@ const ManageProductPage = () => {
     console.log({ status });
   };
 
-  const handleView = (product: ProductT) => {
-    // setSelectedEmp(empToView);
-    // setIsViewOpen(true);
+  const handleView = (product: ProductSummaryT) => {
     console.log({ product });
+    setSelProductId(product.productId);
+    setDetailModal(true);
   };
 
   const handleEdit = (id: number) => {
@@ -194,11 +199,20 @@ const ManageProductPage = () => {
           initialValues={filterParams}
         />
       )}
+
       {isColumnModal && (
         <ColumnSettingsModal
           isOpen={isColumnModal}
           onClose={() => setColumnModal(false)}
           columns={columns}
+        />
+      )}
+
+      {isDetailModal && selProductId && (
+        <ProductDetailsModal
+          productId={selProductId}
+          isOpen={isDetailModal}
+          onClose={() => setDetailModal(false)}
         />
       )}
     </div>

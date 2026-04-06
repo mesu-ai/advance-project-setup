@@ -10,13 +10,14 @@ import DataTable from '@/components/organisms/DataTable';
 import ColumnSettingsModal, {
   type ColumnSetting,
 } from '@/components/molecules/modal/ColumnSettingsModal';
-import ProductFilterMoldal from '@/features/products/components/ProductListFilterModal';
 import ProductStatusTabs from '@/features/products/components/ProductStatusTabs';
 import { useGetProductsQuery } from '@/store/api/endpoints/productEndpoints';
 import type { ProductSummaryT } from '@/types';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router';
 import ProductDetailsModal from '@/features/products/components/ProductDetailsModal';
+import { formatDateTime } from '@/utils/formatDateTime';
+import ProductListFilterDrawer from '@/features/products/components/ProductListFilterDrawer';
 
 const columns: ColumnSetting[] = [
   { label: 'Product ID', value: 'productId', isVisible: true },
@@ -46,6 +47,7 @@ const ManageProductPage = () => {
   const [isFilterModal, setFilterModal] = useState(false);
   const [isColumnModal, setColumnModal] = useState(false);
   const [isDetailModal, setDetailModal] = useState(false);
+  // const [isDrawerOpen, setDrawerOpen] = useState(false);
 
   const [selProductId, setSelProductId] = useState<number | null>(null);
 
@@ -55,23 +57,28 @@ const ManageProductPage = () => {
   const [searchParams] = useSearchParams();
 
   const { data: products } = useGetProductsQuery();
+  const categoryIdParam = searchParams.get('categoryId') ?? '';
+  const shopIdParam = searchParams.get('shopId') ?? '';
+  const brandIdParam = searchParams.get('brandId') ?? '';
+  const unitParam = searchParams.get('unit') ?? '';
+  const statusParam = searchParams.get('status') ?? '';
 
-  const initialQueryParams = Object.fromEntries(searchParams.entries());
-
-  const filterParams = {
-    categoryId: parseId(initialQueryParams.categoryId),
-    shopId: parseId(initialQueryParams.shopId),
-    brandId: parseId(initialQueryParams.brandId),
-    unit: initialQueryParams.unit,
-    status: initialQueryParams.status as 'Y' | 'N',
-  };
+  const filterParams = useMemo(
+    () => ({
+      categoryId: parseId(categoryIdParam),
+      shopId: parseId(shopIdParam),
+      brandId: parseId(brandIdParam),
+      unit: unitParam || undefined,
+      status: (statusParam as 'Y' | 'N') || undefined,
+    }),
+    [categoryIdParam, shopIdParam, brandIdParam, unitParam, statusParam]
+  );
 
   const handleStatus = (status: string) => {
     console.log({ status });
   };
 
   const handleView = (product: ProductSummaryT) => {
-    console.log({ product });
     setSelProductId(product.productId);
     setDetailModal(true);
   };
@@ -80,12 +87,16 @@ const ManageProductPage = () => {
     navigate(`/products/${id}/edit`);
   };
 
-  const handleDeactivate = (id: number) => {
+  const handleDuplicate = (id: number) => {
     console.log({ id });
-    // setConfirmAction(() => () => {
-    //   console.log('deactive id:', id);
-    // });
-    // setIsDeactiveOpen(true);
+  };
+
+  const handlePending = (id: number) => {
+    console.log({ id });
+  };
+
+  const handleReject = (id: number) => {
+    console.log({ id });
   };
 
   console.log({ currPage });
@@ -128,6 +139,7 @@ const ManageProductPage = () => {
               'Shop Name',
               'Product Style/SKU',
               'Category',
+              'Last Update',
               'DP(৳)',
               'MRP(৳)',
               'Sell(৳)',
@@ -155,11 +167,15 @@ const ManageProductPage = () => {
                   <td className="px-5 py-3">{product.shopName}</td>
                   <td className="px-5 py-3">{product.sku}</td>
                   <td className="px-5 py-3">{product.categoryName}</td>
+                  <td className="px-5 py-3">
+                    <span className="whitespace-nowrap bg-success-50 px-2.5 py-1 border border-success-500 rounded-lg">
+                      {formatDateTime(product.updatedAt)}
+                    </span>
+                  </td>
                   <td className="px-5 py-3">{product.dpPrice}</td>
                   <td className="px-5 py-3">{product.mrp}</td>
                   <td className="px-5 py-3">{product.sellingPrice}</td>
                   <td className="px-5 py-3">
-                    {/* <Status status={product.status} /> */}
                     <Switch
                       isEnabled={product.status === 'Y'}
                       onEnabled={() => handleStatus(product.status)}
@@ -177,8 +193,16 @@ const ManageProductPage = () => {
                           onClick: () => handleEdit(product.productId),
                         },
                         {
-                          label: 'Deactivate',
-                          onClick: () => handleDeactivate(product.productId),
+                          label: 'Duplicate',
+                          onClick: () => handleDuplicate(product.productId),
+                        },
+                        {
+                          label: 'Pending',
+                          onClick: () => handlePending(product.productId),
+                        },
+                        {
+                          label: 'Reject',
+                          onClick: () => handleReject(product.productId),
                         },
                       ]}
                     />
@@ -192,13 +216,19 @@ const ManageProductPage = () => {
         </div>
       </div>
 
-      {isFilterModal && (
-        <ProductFilterMoldal
+      {/* {isFilterModal && (
+        <ProductListFilterModal
           isOpen={isFilterModal}
           onClose={() => setFilterModal(false)}
           initialValues={filterParams}
         />
-      )}
+      )} */}
+
+      <ProductListFilterDrawer
+        isOpen={isFilterModal}
+        onClose={() => setFilterModal(false)}
+        initialValues={filterParams}
+      />
 
       {isColumnModal && (
         <ColumnSettingsModal

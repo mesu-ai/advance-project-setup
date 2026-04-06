@@ -387,8 +387,6 @@ const ProductDetailsModal = ({ isOpen, onClose, productId }: ProductDetailsModal
   if (isLoading) return <div>Loading...</div>;
   if (!product?.data) return <div>Product not found</div>;
 
-  console.log({ productId, product });
-
   return (
     <Modal isOpen={isOpen} onClose={onClose} title="Product View" className="w-[1200px]">
       <div role="tablist" className="px-5 pb-4 flex gap-8 font-medium">

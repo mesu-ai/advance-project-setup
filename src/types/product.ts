@@ -9,6 +9,7 @@ export interface ProductSummaryT {
   mrp: number;
   sellingPrice: number;
   status: 'N' | 'Y';
+  updatedAt: string;
 }
 
 export interface ProductT {
@@ -89,4 +90,8 @@ export interface ProductT {
   ogUrl?: string;
   ogDescription?: string;
   ogImage?: string | File;
+  createdBy?: string;
+  createdAt?: string;
+  updatedBy?: string;
+  updatedAt?: string;
 }

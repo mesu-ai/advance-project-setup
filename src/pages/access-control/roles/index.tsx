@@ -68,7 +68,7 @@ const RolePermissionPage = () => {
             ))}
         </DataTable>
         <div className="text-center py-5">
-          <Pagination totalPage={12} currentPage={5} setCurrentPage={setCurrPage} />
+          <Pagination totalPages={12} currentPage={5} setCurrentPage={setCurrPage} />
         </div>
       </div>
     </PageSection>

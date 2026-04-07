@@ -13,11 +13,12 @@ import ColumnSettingsModal, {
 import ProductStatusTabs from '@/features/products/components/ProductStatusTabs';
 import { useGetProductsQuery } from '@/store/api/endpoints/productEndpoints';
 import type { ProductSummaryT } from '@/types';
-import { useMemo, useState } from 'react';
+import { useMemo, useState, type ChangeEvent } from 'react';
 import { useNavigate, useSearchParams } from 'react-router';
 import ProductDetailsModal from '@/features/products/components/ProductDetailsModal';
 import { formatDateTime } from '@/utils/formatDateTime';
 import ProductListFilterDrawer from '@/features/products/components/ProductListFilterDrawer';
+import Checkbox from '@/components/atoms/Checkbox';
 
 const columns: ColumnSetting[] = [
   { label: 'Product ID', value: 'productId', isVisible: true },
@@ -40,23 +41,39 @@ const columns: ColumnSetting[] = [
   { label: 'Updated By', value: 'updatedBy' },
   { label: 'Review Rating', value: 'reviewRating' },
 ];
+interface SelectedProductT {
+  productId: number;
+  displayOrder: number;
+  productStatus: 'Y' | 'N';
+}
 
 const parseId = (val: string) => (val ? Number(val) : undefined);
+
+// const PAGE_SIZE = 10;
 
 const ManageProductPage = () => {
   const [isFilterModal, setFilterModal] = useState(false);
   const [isColumnModal, setColumnModal] = useState(false);
   const [isDetailModal, setDetailModal] = useState(false);
+
+  const [isSelectedAllRows, setSelectedAllRows] = useState(false);
+  const [selectedProducts, setSelectedProducts] = useState<SelectedProductT[]>([]);
   // const [isDrawerOpen, setDrawerOpen] = useState(false);
+  const [selectedProductId, setSelectedProductId] = useState<number | null>(null);
+  const [deselectedProductIds, setDeselectedProductIds] = useState<number[]>([]);
 
-  const [selProductId, setSelProductId] = useState<number | null>(null);
+  // const [currentPage, setCurrPage] = useState<number>(1);
 
-  const [currPage, setCurrPage] = useState<number>(1);
+  console.log({ selectedProducts });
 
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+  // const initialQueryParams = Object.fromEntries(searchParams.entries());
 
-  const { data: products } = useGetProductsQuery();
+  const approvalStatusParam = searchParams.get('approvalStatus') ?? 'approved';
+  const currentPage = Number(searchParams.get('page') ?? 1);
+  const itemsPerPage = Number(searchParams.get('itemsPerPage') ?? 15);
+
   const categoryIdParam = searchParams.get('categoryId') ?? '';
   const shopIdParam = searchParams.get('shopId') ?? '';
   const brandIdParam = searchParams.get('brandId') ?? '';
@@ -74,12 +91,106 @@ const ManageProductPage = () => {
     [categoryIdParam, shopIdParam, brandIdParam, unitParam, statusParam]
   );
 
+  const productParams = {
+    approvalStatus: approvalStatusParam,
+    categoryId: filterParams.categoryId,
+    shopId: filterParams.shopId,
+    brandId: filterParams.brandId,
+    unit: filterParams.unit,
+    status: filterParams.status,
+    itemsPerPage,
+    currentPage,
+  };
+
+  const { data: products } = useGetProductsQuery(productParams);
+
+  const selectedProductIds = useMemo(
+    () => new Set(selectedProducts.map((p) => p.productId)),
+    [selectedProducts]
+  );
+
+  const deselectedIdsSet = useMemo(() => new Set(deselectedProductIds), [deselectedProductIds]);
+
+  // const isSelectedAll =
+  //   Array.isArray(products?.data) && selectedProductIds.size === products?.data.length;
+
+  const isCurrentPageSelected = isSelectedAllRows
+    ? (products?.data?.every((p) => deselectedIdsSet.has(p.productId)) ?? false)
+    : (products?.data?.every((p) => selectedProductIds.has(p.productId)) ?? false);
+
+  // const totalPages = Math.max(1, Math.ceil(products?.data?.length ?? 0 / PAGE_SIZE));
+
+  const handleSelectRow = (e: ChangeEvent<HTMLInputElement>, product: ProductSummaryT) => {
+    const { checked } = e.target;
+
+    if (isSelectedAllRows) {
+      console.log({ checked });
+      if (!checked) {
+        setDeselectedProductIds((prev) =>
+          prev.includes(product.productId) ? prev : [...prev, product.productId]
+        );
+      } else {
+        setDeselectedProductIds((prev) => prev.filter((id) => id !== product.productId));
+      }
+      return;
+    }
+
+    setSelectedProducts((prev) => {
+      if (checked) {
+        return [
+          ...prev,
+          {
+            productId: product.productId,
+            displayOrder: product.displayOrder,
+            productStatus: product.status,
+          },
+        ];
+      }
+      return prev.filter((p) => p.productId !== product.productId);
+    });
+  };
+
+  const handleSelectAllRows = (e: ChangeEvent<HTMLInputElement>) => {
+    const { checked } = e.target;
+    setSelectedAllRows(checked);
+    setSelectedProducts([]);
+    setDeselectedProductIds([]);
+  };
+
+  console.log({ deselectedProductIds });
+
+  const handleSelectCurrentPageRows = (e: ChangeEvent<HTMLInputElement>) => {
+    const { checked } = e.target;
+    setSelectedAllRows(false);
+    setDeselectedProductIds([]);
+
+    setSelectedProducts((prev) => {
+      if (checked) {
+        const prevById = new Map(prev.map((p) => [p.productId, p]));
+        products?.data?.forEach((p) => {
+          if (!prevById.has(p.productId)) {
+            prevById.set(p.productId, {
+              productId: p.productId,
+              displayOrder: p.displayOrder,
+              productStatus: p.status,
+            });
+          }
+        });
+
+        return Array.from(prevById.values());
+      }
+
+      const currentPageIds = new Set(products?.data?.map((p) => p.productId));
+      return prev.filter((p) => !currentPageIds.has(p.productId));
+    });
+  };
+
   const handleStatus = (status: string) => {
     console.log({ status });
   };
 
   const handleView = (product: ProductSummaryT) => {
-    setSelProductId(product.productId);
+    setSelectedProductId(product.productId);
     setDetailModal(true);
   };
 
@@ -98,8 +209,6 @@ const ManageProductPage = () => {
   const handleReject = (id: number) => {
     console.log({ id });
   };
-
-  console.log({ currPage });
 
   return (
     <div>
@@ -133,6 +242,13 @@ const ManageProductPage = () => {
 
         <div className="w-full overflow-x-auto">
           <DataTable
+            selection={{
+              enabled: true,
+              isSelectedAll: isSelectedAllRows && deselectedProductIds?.length === 0,
+              isCurrentPageSelected: isCurrentPageSelected,
+              onSelectAllRows: handleSelectAllRows,
+              onSelectCurrentPageRows: handleSelectCurrentPageRows,
+            }}
             header={[
               'SL No',
               'Product Name',
@@ -147,71 +263,89 @@ const ManageProductPage = () => {
               'Action',
             ]}
           >
-            {products?.data &&
-              products?.data.map((product, index: number) => (
-                <tr key={product.productId}>
-                  <td className="px-5 py-3">{index + 1}</td>
-                  <td className="px-5 py-3">
-                    <div className="max-w-56 flex gap-2 items-center">
-                      <Image
-                        src={`https://prod.saralifestyle.com${product.thumbnailImage}`}
-                        width={48}
-                        height={48}
-                        alt="default-avater"
-                      />
-                      <p>
-                        {product.categoryName} {product.categoryName}
-                      </p>
-                    </div>
-                  </td>
-                  <td className="px-5 py-3">{product.shopName}</td>
-                  <td className="px-5 py-3">{product.sku}</td>
-                  <td className="px-5 py-3">{product.categoryName}</td>
-                  <td className="px-5 py-3">
-                    <span className="whitespace-nowrap bg-success-50 px-2.5 py-1 border border-success-500 rounded-lg">
-                      {formatDateTime(product.updatedAt)}
-                    </span>
-                  </td>
-                  <td className="px-5 py-3">{product.dpPrice}</td>
-                  <td className="px-5 py-3">{product.mrp}</td>
-                  <td className="px-5 py-3">{product.sellingPrice}</td>
-                  <td className="px-5 py-3">
-                    <Switch
-                      isEnabled={product.status === 'Y'}
-                      onEnabled={() => handleStatus(product.status)}
+            {products?.data?.map((product, index: number) => (
+              <tr key={product.productId}>
+                <td className="px-5 py-3">
+                  <div className="flex justify-center">
+                    <Checkbox
+                      name={String(product.productId)}
+                      checked={
+                        isSelectedAllRows
+                          ? !deselectedIdsSet.has(product.productId)
+                          : selectedProductIds.has(product.productId)
+                      }
+                      onChange={(e) => handleSelectRow(e, product)}
                     />
-                  </td>
-                  <td className="px-5 py-3">
-                    <ActionButtons
-                      actions={[
-                        {
-                          label: 'View',
-                          onClick: () => handleView(product),
-                        },
-                        {
-                          label: 'Edit',
-                          onClick: () => handleEdit(product.productId),
-                        },
-                        {
-                          label: 'Duplicate',
-                          onClick: () => handleDuplicate(product.productId),
-                        },
-                        {
-                          label: 'Pending',
-                          onClick: () => handlePending(product.productId),
-                        },
-                        {
-                          label: 'Reject',
-                          onClick: () => handleReject(product.productId),
-                        },
-                      ]}
+                  </div>
+                </td>
+                <td className="px-5 py-3">{(currentPage - 1) * itemsPerPage + index + 1}</td>
+                <td className="px-5 py-3">
+                  <div className="max-w-56 flex gap-2 items-center">
+                    <Image
+                      src={`https://prod.saralifestyle.com${product.thumbnailImage}`}
+                      width={48}
+                      height={48}
+                      alt="default-avater"
                     />
-                  </td>
-                </tr>
-              ))}
+                    <p>
+                      {product.categoryName} {product.categoryName}
+                    </p>
+                  </div>
+                </td>
+                <td className="px-5 py-3">{product.shopName}</td>
+                <td className="px-5 py-3">{product.sku}</td>
+                <td className="px-5 py-3">{product.categoryName}</td>
+                <td className="px-5 py-3">
+                  <span className="whitespace-nowrap bg-success-50 px-2.5 py-1 border border-success-500 rounded-lg">
+                    {formatDateTime(product.updatedAt)}
+                  </span>
+                </td>
+                <td className="px-5 py-3">{product.dpPrice}</td>
+                <td className="px-5 py-3">{product.mrp}</td>
+                <td className="px-5 py-3">{product.sellingPrice}</td>
+                <td className="px-5 py-3">
+                  <Switch
+                    isEnabled={product.status === 'Y'}
+                    onEnabled={() => handleStatus(product.status)}
+                  />
+                </td>
+                <td className="px-5 py-3">
+                  <ActionButtons
+                    actions={[
+                      {
+                        label: 'View',
+                        onClick: () => handleView(product),
+                      },
+                      {
+                        label: 'Edit',
+                        onClick: () => handleEdit(product.productId),
+                      },
+                      {
+                        label: 'Duplicate',
+                        onClick: () => handleDuplicate(product.productId),
+                      },
+                      {
+                        label: 'Pending',
+                        onClick: () => handlePending(product.productId),
+                      },
+                      {
+                        label: 'Reject',
+                        onClick: () => handleReject(product.productId),
+                      },
+                    ]}
+                  />
+                </td>
+              </tr>
+            ))}
           </DataTable>
           <div className="text-center py-5">
-            <Pagination totalPage={12} currentPage={5} setCurrentPage={setCurrPage} />
+            <Pagination
+              // currentPage={currentPage}
+              // setCurrentPage={setCurrPage}
+              // onCurrentPage={handleCurrentPage}
+              totalPages={products?.pagination?.totalPages}
+              totalItems={products?.pagination?.totalItems}
+            />
           </div>
         </div>
       </div>
@@ -238,9 +372,9 @@ const ManageProductPage = () => {
         />
       )}
 
-      {isDetailModal && selProductId && (
+      {isDetailModal && selectedProductId && (
         <ProductDetailsModal
-          productId={selProductId}
+          productId={selectedProductId}
           isOpen={isDetailModal}
           onClose={() => setDetailModal(false)}
         />

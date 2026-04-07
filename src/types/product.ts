@@ -1,3 +1,14 @@
+export interface ProductParamsT {
+  approvalStatus: string;
+  categoryId?: number;
+  shopId?: number;
+  brandId?: number;
+  unit?: string;
+  status?: 'N' | 'Y';
+  currentPage: number;
+  itemsPerPage: number;
+}
+
 export interface ProductSummaryT {
   productId: number;
   productName: string;
@@ -8,6 +19,7 @@ export interface ProductSummaryT {
   dpPrice: number;
   mrp: number;
   sellingPrice: number;
+  displayOrder: number;
   status: 'N' | 'Y';
   updatedAt: string;
 }

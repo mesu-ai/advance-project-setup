@@ -19,6 +19,7 @@ const Drawer = ({ isOpen, onClose, title, children }: DrawerProps) => {
         role="dialog"
         aria-modal="true"
         aria-label={title}
+        onClick={(e) => e.stopPropagation()}
         className={`absolute top-0 right-0 h-full min-w-xs transform bg-white shadow-md transition-transform duration-400 ease-in  
             ${isOpen ? 'translate-x-0' : 'translate-x-full'}`}
       >

@@ -11,7 +11,6 @@ interface TableHeaderProps {
 }
 
 interface SelectionProps {
-  enabled: boolean;
   isSelectedAll: boolean;
   isCurrentPageSelected: boolean;
   onSelectAllRows: (e: ChangeEvent<HTMLInputElement>) => void;
@@ -28,7 +27,7 @@ interface DataTableProps {
   selection?: SelectionProps;
 }
 
-const DataSelection = (selection: Omit<SelectionProps, 'enabled'>) => {
+const DataSelection = (selection: SelectionProps) => {
   const [isOpen, setOpen] = useState(false);
 
   const outSideRef = useRef<HTMLDivElement>(null);
@@ -79,7 +78,7 @@ const DataTable = ({
     <table id={tableId} className={`w-full table-auto text-sm ${className}`}>
       <thead className="bg-white-700 dark:bg-black-500 whitespace-nowrap">
         <tr>
-          {selection?.enabled && <DataSelection {...selection} />}
+          {selection && <DataSelection {...selection} />}
           {header &&
             header.map((item_col, idx) => {
               if (typeof item_col === 'string') {

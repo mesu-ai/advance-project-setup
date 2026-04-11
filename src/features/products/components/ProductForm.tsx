@@ -28,6 +28,7 @@ import { calculateBurn, calculateCommission } from '@/features/products/utils/pr
 import type { SectionsKeyT, ProductFieldFocusT } from '@/features/products/types';
 import ProductStepper from '@/features/products/components/ProductStepper';
 import { motion } from 'motion/react';
+import { cleanQueryParams } from '@/utils/cleanQueryParams';
 
 const categorySuggessions: SelectedCategoryT[] = [
   {
@@ -109,9 +110,10 @@ const ProductForm = ({ mode, initialValues, initialCategory, onSubmit }: Product
     meta: null,
   });
 
-  const { data: shops, isLoading: isShopLoading } = useGetShopsQuery({
-    keyword: shopSearch?.debouncedKeyword,
-  });
+  const { data: shops, isLoading: isShopLoading } = useGetShopsQuery(
+    cleanQueryParams({ keyword: shopSearch?.debouncedKeyword })
+  );
+  // { keyword: shopSearch?.debouncedKeyword}
 
   const {
     register,

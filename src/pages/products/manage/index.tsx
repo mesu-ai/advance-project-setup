@@ -2,7 +2,6 @@ import ColumnIcon from '@/assets/svg/ColumnIcon';
 import FilterIcon from '@/assets/svg/FilterIcon';
 import Button from '@/components/atoms/Button';
 import Image from '@/components/atoms/Image';
-import Search from '@/components/atoms/Search';
 import Switch from '@/components/atoms/Switch';
 import ActionButtons from '@/components/molecules/ActionButtons';
 import Pagination from '@/components/molecules/Pagination';
@@ -19,6 +18,7 @@ import ProductDetailsModal from '@/features/products/components/ProductDetailsMo
 import { formatDateTime } from '@/utils/formatDateTime';
 import ProductListFilterDrawer from '@/features/products/components/ProductListFilterDrawer';
 import Checkbox from '@/components/atoms/Checkbox';
+import SearchBar from '@/components/molecules/SearchBar';
 
 const columns: ColumnSetting[] = [
   { label: 'Product ID', value: 'productId', isVisible: true },
@@ -49,28 +49,22 @@ interface SelectedProductT {
 
 const parseId = (val: string) => (val ? Number(val) : undefined);
 
-// const PAGE_SIZE = 10;
-
 const ManageProductPage = () => {
-  const [isFilterModal, setFilterModal] = useState(false);
+  const [isDrawerOpen, setDrawerOpen] = useState(false);
   const [isColumnModal, setColumnModal] = useState(false);
   const [isDetailModal, setDetailModal] = useState(false);
 
   const [isSelectedAllRows, setSelectedAllRows] = useState(false);
   const [selectedProducts, setSelectedProducts] = useState<SelectedProductT[]>([]);
-  // const [isDrawerOpen, setDrawerOpen] = useState(false);
+
   const [selectedProductId, setSelectedProductId] = useState<number | null>(null);
   const [deselectedProductIds, setDeselectedProductIds] = useState<number[]>([]);
 
-  // const [currentPage, setCurrPage] = useState<number>(1);
-
-  console.log({ selectedProducts });
-
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  // const initialQueryParams = Object.fromEntries(searchParams.entries());
 
   const approvalStatusParam = searchParams.get('approvalStatus') ?? 'approved';
+  const keywordParams = searchParams.get('keyword') ?? '';
   const currentPage = Number(searchParams.get('page') ?? 1);
   const itemsPerPage = Number(searchParams.get('itemsPerPage') ?? 15);
 
@@ -91,8 +85,11 @@ const ManageProductPage = () => {
     [categoryIdParam, shopIdParam, brandIdParam, unitParam, statusParam]
   );
 
+  const filteredCount = Object.values(filterParams).filter((v) => v !== undefined).length;
+
   const productParams = {
     approvalStatus: approvalStatusParam,
+    keyword: keywordParams,
     categoryId: filterParams.categoryId,
     shopId: filterParams.shopId,
     brandId: filterParams.brandId,
@@ -111,20 +108,14 @@ const ManageProductPage = () => {
 
   const deselectedIdsSet = useMemo(() => new Set(deselectedProductIds), [deselectedProductIds]);
 
-  // const isSelectedAll =
-  //   Array.isArray(products?.data) && selectedProductIds.size === products?.data.length;
-
   const isCurrentPageSelected = isSelectedAllRows
     ? (products?.data?.every((p) => deselectedIdsSet.has(p.productId)) ?? false)
     : (products?.data?.every((p) => selectedProductIds.has(p.productId)) ?? false);
-
-  // const totalPages = Math.max(1, Math.ceil(products?.data?.length ?? 0 / PAGE_SIZE));
 
   const handleSelectRow = (e: ChangeEvent<HTMLInputElement>, product: ProductSummaryT) => {
     const { checked } = e.target;
 
     if (isSelectedAllRows) {
-      console.log({ checked });
       if (!checked) {
         setDeselectedProductIds((prev) =>
           prev.includes(product.productId) ? prev : [...prev, product.productId]
@@ -156,8 +147,6 @@ const ManageProductPage = () => {
     setSelectedProducts([]);
     setDeselectedProductIds([]);
   };
-
-  console.log({ deselectedProductIds });
 
   const handleSelectCurrentPageRows = (e: ChangeEvent<HTMLInputElement>) => {
     const { checked } = e.target;
@@ -221,14 +210,17 @@ const ManageProductPage = () => {
       <div className="bg-surface mt-3 rounded-xl border border-border">
         <ProductStatusTabs />
         <div className="flex justify-between px-5 py-4">
-          <Search className="max-w-[350px]" onSearch={(keyword) => console.log(keyword)} />
-          <div className="flex gap-4">
+          <SearchBar />
+          <div className="flex gap-4 ">
             <Button
               variant="filter"
-              onClick={() => setFilterModal(true)}
+              onClick={() => setDrawerOpen(true)}
               className="flex justify-center items-center gap-2"
             >
               <FilterIcon /> Filters
+              <sup className="h-[16.67px] text-sm text-white rounded-lg px-1.5 bg-danger-500">
+                {filteredCount}
+              </sup>
             </Button>
             <Button
               variant="column"
@@ -243,7 +235,6 @@ const ManageProductPage = () => {
         <div className="w-full overflow-x-auto">
           <DataTable
             selection={{
-              enabled: true,
               isSelectedAll: isSelectedAllRows && deselectedProductIds?.length === 0,
               isCurrentPageSelected: isCurrentPageSelected,
               onSelectAllRows: handleSelectAllRows,
@@ -340,9 +331,6 @@ const ManageProductPage = () => {
           </DataTable>
           <div className="text-center py-5">
             <Pagination
-              // currentPage={currentPage}
-              // setCurrentPage={setCurrPage}
-              // onCurrentPage={handleCurrentPage}
               totalPages={products?.pagination?.totalPages}
               totalItems={products?.pagination?.totalItems}
             />
@@ -350,17 +338,17 @@ const ManageProductPage = () => {
         </div>
       </div>
 
-      {/* {isFilterModal && (
+      {/* {isDrawerOpen && (
         <ProductListFilterModal
-          isOpen={isFilterModal}
-          onClose={() => setFilterModal(false)}
+          isOpen={isDrawerOpen}
+          onClose={() => setDrawerOpen(false)}
           initialValues={filterParams}
         />
       )} */}
 
       <ProductListFilterDrawer
-        isOpen={isFilterModal}
-        onClose={() => setFilterModal(false)}
+        isOpen={isDrawerOpen}
+        onClose={() => setDrawerOpen(false)}
         initialValues={filterParams}
       />
 

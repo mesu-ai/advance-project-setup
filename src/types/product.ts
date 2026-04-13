@@ -1,5 +1,6 @@
 export interface ProductParamsT {
   approvalStatus: string;
+  keyword?: string;
   categoryId?: number;
   shopId?: number;
   brandId?: number;
@@ -107,3 +108,29 @@ export interface ProductT {
   updatedBy?: string;
   updatedAt?: string;
 }
+
+export interface SelectedProductT {
+  productId: number;
+  displayOrder: number;
+}
+
+export interface UpdatedOrderT {
+  productId: number;
+  displayOrder: number;
+}
+
+export type BulkFilterParamsT = Omit<ProductParamsT, 'currentPage' | 'itemsPerPage'>;
+
+type BulkSelectAllT = {
+  isSelectAll: true;
+  targetStatus?: 'Y' | 'N';
+  excludedProductIds?: number[];
+} & BulkFilterParamsT;
+
+type BulkSelectedRowsT = {
+  isSelectAll: false;
+  targetStatus?: 'Y' | 'N';
+  selectedProducts: SelectedProductT[];
+};
+
+export type BulkModifyProductT = BulkSelectAllT | BulkSelectedRowsT;

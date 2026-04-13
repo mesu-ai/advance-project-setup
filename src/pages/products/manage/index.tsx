@@ -11,7 +11,7 @@ import ColumnSettingsModal, {
 } from '@/components/molecules/modal/ColumnSettingsModal';
 import ProductStatusTabs from '@/features/products/components/ProductStatusTabs';
 import { useGetProductsQuery } from '@/store/api/endpoints/productEndpoints';
-import type { ProductSummaryT } from '@/types';
+import type { ProductSummaryT, SelectedProductT } from '@/types';
 import { useMemo, useState, type ChangeEvent } from 'react';
 import { useNavigate, useSearchParams } from 'react-router';
 import ProductDetailsModal from '@/features/products/components/ProductDetailsModal';
@@ -19,6 +19,8 @@ import { formatDateTime } from '@/utils/formatDateTime';
 import ProductListFilterDrawer from '@/features/products/components/ProductListFilterDrawer';
 import Checkbox from '@/components/atoms/Checkbox';
 import SearchBar from '@/components/molecules/SearchBar';
+import ProductBulkActions from '@/features/products/components/ProductBulkActions';
+import { cn } from '@/lib/cn';
 
 const columns: ColumnSetting[] = [
   { label: 'Product ID', value: 'productId', isVisible: true },
@@ -41,30 +43,29 @@ const columns: ColumnSetting[] = [
   { label: 'Updated By', value: 'updatedBy' },
   { label: 'Review Rating', value: 'reviewRating' },
 ];
-interface SelectedProductT {
-  productId: number;
-  displayOrder: number;
-  productStatus: 'Y' | 'N';
-}
 
 const parseId = (val: string) => (val ? Number(val) : undefined);
 
 const ManageProductPage = () => {
-  const [isDrawerOpen, setDrawerOpen] = useState(false);
-  const [isColumnModal, setColumnModal] = useState(false);
-  const [isDetailModal, setDetailModal] = useState(false);
+  const [isFilterDrawerOpen, setFilterDrawerOpen] = useState(false);
+  const [isColumnModalOpen, setColumnModalOpen] = useState(false);
+  const [isDetailModalOpen, setDetailModalOpen] = useState(false);
 
-  const [isSelectedAllRows, setSelectedAllRows] = useState(false);
+  const [isAllRowsSelected, setAllRowsSelected] = useState(false);
   const [selectedProducts, setSelectedProducts] = useState<SelectedProductT[]>([]);
 
-  const [selectedProductId, setSelectedProductId] = useState<number | null>(null);
-  const [deselectedProductIds, setDeselectedProductIds] = useState<number[]>([]);
+  const [activeProductId, setActiveProductId] = useState<number | null>(null);
+  const [excludedProductIds, setExcludedProductIds] = useState<number[]>([]);
+
+  const [pendingDisplayOrders, setPendingDisplayOrders] = useState<Record<number, number>>({});
 
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
 
+  const isBlukModify = selectedProducts?.length > 0 || isAllRowsSelected;
+
   const approvalStatusParam = searchParams.get('approvalStatus') ?? 'approved';
-  const keywordParams = searchParams.get('keyword') ?? '';
+  const keywordParams = searchParams.get('keyword') || undefined;
   const currentPage = Number(searchParams.get('page') ?? 1);
   const itemsPerPage = Number(searchParams.get('itemsPerPage') ?? 15);
 
@@ -88,13 +89,9 @@ const ManageProductPage = () => {
   const filteredCount = Object.values(filterParams).filter((v) => v !== undefined).length;
 
   const productParams = {
+    ...filterParams,
     approvalStatus: approvalStatusParam,
     keyword: keywordParams,
-    categoryId: filterParams.categoryId,
-    shopId: filterParams.shopId,
-    brandId: filterParams.brandId,
-    unit: filterParams.unit,
-    status: filterParams.status,
     itemsPerPage,
     currentPage,
   };
@@ -106,22 +103,25 @@ const ManageProductPage = () => {
     [selectedProducts]
   );
 
-  const deselectedIdsSet = useMemo(() => new Set(deselectedProductIds), [deselectedProductIds]);
+  const deselectedIdsSet = useMemo(() => new Set(excludedProductIds), [excludedProductIds]);
 
-  const isCurrentPageSelected = isSelectedAllRows
+  // Determines if all rows on the current page are selected
+  // - In "all" mode: rows are selected unless excluded
+  // - In manual mode: rows are selected if explicitly selected
+  const isCurrentPageSelected = isAllRowsSelected
     ? (products?.data?.every((p) => deselectedIdsSet.has(p.productId)) ?? false)
     : (products?.data?.every((p) => selectedProductIds.has(p.productId)) ?? false);
 
   const handleSelectRow = (e: ChangeEvent<HTMLInputElement>, product: ProductSummaryT) => {
     const { checked } = e.target;
 
-    if (isSelectedAllRows) {
+    if (isAllRowsSelected) {
       if (!checked) {
-        setDeselectedProductIds((prev) =>
+        setExcludedProductIds((prev) =>
           prev.includes(product.productId) ? prev : [...prev, product.productId]
         );
       } else {
-        setDeselectedProductIds((prev) => prev.filter((id) => id !== product.productId));
+        setExcludedProductIds((prev) => prev.filter((id) => id !== product.productId));
       }
       return;
     }
@@ -133,7 +133,6 @@ const ManageProductPage = () => {
           {
             productId: product.productId,
             displayOrder: product.displayOrder,
-            productStatus: product.status,
           },
         ];
       }
@@ -143,15 +142,15 @@ const ManageProductPage = () => {
 
   const handleSelectAllRows = (e: ChangeEvent<HTMLInputElement>) => {
     const { checked } = e.target;
-    setSelectedAllRows(checked);
+    setAllRowsSelected(checked);
     setSelectedProducts([]);
-    setDeselectedProductIds([]);
+    setExcludedProductIds([]);
   };
 
   const handleSelectCurrentPageRows = (e: ChangeEvent<HTMLInputElement>) => {
     const { checked } = e.target;
-    setSelectedAllRows(false);
-    setDeselectedProductIds([]);
+    setAllRowsSelected(false);
+    setExcludedProductIds([]);
 
     setSelectedProducts((prev) => {
       if (checked) {
@@ -161,7 +160,7 @@ const ManageProductPage = () => {
             prevById.set(p.productId, {
               productId: p.productId,
               displayOrder: p.displayOrder,
-              productStatus: p.status,
+              // productStatus: p.status,
             });
           }
         });
@@ -174,13 +173,20 @@ const ManageProductPage = () => {
     });
   };
 
+  const handleTabChange = () => {
+    setSelectedProducts([]);
+    setExcludedProductIds([]);
+    setPendingDisplayOrders({});
+    setAllRowsSelected(false);
+  };
+
   const handleStatus = (status: string) => {
     console.log({ status });
   };
 
   const handleView = (product: ProductSummaryT) => {
-    setSelectedProductId(product.productId);
-    setDetailModal(true);
+    setActiveProductId(product.productId);
+    setDetailModalOpen(true);
   };
 
   const handleEdit = (id: number) => {
@@ -208,23 +214,38 @@ const ManageProductPage = () => {
         </Button>
       </div>
       <div className="bg-surface mt-3 rounded-xl border border-border">
-        <ProductStatusTabs />
+        <ProductStatusTabs onTabChange={handleTabChange} />
         <div className="flex justify-between px-5 py-4">
           <SearchBar />
+
+          <div
+            className={`transition-opacity duration-300 
+              ${isBlukModify ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
+          >
+            <ProductBulkActions
+              selectedProducts={selectedProducts}
+              excludedProductIds={excludedProductIds}
+              pendingDisplayOrders={pendingDisplayOrders}
+              params={{ approvalStatusParam, filterParams, keywordParams }}
+            />
+          </div>
+
           <div className="flex gap-4 ">
             <Button
               variant="filter"
-              onClick={() => setDrawerOpen(true)}
+              onClick={() => setFilterDrawerOpen(true)}
               className="flex justify-center items-center gap-2"
             >
               <FilterIcon /> Filters
-              <sup className="h-[16.67px] text-sm text-white rounded-lg px-1.5 bg-danger-500">
-                {filteredCount}
-              </sup>
+              {filteredCount > 0 && (
+                <sup className="h-[16.67px] text-sm text-white rounded-lg px-1.5 bg-danger-500">
+                  {filteredCount}
+                </sup>
+              )}
             </Button>
             <Button
               variant="column"
-              onClick={() => setColumnModal(true)}
+              onClick={() => setColumnModalOpen(true)}
               className="flex justify-center items-center gap-2"
             >
               <ColumnIcon /> Columns
@@ -235,7 +256,7 @@ const ManageProductPage = () => {
         <div className="w-full overflow-x-auto">
           <DataTable
             selection={{
-              isSelectedAll: isSelectedAllRows && deselectedProductIds?.length === 0,
+              isSelectedAll: isAllRowsSelected && excludedProductIds?.length === 0,
               isCurrentPageSelected: isCurrentPageSelected,
               onSelectAllRows: handleSelectAllRows,
               onSelectCurrentPageRows: handleSelectCurrentPageRows,
@@ -250,6 +271,7 @@ const ManageProductPage = () => {
               'DP(৳)',
               'MRP(৳)',
               'Sell(৳)',
+              'Display Order',
               'Status',
               'Action',
             ]}
@@ -261,7 +283,7 @@ const ManageProductPage = () => {
                     <Checkbox
                       name={String(product.productId)}
                       checked={
-                        isSelectedAllRows
+                        isAllRowsSelected
                           ? !deselectedIdsSet.has(product.productId)
                           : selectedProductIds.has(product.productId)
                       }
@@ -271,29 +293,42 @@ const ManageProductPage = () => {
                 </td>
                 <td className="px-5 py-3">{(currentPage - 1) * itemsPerPage + index + 1}</td>
                 <td className="px-5 py-3">
-                  <div className="max-w-56 flex gap-2 items-center">
+                  <div className="flex gap-2 items-center max-w-48">
                     <Image
                       src={`https://prod.saralifestyle.com${product.thumbnailImage}`}
                       width={48}
                       height={48}
                       alt="default-avater"
                     />
-                    <p>
-                      {product.categoryName} {product.categoryName}
-                    </p>
+                    <p>{product.productName}</p>
                   </div>
                 </td>
+
                 <td className="px-5 py-3">{product.shopName}</td>
                 <td className="px-5 py-3">{product.sku}</td>
                 <td className="px-5 py-3">{product.categoryName}</td>
-                <td className="px-5 py-3">
-                  <span className="whitespace-nowrap bg-success-50 px-2.5 py-1 border border-success-500 rounded-lg">
-                    {formatDateTime(product.updatedAt)}
-                  </span>
-                </td>
+                <td className="px-5 py-3">{formatDateTime(product.updatedAt)}</td>
                 <td className="px-5 py-3">{product.dpPrice}</td>
                 <td className="px-5 py-3">{product.mrp}</td>
                 <td className="px-5 py-3">{product.sellingPrice}</td>
+                <td className="px-5 py-3">
+                  <input
+                    type="number"
+                    disabled={isBlukModify && selectedProductIds.has(product.productId)}
+                    placeholder="Display Order"
+                    defaultValue={product.displayOrder}
+                    className={cn(
+                      'input-field input-no-arrow',
+                      'mt-0 max-w-28 py-0.5 placeholder:text-xs'
+                    )}
+                    onChange={(e) =>
+                      setPendingDisplayOrders((prev) => ({
+                        ...prev,
+                        [product.productId]: Number(e.target.value),
+                      }))
+                    }
+                  />
+                </td>
                 <td className="px-5 py-3">
                   <Switch
                     isEnabled={product.status === 'Y'}
@@ -329,42 +364,38 @@ const ManageProductPage = () => {
               </tr>
             ))}
           </DataTable>
-          <div className="text-center py-5">
-            <Pagination
-              totalPages={products?.pagination?.totalPages}
-              totalItems={products?.pagination?.totalItems}
-            />
-          </div>
+        </div>
+
+        <div className="text-center py-5">
+          <Pagination
+            totalPages={products?.pagination?.totalPages}
+            totalItems={products?.pagination?.totalItems}
+          />
         </div>
       </div>
 
-      {/* {isDrawerOpen && (
-        <ProductListFilterModal
-          isOpen={isDrawerOpen}
-          onClose={() => setDrawerOpen(false)}
-          initialValues={filterParams}
-        />
-      )} */}
-
       <ProductListFilterDrawer
-        isOpen={isDrawerOpen}
-        onClose={() => setDrawerOpen(false)}
+        isOpen={isFilterDrawerOpen}
+        onClose={() => setFilterDrawerOpen(false)}
         initialValues={filterParams}
       />
 
-      {isColumnModal && (
+      {isColumnModalOpen && (
         <ColumnSettingsModal
-          isOpen={isColumnModal}
-          onClose={() => setColumnModal(false)}
+          isOpen={isColumnModalOpen}
+          onClose={() => setColumnModalOpen(false)}
           columns={columns}
         />
       )}
 
-      {isDetailModal && selectedProductId && (
+      {isDetailModalOpen && activeProductId && (
         <ProductDetailsModal
-          productId={selectedProductId}
-          isOpen={isDetailModal}
-          onClose={() => setDetailModal(false)}
+          productId={activeProductId}
+          isOpen={isDetailModalOpen}
+          onClose={() => {
+            setDetailModalOpen(false);
+            setActiveProductId(null);
+          }}
         />
       )}
     </div>

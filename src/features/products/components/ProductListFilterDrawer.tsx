@@ -34,9 +34,9 @@ const ProductListFilterDrawer = ({ isOpen, onClose, initialValues }: ProductFilt
 
   const initialQueryParams = Object.fromEntries(searchParams.entries());
 
-  const { data: shops, isLoading: isShopLoading } = useGetShopsQuery({
-    keyword: shopSearch?.debouncedKeyword,
-  });
+  const { data: shops, isLoading: isShopLoading } = useGetShopsQuery(
+    cleanQueryParams({ keyword: shopSearch?.debouncedKeyword })
+  );
 
   const {
     handleSubmit,

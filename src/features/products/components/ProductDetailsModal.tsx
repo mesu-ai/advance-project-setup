@@ -353,16 +353,11 @@ const MetadataSection = (product: ProductT) => (
             <div className="mt-2 border border-dashed border-neutral-300 rounded-lg p-3 h-[120px]">
               {product.ogImage ? (
                 <Image
-                  src={
-                    typeof product.ogImage === 'string'
-                      ? product.ogImage
-                      : URL.createObjectURL(product.ogImage)
-                  }
+                  src={product.ogImage as string}
                   alt="OG Image"
                   className="h-full object-contain"
                 />
-              ) : // <p className="text-muted-foreground">No OG image available</p>
-              null}
+              ) : null}
             </div>
           </div>
         </div>
@@ -384,38 +379,43 @@ const ProductDetailsModal = ({ isOpen, onClose, productId }: ProductDetailsModal
     skip: !productId,
   });
 
-  if (isLoading) return <div>Loading...</div>;
-  if (!product?.data) return <div>Product not found</div>;
-
   return (
     <Modal isOpen={isOpen} onClose={onClose} title="Product View" className="w-[1200px]">
-      <div role="tablist" className="px-5 pb-4 flex gap-8 font-medium">
-        {productSections.map((sec) => {
-          const isActive = activeSection === sec.key;
+      {isLoading ? (
+        <p>Loading...</p>
+      ) : !product?.data ? (
+        <p>Product not found</p>
+      ) : (
+        <>
+          <div role="tablist" className="px-5 pb-4 flex gap-8 font-medium">
+            {productSections.map((sec) => {
+              const isActive = activeSection === sec.key;
 
-          return (
-            <button
-              key={sec.key}
-              aria-selected={isActive}
-              onClick={() => setActiveSection(sec.key)}
-              className={`relative group transition-all duration-300 ease-linear cursor-pointer ${
-                isActive
-                  ? 'text-primary-500 after:absolute after:top-full after:left-0 after:bg-primary-500 after:h-[2px] after:content-[""] after:w-6'
-                  : 'text-neutral-300 hover:text-secondary-500'
-              }`}
-            >
-              {sec.name}
-            </button>
-          );
-        })}
-      </div>
-      <div className="h-[60vh] overflow-y-auto">
-        {activeSection === 'basisInfo' && BasisInfoSection(product.data)}
-        {activeSection === 'variants' && VariantsSection(product.data)}
-        {activeSection === 'productInfo' && ProductInfoSection(product.data)}
-        {activeSection === 'returnPolicy' && ReturnPolicySection(product.data)}
-        {activeSection === 'metadata' && MetadataSection(product.data)}
-      </div>
+              return (
+                <button
+                  key={sec.key}
+                  aria-selected={isActive}
+                  onClick={() => setActiveSection(sec.key)}
+                  className={`relative group transition-all duration-300 ease-linear cursor-pointer ${
+                    isActive
+                      ? 'text-primary-500 after:absolute after:top-full after:left-0 after:bg-primary-500 after:h-[2px] after:content-[""] after:w-6'
+                      : 'text-neutral-300 hover:text-secondary-500'
+                  }`}
+                >
+                  {sec.name}
+                </button>
+              );
+            })}
+          </div>
+          <div className="h-[60vh] overflow-y-auto">
+            {activeSection === 'basisInfo' && <BasisInfoSection {...product.data} />}
+            {activeSection === 'variants' && <VariantsSection {...product.data} />}
+            {activeSection === 'productInfo' && <ProductInfoSection {...product.data} />}
+            {activeSection === 'returnPolicy' && <ReturnPolicySection {...product.data} />}
+            {activeSection === 'metadata' && <MetadataSection {...product.data} />}
+          </div>
+        </>
+      )}
     </Modal>
   );
 };

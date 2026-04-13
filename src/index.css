@@ -142,6 +142,10 @@ input:-webkit-autofill {
     @apply mt-1 w-full border border-neutral-300 text-sm leading-normal rounded-lg px-2 py-[6.5px] outline-none hover:border-primary-500 bg-surface disabled:bg-white-700 dark:disabled:bg-black-300 data-[disabled=true]:bg-white-700 dark:data-[disabled=true]:bg-black-300 disabled:border-neutral-300 data-[disabled=true]:border-neutral-300;
   }
 
+  .input-no-arrow {
+    @apply [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none;
+  }
+
   .input-error {
     @apply text-red-500 text-sm;
   }

@@ -9,10 +9,21 @@ const productApprovalStatus = [
   { name: 'All', status: 'all', count: '10580' },
 ];
 
-const ProductStatusTabs = () => {
+interface ProductStatusTabsProps {
+  onTabChange?: (status: string) => void;
+}
+
+const ProductStatusTabs = ({ onTabChange }: ProductStatusTabsProps) => {
   const [searchParams] = useSearchParams();
 
   const activeApprovalStatus = searchParams.get('approvalStatus') ?? 'approved';
+
+  const buildTabUrl = (status: string) => {
+    const next = new URLSearchParams();
+    next.set('approvalStatus', status);
+    // reset page on tab change
+    return `?${next.toString()}`;
+  };
 
   return (
     <div className="px-5 pt-8 pb-4 border-b border-border flex gap-8 text-sm font-medium">
@@ -22,12 +33,13 @@ const ProductStatusTabs = () => {
         return (
           <Link
             key={s.status}
-            to={`?approvalStatus=${s.status}`}
+            to={buildTabUrl(s.status)}
             className={`relative group transition-all duration-300 ease-linear ${
               isActive
                 ? 'text-secondary-500 after:absolute after:top-full after:left-0 after:bg-primary-500 after:h-[2px] after:content-[""] after:w-6'
                 : 'text-neutral-300 hover:text-secondary-500'
             }`}
+            onClick={() => onTabChange?.(s.status)}
           >
             {s.name}
             <sup

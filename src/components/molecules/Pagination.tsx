@@ -42,18 +42,7 @@ const Ellipsis = () => {
   );
 };
 
-const Pagination = ({
-  totalPages = 1,
-  // currentPage = 1,
-  totalItems = 1,
-  maxPagesToShow = 3,
-  // setCurrentPage,
-  // onCurrentPage,
-}: PaginationProps) => {
-  // const [currentPage, setCurrentPage] = useState(1);
-  // const totalPages = 30;
-  // const maxPagesToShow = 3;
-
+const Pagination = ({ totalPages = 1, totalItems = 1, maxPagesToShow = 3 }: PaginationProps) => {
   const [searchParams, setSearchParams] = useSearchParams();
   const initialQueryParams = Object.fromEntries(searchParams.entries());
 

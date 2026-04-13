@@ -634,7 +634,7 @@ const ProductForm = ({ mode, initialValues, initialCategory, onSubmit }: Product
                           <Input placeholder="MRP" className="w-28" {...register('mrp')} />
 
                           {getValues('sellingPrice') ? (
-                            <div className="min-w-28 flex items-center border border-neutral-300 py-1 px-2 leading-normal rounded hover:bg-white-700">
+                            <div className="mt-1 text-sm min-w-28 flex items-center border border-neutral-300 px-2 py-[6.5px] leading-normal rounded-lg hover:bg-white-700">
                               <span>{getValues('sellingPrice')}</span>
                               <button
                                 type="button"
@@ -665,7 +665,7 @@ const ProductForm = ({ mode, initialValues, initialCategory, onSubmit }: Product
 
                           <Button
                             variant="apply"
-                            className="ms-5 max-w-28"
+                            className="ms-5 min-w-28 mt-1 text-sm py-[6.5px] border border-secondary-500"
                             onClick={() => handleGroupApply()}
                           >
                             Apply to All

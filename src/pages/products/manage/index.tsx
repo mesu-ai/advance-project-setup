@@ -6,13 +6,11 @@ import Switch from '@/components/atoms/Switch';
 import ActionButtons from '@/components/molecules/ActionButtons';
 import Pagination from '@/components/molecules/Pagination';
 import DataTable from '@/components/organisms/DataTable';
-import ColumnSettingsModal, {
-  type ColumnSetting,
-} from '@/components/molecules/modal/ColumnSettingsModal';
+import ColumnSettingsModal from '@/components/molecules/modal/ColumnSettingsModal';
 import ProductStatusTabs from '@/features/products/components/ProductStatusTabs';
 import { useGetProductsQuery } from '@/store/api/endpoints/productEndpoints';
-import type { ProductSummaryT, SelectedProductT } from '@/types';
-import { useMemo, useState, type ChangeEvent } from 'react';
+import type { ColumnSetting, ProductSummaryT, SelectedProductT } from '@/types';
+import { useMemo, useState, type ChangeEvent, type ReactNode } from 'react';
 import { useNavigate, useSearchParams } from 'react-router';
 import ProductDetailsModal from '@/features/products/components/ProductDetailsModal';
 import { formatDateTime } from '@/utils/formatDateTime';
@@ -21,29 +19,9 @@ import Checkbox from '@/components/atoms/Checkbox';
 import SearchBar from '@/components/molecules/SearchBar';
 import ProductBulkActions from '@/features/products/components/ProductBulkActions';
 import { cn } from '@/lib/cn';
+import { useGetColumnsQuery } from '@/store/api/endpoints/columnEndPoints';
 
-const columns: ColumnSetting[] = [
-  { label: 'Product ID', value: 'productId', isVisible: true },
-  { label: 'Product Name', value: 'productName', disabled: true, isVisible: true },
-  { label: 'Shop Name', value: 'shopName', disabled: true, isVisible: true },
-  { label: 'SKU', value: 'sku', disabled: true, isVisible: true },
-  { label: 'Category', value: 'category', disabled: true, isVisible: true },
-  { label: 'Brand', value: 'brand', isVisible: true },
-  { label: 'DP', value: 'dp', disabled: true, isVisible: true },
-  { label: 'MRP', value: 'mrp', disabled: true, isVisible: true },
-  { label: 'Selling Price', value: 'sellingPrice', disabled: true, isVisible: true },
-  { label: 'Burn', value: 'burn' },
-  { label: 'Discount', value: 'discount' },
-  { label: 'Commission', value: 'commission', isVisible: true },
-  { label: 'Display Order', value: 'displayOrder' },
-  { label: 'Stock', value: 'stock' },
-  { label: 'Warranty Type', value: 'warrantyType' },
-  { label: 'Warranty Period', value: 'warrantyPeriod' },
-  { label: 'Created By', value: 'createdBy' },
-  { label: 'Updated By', value: 'updatedBy' },
-  { label: 'Review Rating', value: 'reviewRating' },
-];
-
+const EMPTY_COLUMNS: ColumnSetting[] = [];
 const parseId = (val: string) => (val ? Number(val) : undefined);
 
 const ManageProductPage = () => {
@@ -86,8 +64,6 @@ const ManageProductPage = () => {
     [categoryIdParam, shopIdParam, brandIdParam, unitParam, statusParam]
   );
 
-  const filteredCount = Object.values(filterParams).filter((v) => v !== undefined).length;
-
   const productParams = {
     ...filterParams,
     approvalStatus: approvalStatusParam,
@@ -97,6 +73,12 @@ const ManageProductPage = () => {
   };
 
   const { data: products } = useGetProductsQuery(productParams);
+  const { data: columns } = useGetColumnsQuery({ type: 'products' });
+
+  const visibleColumns = useMemo(
+    () => (columns?.data ?? EMPTY_COLUMNS).filter((col) => col.isVisible),
+    [columns]
+  );
 
   const selectedProductIds = useMemo(
     () => new Set(selectedProducts.map((p) => p.productId)),
@@ -104,6 +86,8 @@ const ManageProductPage = () => {
   );
 
   const deselectedIdsSet = useMemo(() => new Set(excludedProductIds), [excludedProductIds]);
+
+  const filteredCount = Object.values(filterParams).filter((v) => v !== undefined).length;
 
   // Determines if all rows on the current page are selected
   // - In "all" mode: rows are selected unless excluded
@@ -205,6 +189,46 @@ const ManageProductPage = () => {
     console.log({ id });
   };
 
+  const columnOverrides: Partial<Record<string, (p: ProductSummaryT) => ReactNode>> = {
+    // dp: (p) => p.dpPrice,
+    // category: (p) => p.categoryName,
+    // brand: (p) => p.brandName,
+    productName: (p) => (
+      <div className="flex gap-2 items-center min-w-48">
+        <Image
+          src={`https://prod.saralifestyle.com${p.thumbnailImage}`}
+          width={48}
+          height={48}
+          alt="default-avater"
+        />
+        <p>{p.productName}</p>
+      </div>
+    ),
+
+    updatedAt: (p) => formatDateTime(p.updatedAt),
+    displayOrder: (p) => (
+      <input
+        type="number"
+        disabled={isBlukModify && selectedProductIds.has(p.productId)}
+        placeholder="Display Order"
+        defaultValue={p.displayOrder}
+        className={cn('input-field input-no-arrow', 'mt-0 max-w-28 py-0.5 placeholder:text-xs')}
+        onChange={(e) =>
+          setPendingDisplayOrders((prev) => ({
+            ...prev,
+            [p.productId]: Number(e.target.value),
+          }))
+        }
+      />
+    ),
+  };
+
+  const renderCell = (col: ColumnSetting, product: ProductSummaryT) => {
+    const override = columnOverrides[col.value];
+    if (override) return override(product);
+    return (product[col.value as keyof ProductSummaryT] as ReactNode) ?? '—';
+  };
+
   return (
     <div>
       <div className="flex justify-between">
@@ -261,20 +285,7 @@ const ManageProductPage = () => {
               onSelectAllRows: handleSelectAllRows,
               onSelectCurrentPageRows: handleSelectCurrentPageRows,
             }}
-            header={[
-              'SL No',
-              'Product Name',
-              'Shop Name',
-              'Product Style/SKU',
-              'Category',
-              'Last Update',
-              'DP(৳)',
-              'MRP(৳)',
-              'Sell(৳)',
-              'Display Order',
-              'Status',
-              'Action',
-            ]}
+            header={['SL No', ...visibleColumns.map((col) => col.label), 'Status', 'Action']}
           >
             {products?.data?.map((product, index: number) => (
               <tr key={product.productId}>
@@ -292,43 +303,11 @@ const ManageProductPage = () => {
                   </div>
                 </td>
                 <td className="px-5 py-3">{(currentPage - 1) * itemsPerPage + index + 1}</td>
-                <td className="px-5 py-3">
-                  <div className="flex gap-2 items-center max-w-48">
-                    <Image
-                      src={`https://prod.saralifestyle.com${product.thumbnailImage}`}
-                      width={48}
-                      height={48}
-                      alt="default-avater"
-                    />
-                    <p>{product.productName}</p>
-                  </div>
-                </td>
-
-                <td className="px-5 py-3">{product.shopName}</td>
-                <td className="px-5 py-3">{product.sku}</td>
-                <td className="px-5 py-3">{product.categoryName}</td>
-                <td className="px-5 py-3">{formatDateTime(product.updatedAt)}</td>
-                <td className="px-5 py-3">{product.dpPrice}</td>
-                <td className="px-5 py-3">{product.mrp}</td>
-                <td className="px-5 py-3">{product.sellingPrice}</td>
-                <td className="px-5 py-3">
-                  <input
-                    type="number"
-                    disabled={isBlukModify && selectedProductIds.has(product.productId)}
-                    placeholder="Display Order"
-                    defaultValue={product.displayOrder}
-                    className={cn(
-                      'input-field input-no-arrow',
-                      'mt-0 max-w-28 py-0.5 placeholder:text-xs'
-                    )}
-                    onChange={(e) =>
-                      setPendingDisplayOrders((prev) => ({
-                        ...prev,
-                        [product.productId]: Number(e.target.value),
-                      }))
-                    }
-                  />
-                </td>
+                {visibleColumns.map((col) => (
+                  <td key={col.value} className="px-5 py-3">
+                    {renderCell(col, product)}
+                  </td>
+                ))}
                 <td className="px-5 py-3">
                   <Switch
                     isEnabled={product.status === 'Y'}
@@ -338,26 +317,11 @@ const ManageProductPage = () => {
                 <td className="px-5 py-3">
                   <ActionButtons
                     actions={[
-                      {
-                        label: 'View',
-                        onClick: () => handleView(product),
-                      },
-                      {
-                        label: 'Edit',
-                        onClick: () => handleEdit(product.productId),
-                      },
-                      {
-                        label: 'Duplicate',
-                        onClick: () => handleDuplicate(product.productId),
-                      },
-                      {
-                        label: 'Pending',
-                        onClick: () => handlePending(product.productId),
-                      },
-                      {
-                        label: 'Reject',
-                        onClick: () => handleReject(product.productId),
-                      },
+                      { label: 'View', onClick: () => handleView(product) },
+                      { label: 'Edit', onClick: () => handleEdit(product.productId) },
+                      { label: 'Duplicate', onClick: () => handleDuplicate(product.productId) },
+                      { label: 'Pending', onClick: () => handlePending(product.productId) },
+                      { label: 'Reject', onClick: () => handleReject(product.productId) },
                     ]}
                   />
                 </td>
@@ -384,7 +348,7 @@ const ManageProductPage = () => {
         <ColumnSettingsModal
           isOpen={isColumnModalOpen}
           onClose={() => setColumnModalOpen(false)}
-          columns={columns}
+          columns={columns?.data ?? []}
         />
       )}
 

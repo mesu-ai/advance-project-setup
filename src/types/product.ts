@@ -15,6 +15,7 @@ export interface ProductSummaryT {
   productName: string;
   thumbnailImage: string;
   shopName: string;
+  brandName: string;
   sku: string;
   categoryName: string;
   dpPrice: number;

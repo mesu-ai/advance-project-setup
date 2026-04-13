@@ -1,15 +1,9 @@
 import Checkbox from '@/components/atoms/Checkbox';
 import Modal from '@/components/organisms/Modal/Modal';
+import type { ColumnSetting } from '@/types';
 import { Controller, useForm } from 'react-hook-form';
 
 type ColumnSettingFormData = Record<string, 'Y' | 'N'>;
-
-export interface ColumnSetting {
-  label: string;
-  value: string;
-  disabled?: boolean;
-  isVisible?: boolean;
-}
 
 interface ColumnSettingModalProps {
   isOpen: boolean;

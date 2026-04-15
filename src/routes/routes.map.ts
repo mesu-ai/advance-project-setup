@@ -18,6 +18,12 @@ const orderRoutePermissions: RoutePermissionMapT = {
   '/orders/cancel': { page: 'orders.cancel', pageLabel: 'Order Cancel' },
 } as const;
 
+const settingsRoutePermissions: RoutePermissionMapT = {
+  '/settings/seller': { page: 'seller.index', pageLabel: 'Seller Settings' },
+  '/settings/brands': { page: 'brands.index', pageLabel: 'Brand Settings' },
+  '/settings/categories': { page: 'categories.index', pageLabel: 'Category Settings' },
+} as const;
+
 const accessRoutePermissions: RoutePermissionMapT = {
   '/access-control': { page: 'access-control.index', showInTable: false },
   '/access-control/employees': {
@@ -51,7 +57,13 @@ export const routerPermissionMap: RoutePermissionMapT = Object.freeze({
   '/': { page: 'dashboard.index', actions: ['view', 'delete'] },
   ...productRoutePermissions,
   ...orderRoutePermissions,
+  ...settingsRoutePermissions,
   ...accessRoutePermissions,
 });
 
-export { productRoutePermissions, orderRoutePermissions, accessRoutePermissions };
+export {
+  productRoutePermissions,
+  orderRoutePermissions,
+  settingsRoutePermissions,
+  accessRoutePermissions,
+};

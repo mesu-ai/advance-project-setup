@@ -8,6 +8,7 @@ import {
   accessRoutePermissions,
   orderRoutePermissions,
   productRoutePermissions,
+  settingsRoutePermissions,
 } from '@/routes/routes.map';
 import type { FieldValues, Path, UseFormSetValue, UseFormTrigger } from 'react-hook-form';
 import { getModulePermissions, modulePermissionRows } from '@/utils/permission';
@@ -44,6 +45,11 @@ const PermissionTable = <T extends FieldValues & { permissions: string[] }>({
     []
   );
 
+  const settingPermissionRows: ModulePermissionT[] = useMemo(
+    () => modulePermissionRows(settingsRoutePermissions),
+    []
+  );
+
   const accessPermissionRows: ModulePermissionT[] = useMemo(
     () => modulePermissionRows(accessRoutePermissions),
     []
@@ -54,8 +60,9 @@ const PermissionTable = <T extends FieldValues & { permissions: string[] }>({
       ...getModulePermissions(productPermissionRows),
       ...getModulePermissions(accessPermissionRows),
       ...getModulePermissions(orderPermissionRows),
+      ...getModulePermissions(settingPermissionRows),
     ],
-    [productPermissionRows, orderPermissionRows, accessPermissionRows]
+    [productPermissionRows, orderPermissionRows, accessPermissionRows, settingPermissionRows]
   );
 
   const isSelectAll = useMemo(
@@ -113,6 +120,11 @@ const PermissionTable = <T extends FieldValues & { permissions: string[] }>({
     [permissions, orderPermissionRows]
   );
 
+  const isSettingsEnabled = useMemo(
+    () => isModuleEnabled(settingPermissionRows, permissions),
+    [permissions, settingPermissionRows]
+  );
+
   const isRolesEnabled = useMemo(
     () => isModuleEnabled(accessPermissionRows, permissions),
     [permissions, accessPermissionRows]
@@ -121,6 +133,7 @@ const PermissionTable = <T extends FieldValues & { permissions: string[] }>({
   const modules: ModuleT[] = [
     { name: 'Products', isEnabled: isProductsEnabled, data: productPermissionRows },
     { name: 'Orders', isEnabled: isOrdersEnabled, data: orderPermissionRows },
+    { name: 'Settings', isEnabled: isSettingsEnabled, data: settingPermissionRows },
     { name: 'Roles & Permissions', isEnabled: isRolesEnabled, data: accessPermissionRows },
   ];
 

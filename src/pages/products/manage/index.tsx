@@ -75,6 +75,8 @@ const ManageProductPage = () => {
   const { data: products } = useGetProductsQuery(productParams);
   const { data: columns } = useGetColumnsQuery({ type: 'products' });
 
+  const filteredCount = Object.values(filterParams).filter((v) => v !== undefined).length;
+
   const visibleColumns = useMemo(
     () => (columns?.data ?? EMPTY_COLUMNS).filter((col) => col.isVisible),
     [columns]
@@ -86,9 +88,6 @@ const ManageProductPage = () => {
   );
 
   const deselectedIdsSet = useMemo(() => new Set(excludedProductIds), [excludedProductIds]);
-
-  const filteredCount = Object.values(filterParams).filter((v) => v !== undefined).length;
-
   // Determines if all rows on the current page are selected
   // - In "all" mode: rows are selected unless excluded
   // - In manual mode: rows are selected if explicitly selected

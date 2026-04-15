@@ -29,6 +29,10 @@ const ensureRefreshed = async (
   api: Parameters<BaseQueryFnT>[1],
   extraOptions: Parameters<BaseQueryFnT>[2]
 ): Promise<RefreshTokenResponseT | undefined> => {
+  if (isRefreshing && refreshPromise) {
+    return await refreshPromise; // ← wait for the in-flight one
+  }
+
   if (!isRefreshing) {
     isRefreshing = true;
     refreshPromise = (async () => {
@@ -49,10 +53,12 @@ const ensureRefreshed = async (
         }
       } finally {
         isRefreshing = false;
-        // clear the promise so future refreshes can run
-        const prev = refreshPromise;
-        refreshPromise = null;
-        void prev;
+        refreshPromise = null; // clear the promise so future refreshes can run
+
+        // // clear the promise so future refreshes can run
+        // const prev = refreshPromise;
+        // refreshPromise = null;
+        // void prev;
       }
     })();
   }
@@ -116,6 +122,8 @@ const baseQueryWithReauth: BaseQueryFnT = async (args, api, extraOptions) => {
 export const baseApi = createApi({
   reducerPath: 'baseApi',
   baseQuery: baseQueryWithReauth,
+  // refetchOnMountOrArgChange: 30,  // ← add
+  // refetchOnFocus: true,           // ← add
   tagTypes: [
     'Auth',
     'Product',

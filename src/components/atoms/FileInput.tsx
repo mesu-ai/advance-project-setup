@@ -3,10 +3,11 @@ import { useEffect, useId, useState, type ComponentPropsWithRef, type DragEvent 
 
 interface FileInputProps extends Omit<ComponentPropsWithRef<'input'>, 'type' | 'value' | 'onDrop'> {
   label: string;
-  error?: string;
-  errorSameRow?: string;
   value?: File | File[] | string;
   onDrop?: (file: File) => void;
+  isPreview?: boolean;
+  error?: string;
+  errorSameRow?: string;
 }
 
 const FileInput = ({
@@ -15,6 +16,7 @@ const FileInput = ({
   error,
   errorSameRow,
   value,
+  isPreview = true,
   required,
   onDrop,
   ...props
@@ -23,8 +25,8 @@ const FileInput = ({
   const [isDragOver, setIsDragOver] = useState<boolean>(false);
   const generatedId = useId();
 
-  // const fileName =
-  //   value instanceof File ? value.name : typeof value === 'string' ? value.split('/').pop() : '';
+  const fileName =
+    value instanceof File ? value.name : typeof value === 'string' ? value.split('/').pop() : '';
 
   const handleDragOver = (e: DragEvent<HTMLLabelElement>) => {
     e.preventDefault();
@@ -58,7 +60,9 @@ const FileInput = ({
       // const imageUrl = `${baseURL}${value}`;
       setPreview(value);
     }
-  }, [value]);
+  }, [value, isPreview]);
+
+  console.log({ error, errorSameRow });
 
   return (
     <div className={className}>
@@ -71,10 +75,16 @@ const FileInput = ({
         onDrop={handleOnDrop}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
-        className={`${errorSameRow ? 'h-[calc(100%-48px)]' : 'h-[calc(100%-28px)]'} input-field border-dashed flex items-center justify-center gap-x-2 ${isDragOver && 'border-primary-500'}`}
+        className={`${errorSameRow ? 'h-[calc(100%-48px)]' : 'h-[calc(100%-28px)]'} min-h-14 input-field border-dashed flex items-center justify-center gap-x-2 ${isDragOver && 'border-primary-500'}`}
       >
         {preview ? (
-          <img src={preview} alt="preview-image" className="h-24 w-auto" />
+          <>
+            {isPreview ? (
+              <img src={preview} alt="Preview" className="max-h-24 object-contain" />
+            ) : (
+              <span className="text-sm text-neutral-500 truncate w-full px-5">{fileName}</span>
+            )}
+          </>
         ) : (
           <span
             className={

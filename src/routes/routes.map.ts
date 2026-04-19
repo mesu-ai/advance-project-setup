@@ -19,7 +19,10 @@ const orderRoutePermissions: RoutePermissionMapT = {
 } as const;
 
 const settingsRoutePermissions: RoutePermissionMapT = {
-  '/settings/seller': { page: 'seller.index', pageLabel: 'Seller Settings' },
+  '/settings/sellers': { page: 'sellers.index', pageLabel: 'Seller Settings' },
+  '/settings/sellers/create': { page: 'sellers.create', pageLabel: 'Seller Create' },
+  '/settings/sellers/:sellerId/edit': { page: 'sellers.edit', pageLabel: 'Seller Edit' },
+
   '/settings/brands': { page: 'brands.index', pageLabel: 'Brand Settings' },
   '/settings/categories': { page: 'categories.index', pageLabel: 'Category Settings' },
 } as const;

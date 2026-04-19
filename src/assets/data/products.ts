@@ -1,3 +1,5 @@
+import type { StatusTabOptionT } from '@/components/molecules/StatusTab';
+
 export const productSections = [
   { key: 'basisInfo', name: 'Basic Information' },
   { key: 'variants', name: 'Price, Stock & Variants' },
@@ -25,3 +27,12 @@ export const productSteps = [
   { key: 'url', name: 'URL', description: 'Product URL submition details' },
   { key: 'meta', name: 'Meta & OG Info', description: 'Product meta & OG info details' },
 ] as const;
+
+export const productApprovalStatus: StatusTabOptionT[] = [
+  { name: 'Approved', status: 'approved', count: '1.2k' },
+  { name: 'Pending', status: 'pending', count: '300' },
+  { name: 'Rejected', status: 'rejected', count: '100' },
+  { name: 'Low Stock', status: 'lowstock', count: '09' },
+  { name: 'Draft', status: 'draft', count: '50' },
+  { name: 'All', status: 'all', count: '10580' },
+];

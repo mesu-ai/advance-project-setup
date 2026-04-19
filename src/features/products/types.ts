@@ -1,4 +1,4 @@
-import type { productSteps } from '@/assets/data/productSteps';
+import type { productSteps } from '@/assets/data/products';
 
 export type VariantOptionT = { variantOptionId: number; variantOptionText: string };
 export type ProductFieldFocusT = 'productName' | 'categoryId' | '';

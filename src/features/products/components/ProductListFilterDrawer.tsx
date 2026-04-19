@@ -73,7 +73,7 @@ const ProductListFilterDrawer = ({ isOpen, onClose, initialValues }: ProductFilt
 
   return (
     <Drawer isOpen={isOpen} onClose={handleClose} title="Filter Products">
-      <form onSubmit={handleSubmit(onSubmit)} className="h-full flex flex-col justify-between w-96">
+      <form onSubmit={handleSubmit(onSubmit)} className="h-full flex flex-col justify-between w-80">
         <div className="space-y-4">
           <Controller
             name="categoryId"

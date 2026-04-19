@@ -10,3 +10,4 @@ export * from './shop';
 export * from './inventory';
 export * from './order';
 export * from './column';
+export * from './seller';

@@ -11,7 +11,6 @@ import { Controller, useFieldArray, useForm, useWatch } from 'react-hook-form';
 import Editor from 'textcrafter';
 import ArrowLongIcon from '@/assets/svg/ArrowLongIcon';
 import Checkbox from '@/components/atoms/Checkbox';
-import FileInput from '@/components/atoms/FileInput';
 import TextArea from '@/components/atoms/TextArea';
 import ImageUploader from '@/components/molecules/ImageUploader';
 import ComboBox from '@/components/atoms/ComboBox';
@@ -29,6 +28,7 @@ import type { SectionsKeyT, ProductFieldFocusT } from '@/features/products/types
 import ProductStepper from '@/features/products/components/ProductStepper';
 import { motion } from 'motion/react';
 import { cleanQueryParams } from '@/utils/cleanQueryParams';
+import FileInput from '@/components/atoms/FileInput';
 
 const categorySuggessions: SelectedCategoryT[] = [
   {
@@ -958,7 +958,6 @@ const ProductForm = ({ mode, initialValues, initialCategory, onSubmit }: Product
                   className="bg-surface rounded-xl border border-border px-5 py-4 space-y-4 scroll-mt-20"
                 >
                   <h2 className="text-lg font-bold">Meta & OG Info</h2>
-
                   <div className="space-y-4">
                     <Input
                       label="Meta Title"
@@ -1043,6 +1042,24 @@ const ProductForm = ({ mode, initialValues, initialCategory, onSubmit }: Product
                       />
                     </div>
                   </div>
+                  {/* <MetaOgForm
+                    register={register}
+                    control={control}
+                    errors={errors}
+                    getValues={getValues}
+                    setValue={setValue}
+                    fieldNames={{
+                      metaTitle: 'metaTitle',
+                      metaDescription: 'metaDescription',
+                      metaKeywords: 'metaKeywords',
+                      ogType: 'ogType',
+                      ogTitle: 'ogTitle',
+                      ogUrl: 'ogUrl',
+                      ogDescription: 'ogDescription',
+                      ogImage: 'ogImage',
+                      urlSourceForOg: 'productUrl',
+                    }}
+                  /> */}
                 </div>
               </div>
             </div>

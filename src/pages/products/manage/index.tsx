@@ -7,7 +7,6 @@ import ActionButtons from '@/components/molecules/ActionButtons';
 import Pagination from '@/components/molecules/Pagination';
 import DataTable from '@/components/organisms/DataTable';
 import ColumnSettingsModal from '@/components/molecules/modal/ColumnSettingsModal';
-import ProductStatusTabs from '@/features/products/components/ProductStatusTabs';
 import { useGetProductsQuery } from '@/store/api/endpoints/productEndpoints';
 import type { ColumnSetting, ProductSummaryT, SelectedProductT } from '@/types';
 import { useMemo, useState, type ChangeEvent, type ReactNode } from 'react';
@@ -19,7 +18,9 @@ import Checkbox from '@/components/atoms/Checkbox';
 import SearchBar from '@/components/molecules/SearchBar';
 import ProductBulkActions from '@/features/products/components/ProductBulkActions';
 import { cn } from '@/lib/cn';
-import { useGetColumnsQuery } from '@/store/api/endpoints/columnEndPoints';
+import { useGetColumnsQuery } from '@/store/api/endpoints/columnEndpoints';
+import StatusTab from '@/components/molecules/StatusTab';
+import { productApprovalStatus } from '@/assets/data/products';
 
 const EMPTY_COLUMNS: ColumnSetting[] = [];
 const parseId = (val: string) => (val ? Number(val) : undefined);
@@ -237,10 +238,9 @@ const ManageProductPage = () => {
         </Button>
       </div>
       <div className="bg-surface mt-3 rounded-xl border border-border">
-        <ProductStatusTabs onTabChange={handleTabChange} />
+        <StatusTab options={productApprovalStatus} onTabChange={handleTabChange} />
         <div className="flex justify-between px-5 py-4">
           <SearchBar />
-
           <div
             className={`transition-opacity duration-300 
               ${isBlukModify ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}

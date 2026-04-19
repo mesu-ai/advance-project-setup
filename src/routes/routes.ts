@@ -18,9 +18,10 @@ const ManageOrder = lazy(() => import('../pages/orders/manage/index'));
 const CancelOrder = lazy(() => import('../pages/orders/cancel/index'));
 
 // settings section
-const SellerList = lazy(() => import('../pages/settings/seller/index'));
-// const CreateSeller = lazy(() => import('../pages/settings/sellers/create/index'));
-// const EditSeller = lazy(() => import('../pages/settings/sellers/edit/index'));
+const SellerList = lazy(() => import('../pages/settings/sellers/index'));
+const CreateSeller = lazy(() => import('../pages/settings/sellers/create/index'));
+const EditSeller = lazy(() => import('../pages/settings/sellers/edit/index'));
+
 const CategoryList = lazy(() => import('../pages/settings/categories/index'));
 // const CreateCategory = lazy(() => import('../pages/settings/categories/create/index'));
 // const EditCategory = lazy(() => import('../pages/settings/categories/edit/index'));
@@ -92,11 +93,11 @@ export const appRoutes: AppRouteT[] = [
     path: 'settings',
     children: [
       {
-        path: 'seller',
+        path: 'sellers',
         children: [
           { index: true, Component: SellerList },
-          // { path: 'create', Component: CreateSeller },
-          // { path: ':sellerId/edit', Component: EditSeller },
+          { path: 'create', Component: CreateSeller },
+          { path: ':sellerId/edit', Component: EditSeller },
         ],
       },
       {

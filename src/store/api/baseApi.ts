@@ -134,7 +134,8 @@ export const baseApi = createApi({
     'Employee',
     'Shop',
     'Media',
-    'Columns',
+    'Column',
+    'Seller',
   ], // More tag types
   endpoints: () => ({}),
 });

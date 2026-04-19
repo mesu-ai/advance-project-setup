@@ -41,7 +41,7 @@ export const sidebarUserRoutes: SidebarRouteT[] = [
 ];
 
 export const sidebarSettingsRoutes: SidebarRouteT[] = [
-  { title: 'Seller', path: 'settings/seller', icon: DashboardIcon },
+  { title: 'Sellers', path: 'settings/sellers', icon: DashboardIcon },
   { title: 'Brands', path: 'settings/brands', icon: DashboardIcon },
   { title: 'Categories', path: 'settings/categories', icon: ProductIcon },
 ];

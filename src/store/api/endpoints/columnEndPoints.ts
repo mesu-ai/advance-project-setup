@@ -9,7 +9,7 @@ export const columnApi = baseApi.injectEndpoints({
         method: 'GET',
         params,
       }),
-      providesTags: ['Columns'],
+      providesTags: ['Column'],
     }),
   }),
 });

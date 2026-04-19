@@ -29,7 +29,7 @@ const SidebarMenuItem = ({ menu, onExpand, isExpand }: SidebarMenuItemPropsT) =>
           onClick={onExpand}
         >
           <span className="flex gap-2">
-            {menu.icon && <menu.icon />} {menu.title}
+            {menu.icon && <menu.icon className="w-5 h-5" />} {menu.title}
           </span>
           <ArrowIcon
             className={`w-5 h-5 transition-transform ${isExpand ? 'rotate-0' : 'rotate-180'}`}
@@ -38,7 +38,7 @@ const SidebarMenuItem = ({ menu, onExpand, isExpand }: SidebarMenuItemPropsT) =>
       ) : (
         <div className="p-1.5 text-neutral-300 hover:text-primary-500 hover:bg-primary-50 rounded-lg">
           <Link className="flex gap-2" to={menu.path}>
-            {menu.icon && <menu.icon />} {menu.title}
+            {menu.icon && <menu.icon className="w-5 h-5" />} {menu.title}
           </Link>
         </div>
       )}
@@ -54,7 +54,7 @@ const SidebarMenuItem = ({ menu, onExpand, isExpand }: SidebarMenuItemPropsT) =>
                   className="text-sm flex gap-2 text-neutral-300 hover:text-primary-500"
                   to={`${menu.path}/${child.path}`}
                 >
-                  {child.icon && <child.icon />} {child.title}
+                  {child.icon && <child.icon className="w-5 h-5" />} {child.title}
                 </Link>
               ))}
             </div>

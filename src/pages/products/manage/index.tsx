@@ -259,7 +259,7 @@ const ManageProductPage = () => {
               onClick={() => setFilterDrawerOpen(true)}
               className="flex justify-center items-center gap-2"
             >
-              <FilterIcon /> Filters
+              <FilterIcon className="h-5 w-5" /> Filters
               {filteredCount > 0 && (
                 <sup className="h-[16.67px] text-sm text-white rounded-lg px-1.5 bg-danger-500">
                   {filteredCount}
@@ -271,7 +271,7 @@ const ManageProductPage = () => {
               onClick={() => setColumnModalOpen(true)}
               className="flex justify-center items-center gap-2"
             >
-              <ColumnIcon /> Columns
+              <ColumnIcon className="h-5 w-5" /> Columns
             </Button>
           </div>
         </div>

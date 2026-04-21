@@ -210,7 +210,7 @@ const MetaOgForm = <T extends FieldValues>({
             control={control}
             render={({ field: { value, onChange } }) => (
               <FileInput
-                label="Photo"
+                label="OG Image"
                 error={getErrorMessage(errors, fieldNames.ogImage as FieldPath<T>)}
                 errorSameRow={getErrorMessage(errors, fieldNames.ogDescription)}
                 accept="image/png,image/jpeg"

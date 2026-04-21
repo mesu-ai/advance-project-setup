@@ -1,9 +1,9 @@
-import type { ApiResponseT, SellerParamsT, SellerT } from '@/types';
+import type { ApiResponseT, SellerParamsT, SellerSummaryT, SellerT } from '@/types';
 import { baseApi } from '../baseApi';
 
 export const sellerApi = baseApi.injectEndpoints({
   endpoints: (build) => ({
-    getSellers: build.query<ApiResponseT<SellerT[]>, SellerParamsT>({
+    getSellers: build.query<ApiResponseT<SellerSummaryT[]>, SellerParamsT>({
       query: (params) => ({
         url: '/sellers',
         method: 'GET',
@@ -11,6 +11,7 @@ export const sellerApi = baseApi.injectEndpoints({
       }),
       providesTags: ['Seller'],
     }),
+
     getSellerById: build.query<ApiResponseT<SellerT>, string>({
       query: (id) => ({
         url: `sellers/${id}`,

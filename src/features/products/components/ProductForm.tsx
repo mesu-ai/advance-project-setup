@@ -1026,7 +1026,7 @@ const ProductForm = ({ mode, initialValues, initialCategory, onSubmit }: Product
                         control={control}
                         render={({ field: { value, onChange } }) => (
                           <FileInput
-                            label="Photo"
+                            label="OG Image"
                             error={errors.ogImage?.message}
                             errorSameRow={errors.ogDescription?.message}
                             accept="image/png,image/jpeg"

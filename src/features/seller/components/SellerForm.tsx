@@ -1,3 +1,4 @@
+import DeleteIcon from '@/assets/svg/DeleteIcon';
 import Button from '@/components/atoms/Button';
 import ComboBox from '@/components/atoms/ComboBox';
 import FileInput from '@/components/atoms/FileInput';
@@ -6,68 +7,16 @@ import TextArea from '@/components/atoms/TextArea';
 import MetaOgForm from '@/components/molecules/forms/MetaOgForm';
 import { submitLabel } from '@/constants/buttonLabel';
 import { ALLOWED_UPLOAD_FILE_MIME_TYPES, IMAGE_MIME_TYPES } from '@/constants/fileType';
-import { PHONE_REGEX } from '@/constants/regex';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Controller, FormProvider, useForm } from 'react-hook-form';
+import { Controller, FormProvider, useFieldArray, useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router';
-import * as z from 'zod';
+import { sellerSchema, type SellerFormData } from '../schema';
 
-// const depertments = [
-//   { id: 1, label: 'Account', value: 'account' },
-//   { id: 2, label: 'HR Depertment', value: 'hr' },
-//   { id: 3, label: 'Desiner', value: 'designer' },
-//   { id: 3, label: 'E-commerce', value: 'e-commerce' },
-// ];
-
-// {
-//     "sellerId": 2,
-//     "shopId": 2,
-//     "sellerName": "SaRa Lifestyle Ltd.",
-//     "sellerContactNo": "01885998899",
-//     "sellerEmail": "support@saralifestyle.com",
-//     "assignVendor": 0,
-//     "bussinessTypeId": [
-//         7
-//     ],
-//     "shopName": "SaRa Lifestyle Ltd.",
-//     "ownerName": "SaRa Lifestyle Ltd.",
-//     "binNo": "12345",
-//     "sellerTypeId": 1,
-//     "countryId": 19,
-//     "sellerCurrency": "BDT",
-//     "shopCity": "Dhaka",
-//     "shopState": "Dhaka",
-//     "shopZipCode": "1216",
-//     "shopDescription": "SaRa Lifestyle Ltd.",
-//     "shopAddress": "Bangladesh",
-//     "sellerPresentAddress": "House No #966, Road #14, Avenue #02, Mirpur DOHS, Dhaka-1216, Bangladesh",
-//     "sellerPermanentAddress": "House No #966, Road #14, Avenue #02, Mirpur DOHS, Dhaka-1216, Bangladesh",
-//     "shopLogoUrl": "/Images/Sellers/BusinessDoc/248571d739d344eebc581cc414873e1c.jpeg",
-//     "sellerImageUrl": "/Images/Sellers/SellerProfile/a33c2311c7fb4d488d8720a8d8c80d05.jpeg",
-// "ownerNidUrl": "/Images/Sellers/BusinessDoc/default.png",
-// "bussinessDocUrl": "/Images/Sellers/BusinessDoc/default.png",
-// "tradeLicenseDoc": "/Images/Sellers/BusinessDoc/b0d78e36d62c461b9d2de6e76cf5d9cb.png",
-// "binNoDoc": "",
-// "tinNoDoc": "",
-// "dbIdDoc": "",
-// "additionalDocuments": [],
-//     "isSellerDelivered": "N",
-//     "nidBackDoc": "",
-// "metaTag": {
-//     "metaTitle": "Shop online with SaRa Lifestyle Ltd. now! Visit SaRa Lifestyle Ltd. on SaRa Lifestyle.",
-//     "metaKeywords": "online shops, clothing brand, SaRa Lifestyle, trendy fashion, men's apparel, women's apparel, kid's clothing, fashion deals, online fashion store, Bangladesh fashion",
-//     "metaDescription": "SaRa Lifestyle Ltd. | SaRa Lifestyle",
-//     "metaLongDescription": "Explore Trendy Fashion Finds at Online Shopping BD Marketplace – Your Ultimate Fashion & Lifestyle destination in Bangladesh! Shop Now!",
-//     "metaAuthor": ""
-// },
-// "ogTag": {
-//     "ogType": "Seller",
-//     "ogTitle": "SaRa Lifestyle Ltd. | SaRa Lifestyle",
-//     "ogUrl": "sara-lifestyle-ltd",
-//     "ogDescription": "Shop online with SaRa Lifestyle Ltd. now! Visit SaRa Lifestyle Ltd. on SaRa Lifestyle.",
-//     "ogImgUrl": "/Images/Sellers/BusinessDoc/248571d739d344eebc581cc414873e1c.jpeg"
-// }
-// }
+const countryData = [
+  { id: 1, name: 'Bangladesh' },
+  { id: 2, name: 'India' },
+  { id: 3, name: 'Pakistan' },
+];
 
 const bussinessTypes: { bussinessTypeId: number; bussinessTypeName: string }[] = [
   { bussinessTypeId: 5, bussinessTypeName: 'Books' },
@@ -75,235 +24,6 @@ const bussinessTypes: { bussinessTypeId: number; bussinessTypeName: string }[] =
   { bussinessTypeId: 7, bussinessTypeName: 'Clothing & Fashion' },
   { bussinessTypeId: 8, bussinessTypeName: 'Grocery' },
 ];
-
-const sellerMetaSchema = z.object({
-  metaTitle: z.string().optional(),
-  metaKeywords: z.string().optional(),
-  metaDescription: z.string().optional(),
-  metaLongDescription: z.string().optional(),
-  metaAuthor: z.string().optional(),
-});
-
-const sellerOgSchema = z.object({
-  ogType: z.string().optional(),
-  ogTitle: z.string().optional(),
-  ogUrl: z.string().optional(),
-  ogDescription: z.string().optional(),
-  ogImgUrl: z
-    .union([z.string().min(1), z.instanceof(File)])
-    .optional()
-    .refine((val) => {
-      if (val instanceof File) {
-        return val.size <= 5_000_000;
-      }
-      return true;
-    }, 'Max file size is 5MB')
-    .refine((val) => {
-      if (val instanceof File) {
-        return ['image/jpeg', 'image/jpg', 'image/png'].includes(val.type);
-      }
-      return true;
-    }, 'Only .jpg, .jpeg, .png formats are supported'),
-});
-
-const sellerSchema = z.object({
-  sellerName: z.string().min(3, 'Invalid name'),
-  //   employeeId: z.string().min(5, 'Invalid employee ID'),
-  sellerContactNo: z.string().regex(PHONE_REGEX, 'Invalid mobile no.'),
-  sellerEmail: z.email(),
-  assignVendor: z.number().optional(),
-  bussinessTypeId: z.array(z.number()).optional(),
-  shopName: z.string().min(3, 'Invalid shop name'),
-  ownerName: z.string().min(3, 'Invalid owner name'),
-  binNo: z.string().min(3, 'Invalid BIN no.'),
-  //   sellerTypeId: z.number().optional(),
-
-  countryId: z.number().optional(),
-  shopCity: z.number('City is required'),
-  shopState: z.number('State is required'),
-  shopZipCode: z.string().min(4, 'Invalid zip code'),
-  shopAddress: z.string().optional(),
-
-  shopDescription: z.string().optional(),
-
-  sellerPresentAddress: z.string().optional(),
-  sellerPermanentAddress: z.string().optional(),
-
-  shopLogoUrl: z
-    .union([z.string().min(1), z.instanceof(File)])
-    // .optional()
-    .refine((val) => val !== undefined && val !== null && val !== '', {
-      message: 'Upload a photo',
-    })
-    .refine((val) => {
-      if (val instanceof File) {
-        return val.size <= 5_000_000;
-      }
-      return true;
-    }, 'Max file size is 5MB')
-    .refine((val) => {
-      if (val instanceof File) {
-        return IMAGE_MIME_TYPES.includes(val.type);
-      }
-      return true;
-    }, 'Only .jpg, .jpeg, .png formats are supported'),
-
-  sellerImageUrl: z
-    .union([z.string().min(1), z.instanceof(File)])
-    // .optional()
-    .refine((val) => val !== undefined && val !== null && val !== '', {
-      message: 'Upload a photo',
-    })
-    .refine((val) => {
-      if (val instanceof File) {
-        return val.size <= 5_000_000;
-      }
-      return true;
-    }, 'Max file size is 5MB')
-    .refine((val) => {
-      if (val instanceof File) {
-        return IMAGE_MIME_TYPES.includes(val.type);
-      }
-      return true;
-    }, 'Only .jpg, .jpeg, .png formats are supported'),
-
-  metaTag: sellerMetaSchema,
-  ogTag: sellerOgSchema,
-
-  ownerNidUrl: z
-    .union([z.string().min(1), z.instanceof(File)])
-    .refine((val) => val !== undefined && val !== null && val !== '', {
-      message: 'Upload a file',
-    })
-    .refine((val) => {
-      if (val instanceof File) {
-        return val.size <= 5_000_000;
-      }
-      return true;
-    }, 'Max file size is 5MB')
-    .refine((val) => {
-      if (val instanceof File) {
-        return ALLOWED_UPLOAD_FILE_MIME_TYPES.includes(val.type);
-      }
-      return true;
-    }, 'Invalid file type'),
-
-  bussinessDocUrl: z
-    .union([z.string().min(1), z.instanceof(File)])
-    .refine((val) => val !== undefined && val !== null && val !== '', {
-      message: 'Upload a file',
-    })
-    .refine((val) => {
-      if (val instanceof File) {
-        return val.size <= 5_000_000;
-      }
-      return true;
-    }, 'Max file size is 5MB')
-    .refine((val) => {
-      if (val instanceof File) {
-        return ALLOWED_UPLOAD_FILE_MIME_TYPES.includes(val.type);
-      }
-      return true;
-    }, 'Invalid file type'),
-  tradeLicenseDoc: z
-    .union([z.string().min(1), z.instanceof(File)])
-    .refine((val) => val !== undefined && val !== null && val !== '', {
-      message: 'Upload a file',
-    })
-    .refine((val) => {
-      if (val instanceof File) {
-        return val.size <= 5_000_000;
-      }
-      return true;
-    }, 'Max file size is 5MB')
-    .refine((val) => {
-      if (val instanceof File) {
-        return ALLOWED_UPLOAD_FILE_MIME_TYPES.includes(val.type);
-      }
-      return true;
-    }, 'Invalid file type'),
-  binNoDoc: z
-    .union([z.string().min(1), z.instanceof(File)])
-    .optional()
-    .refine((val) => val !== undefined && val !== null && val !== '', {
-      message: 'Upload a file',
-    })
-    .refine((val) => {
-      if (val instanceof File) {
-        return val.size <= 5_000_000;
-      }
-      return true;
-    }, 'Max file size is 5MB')
-    .refine((val) => {
-      if (val instanceof File) {
-        return ALLOWED_UPLOAD_FILE_MIME_TYPES.includes(val.type);
-      }
-      return true;
-    }, 'Invalid file type'),
-  tinNoDoc: z
-    .union([z.string().min(1), z.instanceof(File)])
-    .optional()
-    .refine((val) => val !== undefined && val !== null && val !== '', {
-      message: 'Upload a file',
-    })
-    .refine((val) => {
-      if (val instanceof File) {
-        return val.size <= 5_000_000;
-      }
-      return true;
-    }, 'Max file size is 5MB')
-    .refine((val) => {
-      if (val instanceof File) {
-        return ALLOWED_UPLOAD_FILE_MIME_TYPES.includes(val.type);
-      }
-      return true;
-    }, 'Invalid file type'),
-  dbIdDoc: z
-    .union([z.string().min(1), z.instanceof(File)])
-    .optional()
-    .refine((val) => val !== undefined && val !== null && val !== '', {
-      message: 'Upload a file',
-    })
-    .refine((val) => {
-      if (val instanceof File) {
-        return val.size <= 5_000_000;
-      }
-      return true;
-    }, 'Max file size is 5MB')
-    .refine((val) => {
-      if (val instanceof File) {
-        return ALLOWED_UPLOAD_FILE_MIME_TYPES.includes(val.type);
-      }
-      return true;
-    }, 'Invalid file type'),
-
-  additionalDocuments: z.array(
-    z
-      .union([z.string().min(1), z.instanceof(File)])
-      .optional()
-      .refine((val) => val !== undefined && val !== null && val !== '', {
-        message: 'Upload a file',
-      })
-      .refine((val) => {
-        if (val instanceof File) {
-          return val.size <= 5_000_000;
-        }
-        return true;
-      }, 'Max file size is 5MB')
-      .refine((val) => {
-        if (val instanceof File) {
-          return ALLOWED_UPLOAD_FILE_MIME_TYPES.includes(val.type);
-        }
-        return true;
-      }, 'Invalid file type')
-  ),
-
-  status: z.enum(['Y', 'N'], { message: 'Status is required' }),
-
-  // permissions: z.array(z.string()).nonempty('Select at least one permission'),
-});
-
-export type SellerFormData = z.infer<typeof sellerSchema>;
 
 interface SellerFormProps {
   mode: 'create' | 'edit';
@@ -316,7 +36,7 @@ const SellerForm = ({ mode, initialValues, onSubmit }: SellerFormProps) => {
 
   const form = useForm<SellerFormData>({
     resolver: zodResolver(sellerSchema),
-    defaultValues: initialValues ?? { status: 'Y' },
+    defaultValues: initialValues ?? { countryId: 1, additionalDocuments: [], status: 'Y' },
   });
 
   const {
@@ -325,6 +45,19 @@ const SellerForm = ({ mode, initialValues, onSubmit }: SellerFormProps) => {
     control,
     formState: { errors, isSubmitting },
   } = form;
+
+  const {
+    fields: additionalDocFields,
+    append: appendAdditionalDoc,
+    remove: removeAdditionalDoc,
+  } = useFieldArray({
+    control,
+    name: 'additionalDocuments',
+  });
+
+  const handleAdditionalDoc = () => {
+    appendAdditionalDoc({ docName: '', docFile: undefined });
+  };
 
   // if (isLoading) return <div>Loading...</div>;
 
@@ -373,13 +106,7 @@ const SellerForm = ({ mode, initialValues, onSubmit }: SellerFormProps) => {
                   ]}
                   optionKeys={{ label: 'adminName', value: 'adminId' }}
                   error={errors.assignVendor?.message}
-                  //   isLoading={isShopLoading}
                   placeholder="Select Vendor Name"
-                  //   search={{
-                  //     enabled: true,
-                  //     onSearch: shopSearch.setKeyword,
-                  //   }}
-                  //   required
                   {...field}
                 />
               )}
@@ -399,10 +126,6 @@ const SellerForm = ({ mode, initialValues, onSubmit }: SellerFormProps) => {
                   placeholder="Select/Search Bussiness Type(s)"
                   value={value ?? []}
                   onChange={(ids: number[]) => onChange(ids)}
-                  //   search={{
-                  //     enabled: true,
-                  //     onSearch: shopSearch.setKeyword,
-                  //   }}
                   required
                 />
               )}
@@ -438,14 +161,11 @@ const SellerForm = ({ mode, initialValues, onSubmit }: SellerFormProps) => {
               render={({ field }) => (
                 <ComboBox
                   label="Country"
-                  options={[
-                    { id: 1, name: 'Bangladesh' },
-                    { id: 2, name: 'India' },
-                    { id: 3, name: 'Pakistan' },
-                  ]}
+                  options={countryData}
                   optionKeys={{ label: 'name', value: 'id' }}
                   error={errors.countryId?.message}
                   placeholder="Select Country"
+                  required
                   {...field}
                 />
               )}
@@ -465,6 +185,7 @@ const SellerForm = ({ mode, initialValues, onSubmit }: SellerFormProps) => {
                   optionKeys={{ label: 'name', value: 'id' }}
                   error={errors.shopCity?.message}
                   placeholder="Select District/City"
+                  required
                   {...field}
                 />
               )}
@@ -484,6 +205,7 @@ const SellerForm = ({ mode, initialValues, onSubmit }: SellerFormProps) => {
                   optionKeys={{ label: 'name', value: 'id' }}
                   error={errors.shopState?.message}
                   placeholder="Select Area/Thana/Upazila/State"
+                  required
                   {...field}
                 />
               )}
@@ -498,29 +220,6 @@ const SellerForm = ({ mode, initialValues, onSubmit }: SellerFormProps) => {
               required
             />
 
-            <div className="col-span-4 grid grid-cols-3 gap-4">
-              <TextArea
-                label="Shop Address"
-                placeholder="Enter Shop Address"
-                required={false}
-                {...register('shopAddress')}
-              />
-
-              <TextArea
-                label="Seller Permanent Address"
-                placeholder="Enter permanent Address"
-                required={false}
-                {...register('sellerPermanentAddress')}
-              />
-
-              <TextArea
-                label="Seller Present Address"
-                placeholder="Enter present Address"
-                required={false}
-                {...register('sellerPresentAddress')}
-              />
-            </div>
-
             <div className="col-span-4 grid grid-cols-2 gap-4">
               <Controller
                 name="sellerImageUrl"
@@ -529,14 +228,17 @@ const SellerForm = ({ mode, initialValues, onSubmit }: SellerFormProps) => {
                   <FileInput
                     label="Seller Image"
                     error={errors.sellerImageUrl?.message}
+                    errorSameRow={errors.shopLogoUrl?.message}
                     accept={IMAGE_MIME_TYPES.join(', ')}
                     value={value}
                     onChange={(e) => {
                       const file = e.target.files?.[0];
                       if (file) onChange(file);
                     }}
-                    onDrop={(e) => onChange(e)}
+                    onDrop={(file) => onChange(file)}
+                    onRemove={() => onChange(undefined)}
                     className="h-36"
+                    required
                   />
                 )}
               />
@@ -546,6 +248,7 @@ const SellerForm = ({ mode, initialValues, onSubmit }: SellerFormProps) => {
                 render={({ field: { value, onChange } }) => (
                   <FileInput
                     label="Shop Logo"
+                    errorSameRow={errors.sellerImageUrl?.message}
                     error={errors.shopLogoUrl?.message}
                     accept={IMAGE_MIME_TYPES.join(', ')}
                     value={value}
@@ -553,10 +256,41 @@ const SellerForm = ({ mode, initialValues, onSubmit }: SellerFormProps) => {
                       const file = e.target.files?.[0];
                       if (file) onChange(file);
                     }}
-                    onDrop={(e) => onChange(e)}
+                    onDrop={(file) => onChange(file)}
+                    onRemove={() => onChange(undefined)}
                     className="h-36"
+                    required
                   />
                 )}
+              />
+            </div>
+            <div className="col-span-4 grid grid-cols-4 gap-4">
+              <TextArea
+                label="Shop Description"
+                placeholder="Enter Shop Description"
+                error={errors.shopDescription?.message}
+                {...register('shopDescription')}
+                required
+              />
+
+              <TextArea
+                label="Shop Address"
+                placeholder="Enter Shop Address"
+                error={errors.shopAddress?.message}
+                {...register('shopAddress')}
+                required
+              />
+
+              <TextArea
+                label="Seller Permanent Address"
+                placeholder="Enter permanent Address"
+                {...register('sellerPermanentAddress')}
+              />
+
+              <TextArea
+                label="Seller Present Address"
+                placeholder="Enter present Address"
+                {...register('sellerPresentAddress')}
               />
             </div>
           </div>
@@ -680,35 +414,54 @@ const SellerForm = ({ mode, initialValues, onSubmit }: SellerFormProps) => {
 
             <div className="col-span-3">
               <p className="input-label">Additional Documents</p>
-              <div className="mt-1">
-                <div className="grid grid-cols-2 gap-4">
-                  <Input
-                    // label="Seller Name"
-                    placeholder="Enter Seller Name"
-                    error={errors.sellerName?.message}
-                    {...register('sellerName')}
-                    className="h-14"
-                    // required
-                  />
-                  <Controller
-                    name="dbIdDoc"
-                    control={control}
-                    render={({ field: { value, onChange } }) => (
-                      <FileInput
-                        label=""
-                        error={errors.dbIdDoc?.message}
-                        accept={ALLOWED_UPLOAD_FILE_MIME_TYPES.join(', ')}
-                        value={value}
-                        onChange={(e) => {
-                          const file = e.target.files?.[0];
-                          if (file) onChange(file);
-                        }}
-                        onDrop={(e) => onChange(e)}
-                        isPreview={false}
+              <div className="mt-1 space-y-4">
+                {additionalDocFields.map((_, index) => (
+                  <div className="flex items-center gap-4">
+                    <div className="flex-1 grid grid-cols-2 gap-4">
+                      <Input
+                        placeholder="Document Name"
+                        error={errors.additionalDocuments?.[index]?.docName?.message}
+                        {...register(`additionalDocuments.${index}.docName` as const)}
                       />
-                    )}
-                  />
-                </div>
+
+                      {/* Document file upload */}
+                      <Controller
+                        name={`additionalDocuments.${index}.docFile`}
+                        control={control}
+                        render={({ field: { value, onChange } }) => (
+                          <FileInput
+                            error={errors.additionalDocuments?.[index]?.docFile?.message}
+                            accept={ALLOWED_UPLOAD_FILE_MIME_TYPES.join(', ')}
+                            value={value}
+                            onChange={(e) => {
+                              const file = e.target.files?.[0];
+                              if (file) onChange(file);
+                            }}
+                            onDrop={(e) => onChange(e)}
+                            isPreview={false}
+                          />
+                        )}
+                      />
+                    </div>
+                    <div className="flex items-center gap-2 text-sm w-5">
+                      <button
+                        type="button"
+                        onClick={() => removeAdditionalDoc(index)}
+                        className="cursor-pointer text-danger-500 hover:text-danger-300"
+                      >
+                        <DeleteIcon className="w-5 h-5" />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+                <Button
+                  type="button"
+                  variant="create"
+                  onClick={() => handleAdditionalDoc()}
+                  className="w-[180px] h-[35.72px]"
+                >
+                  Add Document
+                </Button>
               </div>
             </div>
           </div>

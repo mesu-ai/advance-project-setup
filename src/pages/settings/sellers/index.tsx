@@ -70,7 +70,13 @@ const SellerListPage = () => {
     navigate(`/settings/sellers/${id}/edit`);
   };
 
-  const handleBankInfo = (id: number) => {
+  const handleBankInfo = (sellerId: number, shopId: number) => {
+    navigate(`/settings/sellers/${sellerId}/shops/${shopId}/banks`);
+    console.log({ sellerId, shopId });
+  };
+
+  const handleShopInfo = (id: number) => {
+    navigate(`/settings/sellers/${id}/shops`);
     console.log({ id });
   };
 
@@ -154,7 +160,11 @@ const SellerListPage = () => {
                     actions={[
                       { label: 'View', onClick: () => handleView(seller.sellerId) },
                       { label: 'Edit', onClick: () => handleEdit(seller.sellerId) },
-                      { label: 'Bank Info', onClick: () => handleBankInfo(seller.sellerId) },
+                      { label: 'Shop Info', onClick: () => handleShopInfo(seller.sellerId) },
+                      {
+                        label: 'Bank Info',
+                        onClick: () => handleBankInfo(seller.sellerId, seller.shopId),
+                      },
                     ]}
                   />
                 </td>

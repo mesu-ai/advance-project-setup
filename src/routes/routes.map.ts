@@ -23,6 +23,11 @@ const settingsRoutePermissions: RoutePermissionMapT = {
   '/settings/sellers/create': { page: 'sellers.create', pageLabel: 'Seller Create' },
   '/settings/sellers/:sellerId/edit': { page: 'sellers.edit', pageLabel: 'Seller Edit' },
 
+  '/settings/sellers/:sellerId/shops/:shopId/banks': {
+    page: 'sellers.banks',
+    pageLabel: 'Seller Banks',
+  },
+
   '/settings/brands': { page: 'brands.index', pageLabel: 'Brand Settings' },
   '/settings/categories': { page: 'categories.index', pageLabel: 'Category Settings' },
 } as const;

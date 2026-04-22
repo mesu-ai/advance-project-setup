@@ -9,6 +9,7 @@ export interface SellerParamsT {
 
 export interface SellerSummaryT {
   sellerId: number;
+  shopId: number;
   sellerName: string;
   sellerContactNo: string;
   sellerEmail: string;
@@ -19,41 +20,6 @@ export interface SellerSummaryT {
   isActive: 'Y' | 'N';
 }
 
-// export interface SellerT extends SellerSummaryT {
-//   ownerName: string;
-//   binNo: string;
-//   countryId?: number;
-//   shopCity: number;
-//   shopState: number;
-//   shopZipCode: string;
-//   shopAddress: string;
-//   shopDescription: string;
-
-//   sellerPresentAddress?: string;
-//   sellerPermanentAddress?: string;
-
-//   sellerImageUrl: string;
-//   shopLogoUrl: string;
-
-//   bussinessTypeId?: number[];
-//   bussinessTypeNames?: string[];
-
-//   additionalDocuments?: {
-//     docName: string;
-//     docFileUrl: string;
-//   }[];
-
-//   metaTag: {
-//     metaTitle: string;
-//     metaDescription: string;
-//     metaKeywords: string;
-//     ogType: string;
-//     ogTitle: string;
-//     ogUrl: string;
-//     ogDescription: string;
-//     ogImage?: string;
-//   }
-// }
 export interface SellerT extends SellerSummaryT {
   bussinessTypeId: number[];
   ownerName: string;
@@ -96,4 +62,22 @@ export interface SellerT extends SellerSummaryT {
     ogDescription?: string;
     ogImgUrl?: string;
   };
+}
+
+export interface BankParamsT {
+  shopId: number;
+  currentPage: number;
+  itemsPerPage: number;
+}
+
+export interface BankT {
+  sellerBankAccountId: number;
+  accountHolderName: string;
+  accountNo: string;
+  bankName: string;
+  routingNo: string;
+  swiftCode: string;
+  branchName: string;
+  status: 'Y' | 'N';
+  shopId: number;
 }

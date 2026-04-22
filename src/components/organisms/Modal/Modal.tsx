@@ -86,7 +86,7 @@ const Modal: FC<ModalProps> = ({ title, isOpen, onClose, children, className = '
             type="button"
             onClick={handleClose}
             aria-label="close-modal"
-            className="cursor-pointer text-danger-500 hover:text-danger-600"
+            className="cursor-pointer text-danger-500 hover:text-danger-300"
           >
             <CloseIcon />
           </button>

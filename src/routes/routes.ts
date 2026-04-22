@@ -21,6 +21,8 @@ const CancelOrder = lazy(() => import('../pages/orders/cancel/index'));
 const SellerList = lazy(() => import('../pages/settings/sellers/index'));
 const CreateSeller = lazy(() => import('../pages/settings/sellers/create/index'));
 const EditSeller = lazy(() => import('../pages/settings/sellers/edit/index'));
+const SellerBanks = lazy(() => import('../pages/settings/sellers/shops/banks/index'));
+const SellerShops = lazy(() => import('../pages/settings/sellers/shops/index'));
 
 const CategoryList = lazy(() => import('../pages/settings/categories/index'));
 // const CreateCategory = lazy(() => import('../pages/settings/categories/create/index'));
@@ -98,6 +100,13 @@ export const appRoutes: AppRouteT[] = [
           { index: true, Component: SellerList },
           { path: 'create', Component: CreateSeller },
           { path: ':sellerId/edit', Component: EditSeller },
+          {
+            path: ':sellerId/shops',
+            children: [
+              { index: true, Component: SellerShops },
+              { path: ':shopId/banks', Component: SellerBanks },
+            ],
+          },
         ],
       },
       {

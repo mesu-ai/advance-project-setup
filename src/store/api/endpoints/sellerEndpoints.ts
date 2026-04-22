@@ -1,4 +1,11 @@
-import type { ApiResponseT, SellerParamsT, SellerSummaryT, SellerT } from '@/types';
+import type {
+  ApiResponseT,
+  BankParamsT,
+  BankT,
+  SellerParamsT,
+  SellerSummaryT,
+  SellerT,
+} from '@/types';
 import { baseApi } from '../baseApi';
 
 export const sellerApi = baseApi.injectEndpoints({
@@ -18,7 +25,15 @@ export const sellerApi = baseApi.injectEndpoints({
         method: 'GET',
       }),
     }),
+
+    getSellerBanks: build.query<ApiResponseT<BankT[]>, BankParamsT>({
+      query: (params) => ({
+        url: 'sellers/shops/banks',
+        method: 'GET',
+        params,
+      }),
+    }),
   }),
 });
 
-export const { useGetSellersQuery, useGetSellerByIdQuery } = sellerApi;
+export const { useGetSellersQuery, useGetSellerByIdQuery, useGetSellerBanksQuery } = sellerApi;

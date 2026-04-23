@@ -21,12 +21,12 @@ const TextArea = ({ label, className, error, required, ...props }: TextAreaProps
           rows={5}
           {...props}
         />
-        {error && (
-          <p id={`${generatedId}-error`} className="input-error" role="alert">
-            {error}
-          </p>
-        )}
       </div>
+      {error && (
+        <p id={`${generatedId}-error`} className="input-error" role="alert">
+          {error}
+        </p>
+      )}
     </div>
   );
 };

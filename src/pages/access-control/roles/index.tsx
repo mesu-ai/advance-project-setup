@@ -1,21 +1,17 @@
 import Status from '@/components/atoms/Status';
 import Pagination from '@/components/molecules/Pagination';
-import { useState } from 'react';
 import DataTable from '@/components/organisms/DataTable';
 import Button from '@/components/atoms/Button';
-import SearchBar from '@/components/atoms/Search';
+import Search from '@/components/atoms/Search';
 import ActionButtons from '@/components/molecules/ActionButtons';
 import { useNavigate } from 'react-router';
 import { useGetRolesQuery } from '@/store/api/endpoints/roleEndpoints';
 import PageSection from '@/components/templates/PageSection';
 
 const RolePermissionPage = () => {
-  const [currPage, setCurrPage] = useState<number>(1);
   const navigate = useNavigate();
 
   const { data: roles } = useGetRolesQuery();
-
-  console.log({ currPage });
 
   const handleView = (id: number) => {
     console.log(id);
@@ -30,7 +26,7 @@ const RolePermissionPage = () => {
   return (
     <PageSection title="Employee Permission List">
       <div className="flex justify-between px-5 py-4">
-        <SearchBar className="max-w-[350px]" onSearch={(keyword) => console.log(keyword)} />
+        <Search className="max-w-[350px] my-auto" onSearch={(keyword) => console.log(keyword)} />
         <Button variant="add" onClick={() => navigate('/access-control/roles/create')}>
           Add New Role
         </Button>
@@ -68,7 +64,7 @@ const RolePermissionPage = () => {
             ))}
         </DataTable>
         <div className="text-center py-5">
-          <Pagination totalPage={12} currentPage={5} setCurrentPage={setCurrPage} />
+          <Pagination totalPages={5} totalItems={10} />
         </div>
       </div>
     </PageSection>

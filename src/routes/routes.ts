@@ -1,5 +1,5 @@
 //app.routes.ts:
-import type { AppRouteProps } from '@/types';
+import type { AppRouteT } from '@/types';
 import { lazy } from 'react';
 
 const Home = lazy(() => import('../pages/home/index'));
@@ -7,7 +7,8 @@ const Contact = lazy(() => import('../pages/contact/index'));
 
 // products
 const Products = lazy(() => import('../pages/products/index'));
-const CreateProduct = lazy(() => import('../pages/products/create'));
+const CreateProduct = lazy(() => import('../pages/products/create/index'));
+const EditProduct = lazy(() => import('../pages/products/edit/index'));
 const ManageProduct = lazy(() => import('../pages/products/manage/index'));
 
 // order
@@ -16,40 +17,56 @@ const CreateOrder = lazy(() => import('../pages/orders/create/index'));
 const ManageOrder = lazy(() => import('../pages/orders/manage/index'));
 const CancelOrder = lazy(() => import('../pages/orders/cancel/index'));
 
+// settings section
+const SellerList = lazy(() => import('../pages/settings/sellers/index'));
+const CreateSeller = lazy(() => import('../pages/settings/sellers/create/index'));
+const EditSeller = lazy(() => import('../pages/settings/sellers/edit/index'));
+const SellerBanks = lazy(() => import('../pages/settings/sellers/shops/banks/index'));
+const SellerShops = lazy(() => import('../pages/settings/sellers/shops/index'));
+
+const CategoryList = lazy(() => import('../pages/settings/categories/index'));
+const CreateCategory = lazy(() => import('../pages/settings/categories/create/index'));
+const EditCategory = lazy(() => import('../pages/settings/categories/edit/index'));
+
+const BrandList = lazy(() => import('../pages/settings/brands/index'));
+// const CreateBrand = lazy(() => import('../pages/settings/brands/create/index'));
+// const EditBrand = lazy(() => import('../pages/settings/brands/edit/index'));
+
 // access control
 const AccessControl = lazy(() => import('../pages/access-control/index'));
 const EmployeeList = lazy(() => import('../pages/access-control/employees/index'));
 const CreateEmployee = lazy(() => import('../pages/access-control/employees/create/index'));
 const EditEmployee = lazy(() => import('../pages/access-control/employees/edit/index'));
 const RolePermission = lazy(() => import('../pages/access-control/roles/index'));
-const CreateRole = lazy(() => import('../pages/access-control/roles/create/'));
+const CreateRole = lazy(() => import('../pages/access-control/roles/create/index'));
 const EditRole = lazy(() => import('../pages/access-control/roles/edit/index'));
 
 // auth
-const Login = lazy(() => import('../pages/login/index'));
-const Register = lazy(() => import('../pages/register/index'));
-const Forgot = lazy(() => import('../pages/forgot/index'));
-const AssessDenied = lazy(() => import('../pages/403/index'));
+const Login = lazy(() => import('../pages/auth/login/index'));
+const Register = lazy(() => import('../pages/auth/register/index'));
+const Forgot = lazy(() => import('../pages/auth/forgot/index'));
+const AccessDenied = lazy(() => import('../pages/auth/403/index'));
 
 export const publicRoutes = ['/auth/403', '/auth/login', '/auth/register', '/auth/forgot'];
 
 // AuthLayout Routes
-export const authRoutes: AppRouteProps[] = [
+export const authRoutes: AppRouteT[] = [
   {
     children: [
       { path: 'login', Component: Login },
       { path: 'register', Component: Register },
       { path: 'forgot', Component: Forgot },
+      // { path: '403', Component: AccessDenied }
     ],
   },
 ];
 
 // RootLayout Routes
-export const appRoutes: AppRouteProps[] = [
+export const appRoutes: AppRouteT[] = [
   //public
   {
     path: 'auth',
-    children: [{ path: '403', Component: AssessDenied }],
+    children: [{ path: '403', Component: AccessDenied }],
   },
 
   //protected route:
@@ -60,6 +77,7 @@ export const appRoutes: AppRouteProps[] = [
     children: [
       { index: true, Component: Products },
       { path: 'create', Component: CreateProduct },
+      { path: ':productId/edit', Component: EditProduct },
       { path: 'manage', Component: ManageProduct },
     ],
   },
@@ -72,6 +90,46 @@ export const appRoutes: AppRouteProps[] = [
       { path: 'cancel', Component: CancelOrder },
     ],
   },
+
+  // settings
+  {
+    path: 'settings',
+    children: [
+      {
+        path: 'sellers',
+        children: [
+          { index: true, Component: SellerList },
+          { path: 'create', Component: CreateSeller },
+          { path: ':sellerId/edit', Component: EditSeller },
+          {
+            path: ':sellerId/shops',
+            children: [
+              { index: true, Component: SellerShops },
+              { path: ':shopId/banks', Component: SellerBanks },
+            ],
+          },
+        ],
+      },
+      {
+        path: 'categories',
+        children: [
+          { index: true, Component: CategoryList },
+          { path: 'create', Component: CreateCategory },
+          { path: ':categoryId/edit', Component: EditCategory },
+        ],
+      },
+      {
+        path: 'brands',
+        children: [
+          { index: true, Component: BrandList },
+          // { path: 'create', Component: CreateBrand },
+          // { path: ':brandId/edit', Component: EditBrand },
+        ],
+      },
+    ],
+  },
+
+  // access control
   {
     path: 'access-control',
     children: [

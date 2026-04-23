@@ -1,44 +1,44 @@
 import DeleteIcon from '@/assets/svg/DeleteIcon';
 import Input from '@/components/atoms/Input';
-import type { ProductFormData } from '@/pages/products/create';
 import { useEffect, useMemo, useRef, useState, type ChangeEvent } from 'react';
 import { Controller, useFieldArray, useWatch, type Control } from 'react-hook-form';
-import SellingPriceModal, { type PriceFormData } from '../modal/SellingPriceModal';
+import SellingPriceModal, { type PriceFormData } from './ProductSellingPriceModal';
 import Select from '@/components/atoms/Select';
 import EditIcon from '@/assets/svg/EditIcon';
-import { calculateBurn, calculateCommission } from '../../utils/priceHelpers';
+import { calculateBurn, calculateCommission } from '../utils/priceHelpers';
 import Switch from '@/components/atoms/Switch';
-
-type VariantOption = { variantOptionId: number; variantOptionText: string };
+import type { ProductFormData } from '../schema';
+import type { VariantOptionT } from '../types';
+import { getCombinationKey, shopProductSkuGenerator } from '../utils/variantHelpers';
+import { useGetInventoryStockMutation } from '@/store/api/endpoints/inventoryEndpoints';
+import { useApiError } from '@/hooks/useApiError';
+import toast from 'react-hot-toast';
+import { cn } from '@/lib/cn';
 
 interface VariantPriceTableProps {
-  colors: VariantOption[];
-  sizes?: VariantOption[];
+  colors: VariantOptionT[];
+  sizes?: VariantOptionT[];
   control: Control<ProductFormData>;
 }
 
-const getCombinationKey = (options: VariantOption[]): string => {
-  return options
-    .map((o) => o.variantOptionId)
-    .sort((a, b) => a - b)
-    .join('-');
-};
-
-const createCombination = (options: VariantOption[]) => ({
+const createCombination = (options: VariantOptionT[]) => ({
   sku: '',
+  shopProductSku: shopProductSkuGenerator(options),
   subStyle: '',
   stock: undefined,
   dpPrice: undefined,
   mrp: undefined,
   sellingPrice: undefined,
-  sellingDate: '',
+  startDate: undefined,
+  endDate: undefined,
   burnAmount: 0,
-  commissionAmount: 0,
+  commissionAmount: undefined,
   options: options,
+  inventoryTypeId: 1,
   status: 'Y' as const,
 });
 
-const VariantPriceTable = ({ colors, sizes, control }: VariantPriceTableProps) => {
+const ProductVariantPriceTable = ({ colors, sizes, control }: VariantPriceTableProps) => {
   const [activeFieldIndex, setActiveFieldIndex] = useState<number | null>(null);
   const { fields, replace, update } = useFieldArray({
     control,
@@ -51,13 +51,15 @@ const VariantPriceTable = ({ colors, sizes, control }: VariantPriceTableProps) =
   // ✅ Tracks live store values (not the stale `fields` snapshot)
   const watchCombinationsRef = useRef(watchCombinations);
 
+  const { handleApiError } = useApiError();
+  const [checkInventory] = useGetInventoryStockMutation();
+
   const grouped = fields.reduce<
     Record<number, { field: (typeof fields)[number]; fieldIndex: number }[]>
   >((acc, field, fieldIndex) => {
     const colorId = field.options?.[0]?.variantOptionId;
 
     if (!colorId) return acc;
-
     if (!acc[colorId]) acc[colorId] = [];
 
     acc[colorId].push({ field, fieldIndex });
@@ -75,9 +77,11 @@ const VariantPriceTable = ({ colors, sizes, control }: VariantPriceTableProps) =
     update(index, {
       ...currField,
       sellingPrice: sellingPrice,
-      sellingDate: '',
+      startDate: undefined,
+      endDate: undefined,
       burnAmount: mrp - sellingPrice,
-      commissionAmount: sellingPrice - dpPrice,
+      // commissionAmount: sellingPrice - dpPrice,
+      commissionAmount: mrp - dpPrice,
     });
   };
 
@@ -92,7 +96,8 @@ const VariantPriceTable = ({ colors, sizes, control }: VariantPriceTableProps) =
     update(activeFieldIndex, {
       ...currField,
       sellingPrice: sellingPrice,
-      sellingDate: data.sellingDate,
+      startDate: data.startDate,
+      endDate: data.endDate,
       burnAmount: mrp - sellingPrice,
       commissionAmount: sellingPrice - dpPrice,
     });
@@ -100,12 +105,55 @@ const VariantPriceTable = ({ colors, sizes, control }: VariantPriceTableProps) =
     setActiveFieldIndex(null);
   };
 
-  const handleUpdateThrough = (e: ChangeEvent<HTMLSelectElement>, index: number) => {
-    console.log(e.target.value, index);
+  const handleUpdateBy = async (e: ChangeEvent<HTMLSelectElement>, index: number) => {
+    const inventoryTypeId = Number(e.target.value);
+    const currField = watchCombinations[index];
+
+    if (!currField.sku) return toast.error('Invalid SKU/Barcode');
+
+    try {
+      if (inventoryTypeId === 1) {
+        update(index, {
+          ...currField,
+          subStyle: '',
+          stock: undefined,
+          dpPrice: undefined,
+          mrp: undefined,
+          sellingPrice: undefined,
+          startDate: '',
+          endDate: '',
+          inventoryTypeId,
+        });
+        return;
+      }
+
+      const { data } = await checkInventory({ sellerProductSku: currField.sku });
+
+      if (!data?.success) {
+        return toast.error('Something went wrong');
+      }
+
+      const mrp = data.data?.salePrice ?? 0;
+      const discountAmount = mrp * ((data.data?.discountPercentage ?? 0) / 100);
+      const sellingPrice = mrp - discountAmount;
+
+      update(index, {
+        ...currField,
+        subStyle: data.data?.subStyle,
+        stock: data.data?.currentStock,
+        mrp,
+        sellingPrice,
+        startDate: data.data?.startingDate ?? '',
+        endDate: data.data?.expiringDate ?? '',
+        inventoryTypeId,
+      });
+    } catch (error) {
+      handleApiError(error);
+    }
   };
 
   const expectedCombinations = useMemo(() => {
-    if (!colors.length) return [];
+    if (!colors?.length) return [];
     return sizes?.length
       ? colors.flatMap((color) => sizes.map((size) => ({ options: [color, size] })))
       : colors.map((color) => ({ options: [color] }));
@@ -125,8 +173,17 @@ const VariantPriceTable = ({ colors, sizes, control }: VariantPriceTableProps) =
     watchCombinationsRef.current = watchCombinations;
   });
 
+  const expectedKeys = useMemo(
+    () => new Set(expectedCombinations.map((combo) => getCombinationKey(combo.options))),
+    [expectedCombinations]
+  );
+
   useEffect(() => {
-    if (!expectedCombinations.length) return;
+    if (!expectedCombinations.length) {
+      replace([]);
+      prevSignatureRef.current = expectedSignatureKeys;
+      return;
+    }
 
     if (prevSignatureRef.current === expectedSignatureKeys) return;
 
@@ -138,12 +195,15 @@ const VariantPriceTable = ({ colors, sizes, control }: VariantPriceTableProps) =
       .sort()
       .join('|');
 
-    if (currentSignatureKeys === expectedSignatureKeys) return;
+    if (currentSignatureKeys === expectedSignatureKeys) {
+      prevSignatureRef.current = expectedSignatureKeys;
+      return;
+    }
 
     // ✅ Create a Set of expected combination keys
-    const expectedKeys = new Set(
-      expectedCombinations.map((combo) => getCombinationKey(combo.options))
-    );
+    // const expectedKeys = new Set(
+    //   expectedCombinations.map((combo) => getCombinationKey(combo.options))
+    // );
 
     // ✅ Build existingMap from live values so user-entered data is preserved
     const existingMap = new Map(liveValues.map((f) => [getCombinationKey(f.options), f]));
@@ -161,20 +221,18 @@ const VariantPriceTable = ({ colors, sizes, control }: VariantPriceTableProps) =
 
     replace(mergedCombinations);
     prevSignatureRef.current = expectedSignatureKeys;
-  }, [expectedCombinations, expectedSignatureKeys, replace]);
-
-  console.log({ watchCombinations });
+  }, [expectedCombinations, expectedSignatureKeys, replace, expectedKeys]);
 
   return (
     <>
       <div className="w-full overflow-x-auto">
-        <table className="w-full table-auto text-sm border-collapse">
+        <table className="table-auto text-sm border-collapse">
           <thead className="whitespace-nowrap bg-background">
             <tr>
               {/* burn= mrp- selling
               discount= mrp - selling
               commission = selling -dp */}
-              <th className="text-start font-medium py-2.5 px-3">Color Family</th>
+              <th className="text-start font-medium py-2.5 px-3">Color</th>
               {sizes?.length ? <th className="text-start font-medium py-2.5 px-3">Size</th> : null}
               <th className="text-start font-medium py-2.5 px-3">SKU/Barcode</th>
               <th className="text-start font-medium py-2.5 px-3">Sub-Style</th>
@@ -206,20 +264,18 @@ const VariantPriceTable = ({ colors, sizes, control }: VariantPriceTableProps) =
                 const showColorCell = rowIndex === 0;
 
                 const fieldValue = watchCombinations[fieldIndex];
+                const { dpPrice, mrp, sellingPrice } = fieldValue || {};
 
-                const burnAmount = calculateBurn(fieldValue.mrp, fieldValue.sellingPrice);
-                const commissionAmount = calculateCommission(
-                  fieldValue.sellingPrice,
-                  fieldValue.dpPrice
-                );
+                const burnAmount = calculateBurn(mrp, sellingPrice);
+                const commissionAmount = calculateCommission(dpPrice, mrp, sellingPrice);
 
                 const isFirstRow = rowIndex === 0;
                 const isLastRow = rowIndex === rows.length - 1;
-                const rowPadding = `${isFirstRow ? 'pt-3' : isLastRow ? 'pb-3' : ''}`;
+                const rowPadding = cn({ 'pt-3': isFirstRow, 'pb-3': isLastRow });
 
                 return (
                   <tr
-                    key={field.id}
+                    key={field?.id}
                     className={`${
                       fieldValue?.status === 'N' &&
                       (showColorCell
@@ -247,7 +303,7 @@ const VariantPriceTable = ({ colors, sizes, control }: VariantPriceTableProps) =
                           <Input
                             placeholder="SKU/Barcode"
                             className="min-w-36 rounded py-1 mt-0"
-                            disabled={fieldValue.status === 'N'}
+                            disabled={fieldValue?.status === 'N'}
                             {...field}
                           />
                         )}
@@ -261,7 +317,7 @@ const VariantPriceTable = ({ colors, sizes, control }: VariantPriceTableProps) =
                           <Input
                             placeholder="Sub-Style"
                             className="min-w-36 rounded py-1 mt-0"
-                            disabled={fieldValue.status === 'N'}
+                            disabled={fieldValue?.status === 'N'}
                             {...field}
                           />
                         )}
@@ -275,7 +331,7 @@ const VariantPriceTable = ({ colors, sizes, control }: VariantPriceTableProps) =
                           <Input
                             placeholder="Stock"
                             className="min-w-24 rounded py-1 mt-0"
-                            disabled={fieldValue.status === 'N'}
+                            disabled={fieldValue?.status === 'N'}
                             {...field}
                           />
                         )}
@@ -289,7 +345,7 @@ const VariantPriceTable = ({ colors, sizes, control }: VariantPriceTableProps) =
                           <Input
                             placeholder="DP"
                             className="min-w-24 rounded py-1 mt-0"
-                            disabled={fieldValue.status === 'N'}
+                            disabled={fieldValue?.status === 'N'}
                             {...field}
                           />
                         )}
@@ -303,15 +359,15 @@ const VariantPriceTable = ({ colors, sizes, control }: VariantPriceTableProps) =
                           <Input
                             placeholder="MRP"
                             className="min-w-24 rounded py-1 mt-0"
-                            disabled={fieldValue.status === 'N'}
+                            disabled={fieldValue?.status === 'N'}
                             {...field}
                           />
                         )}
                       />
                     </td>
-                    <td className={`px-3 py-1.5 ${rowPadding}`}>
+                    <td className={`px-3 py-1.5 min-w-28 ${rowPadding}`}>
                       {fieldValue?.sellingPrice ? (
-                        <div className="min-w-28 flex items-center border border-neutral-300 py-1 px-2 leading-normal rounded hover:bg-white-700">
+                        <div className=" flex items-center border border-neutral-300 py-1 px-2 leading-normal rounded hover:bg-white-700">
                           <span>{fieldValue?.sellingPrice}</span>
                           <button
                             type="button"
@@ -333,9 +389,9 @@ const VariantPriceTable = ({ colors, sizes, control }: VariantPriceTableProps) =
                       ) : (
                         <button
                           type="button"
-                          disabled={fieldValue.status === 'N'}
+                          disabled={fieldValue?.status === 'N'}
                           onClick={() => setActiveFieldIndex(fieldIndex)}
-                          className="w-fit cursor-pointer text-secondary-500 hover:text-secondary-600 text-sm font-medium"
+                          className="w-fit cursor-pointer text-secondary-500 hover:text-secondary-600 disabled:text-secondary-200 text-sm font-medium"
                         >
                           Add Selling Price
                         </button>
@@ -343,26 +399,28 @@ const VariantPriceTable = ({ colors, sizes, control }: VariantPriceTableProps) =
                     </td>
                     <td className={`px-3 py-1.5 ${rowPadding}`}>
                       {/* burn= mrp- selling */}
-                      <div className="border border-neutral-300 py-1 px-2 leading-normal rounded bg-white-700">
+                      <div className="border border-neutral-300 py-1 px-2 leading-normal rounded bg-white-700 dark:bg-black-300">
                         {burnAmount || 0}
                       </div>
                     </td>
                     <td className={`px-3 py-1.5 ${rowPadding}`}>
                       {/* commission = selling -dp */}
-                      <div className="border border-neutral-300 py-1 px-2 leading-normal rounded bg-white-700">
+                      <div className="border border-neutral-300 py-1 px-2 leading-normal rounded bg-white-700 dark:bg-black-300">
                         {commissionAmount || 0}
                       </div>
                     </td>
                     <td className={`px-3 py-1.5 ${rowPadding}`}>
                       <Select
                         options={[
-                          { label: 'Self', value: 'self' },
-                          { label: 'Through API', value: 'api' },
+                          { label: 'Self', value: '1' },
+                          { label: 'Through API', value: '2' },
                         ]}
                         optionKeys={{ label: 'label', value: 'value' }}
                         placeholder="Select"
-                        className="rounded py-1 mt-0"
-                        onChange={(e) => handleUpdateThrough(e, fieldIndex)}
+                        className="rounded py-1 mt-0 "
+                        disabled={fieldValue?.status === 'N'}
+                        value={fieldValue?.inventoryTypeId}
+                        onChange={(e) => handleUpdateBy(e, fieldIndex)}
                       />
                     </td>
                     <td className={` px-3 py-1.5 ${rowPadding}`}>
@@ -391,7 +449,8 @@ const VariantPriceTable = ({ colors, sizes, control }: VariantPriceTableProps) =
           onSubmit={handleSellingPriceSubmit}
           initialValues={{
             sellingPrice: watchCombinations[activeFieldIndex].sellingPrice,
-            sellingDate: watchCombinations[activeFieldIndex].sellingDate,
+            startDate: watchCombinations[activeFieldIndex].startDate ?? '',
+            endDate: watchCombinations[activeFieldIndex].endDate ?? '',
           }}
         />
       )}
@@ -399,4 +458,4 @@ const VariantPriceTable = ({ colors, sizes, control }: VariantPriceTableProps) =
   );
 };
 
-export default VariantPriceTable;
+export default ProductVariantPriceTable;

@@ -185,11 +185,7 @@ const ImageUploader = ({
                     onDragOver={(e) => e.preventDefault()}
                     className="size-10 border border-white-700 rounded cursor-move grid place-items-center"
                   >
-                    <Image
-                      src={item}
-                      alt={`preview-image-${index}`}
-                      className="rounded aspect-square"
-                    />
+                    <Image src={item} alt={`img-${index}`} className="rounded aspect-square" />
                   </div>
                 ))}
                 {isUploading && (
@@ -223,45 +219,6 @@ const ImageUploader = ({
             {...props}
           />
         </label>
-
-        {/* <div className="absolute inset-0 flex items-center justify-center gap-x-4 pointer-events-none">
-          <div
-            className={`flex items-center justify-center gap-x-4 transition-opacity duration-300 ease-in-out ${isDragOver ? 'opacity-50' : 'opacity-100 pointer-events-auto'}`}
-          >
-            {value?.map((item, index) => (
-              <div
-                key={index}
-                draggable={!isDragOver}
-                onDragStart={(e) => handleImageDragStart(e, index)}
-                onDragEnter={(e) => handleImageDragEnter(e, index)}
-                onDragEnd={handleImageDragEnd}
-                onDragOver={(e) => e.preventDefault()}
-                className="shrink-0 h-10 w-10 border border-white-700 rounded cursor-move flex justify-center items-center"
-              >
-                <Image
-                  src={item}
-                  alt={`preview-image-${index}`}
-                  className="rounded aspect-square"
-                />
-              </div>
-            ))}
-            {isUploading && (
-              <div className="w-10 h-10 flex justify-center items-center">
-                <div className="animate-spin w-5 h-5 border-t border-secondary-500 rounded-full" />
-              </div>
-            )}
-          </div>
-
-          <span className="w-10 h-10 bg-white-600 rounded flex justify-center items-center">
-            <PlusIcon className="stroke-neutral-300" />
-          </span>
-
-          {isDragOver && (
-            <span className="rounded-lg bg-primary-50/80 text-secondary-500 z-10 absolute inset-0 flex items-center justify-center">
-              Drop Your Image Here
-            </span>
-          )}
-        </div> */}
       </div>
 
       {error && (

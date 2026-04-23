@@ -4,5 +4,5 @@ export interface ShopT {
 }
 
 export interface ShopParamsT {
-  keyword: string;
+  keyword?: string;
 }

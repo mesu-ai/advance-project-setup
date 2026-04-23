@@ -6,8 +6,8 @@ import ErrorBoundary from '../components/feedback/ErrorBoundary';
 import { authMiddleware } from '../middleware/auth.middleware';
 import AuthLayout from '@/layout/AuthLayout';
 
-const RootLayout = lazy(() => import('../layout/RootLayout'));
-const NotFound = lazy(() => import('../pages/404/index'));
+import RootLayout from '../layout/RootLayout';
+const NotFound = lazy(() => import('../pages/auth/404/index'));
 
 export const router = createBrowserRouter([
   {
@@ -24,7 +24,6 @@ export const router = createBrowserRouter([
     middleware: [authMiddleware],
     children: authRoutes as RouteObject[],
   },
-
   {
     Component: RootLayout,
     ErrorBoundary: ErrorBoundary,

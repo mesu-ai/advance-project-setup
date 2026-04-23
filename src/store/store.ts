@@ -1,12 +1,13 @@
 import { configureStore, createListenerMiddleware, isAnyOf } from '@reduxjs/toolkit';
 import { baseApi, baseApi2 } from './api/baseApi';
-import authReducer, { loggedOut, loginSucceeded } from './slices/auth/authSlice';
+import authReducer, { loggedOut } from './slices/auth/authSlice';
 import { setupListeners } from '@reduxjs/toolkit/query';
 
 const authListener = createListenerMiddleware();
 
+// loginSucceeded
 authListener.startListening({
-  matcher: isAnyOf(loggedOut, loginSucceeded),
+  matcher: isAnyOf(loggedOut),
   effect: async (_action, { dispatch }) => {
     dispatch(baseApi.util.resetApiState());
   },

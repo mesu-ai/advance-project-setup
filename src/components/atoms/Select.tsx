@@ -19,7 +19,7 @@ const Select = <T extends OptionType>({
   error,
   className = '',
   optionKeys,
-  placeholder = 'Select an option',
+  placeholder = '',
   required,
   ...props
 }: SelectProps<T>) => {
@@ -34,12 +34,15 @@ const Select = <T extends OptionType>({
       <div className="relative">
         <select
           id={generatedId}
-          className={cn('input-field appearance-none peer capitalize bg-surface', className)}
+          className={cn('input-field appearance-none peer capitalize', className)}
           {...props}
         >
-          <option className="text-neutral-300 font-medium" value="">
-            {placeholder}
-          </option>
+          {placeholder && (
+            <option className="text-neutral-300 font-medium" value="">
+              {placeholder}
+            </option>
+          )}
+
           {options?.map((option, index) => (
             <option key={index} value={String(option[optionKeys.value])}>
               {String(option[optionKeys?.label])}

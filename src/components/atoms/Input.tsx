@@ -21,7 +21,7 @@ const Input = ({ label, className = '', type = 'text', error, required, ...props
           id={generatedId}
           aria-invalid={!!error}
           aria-describedby={error ? `${generatedId}-error` : undefined}
-          className="outline-none w-full"
+          className={cn('outline-none w-full', type === 'number' && 'input-no-arrow')}
           {...props}
         />
       </div>

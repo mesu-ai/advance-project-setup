@@ -18,13 +18,24 @@ export async function authMiddleware({ request }: { request: Request }) {
   const { user } = state;
   let { isAuthenticated, accessToken } = state;
 
+  // if (!isPublic && user && !accessToken) {
+  //   try {
+  //     await store.dispatch(authApi.endpoints.refreshToken.initiate()).unwrap();
+  //     // re-read and update
+  //     ({ isAuthenticated, accessToken } = store.getState().auth);
+  //   } catch {
+  //     // baseApi handles logout on failure
+  //   }
+  // }
+
   if (!isPublic && user && !accessToken) {
     try {
-      await store.dispatch(authApi.endpoints.refreshToken.initiate()).unwrap();
-      // re-read and update
+      await store
+        .dispatch(authApi.endpoints.refreshToken.initiate(undefined, { forceRefetch: true }))
+        .unwrap();
       ({ isAuthenticated, accessToken } = store.getState().auth);
     } catch {
-      // baseApi handles logout on failure
+      // loggedOut dispatched inside baseQueryWithReauth on 401
     }
   }
 

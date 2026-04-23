@@ -3,14 +3,13 @@ import FilterIcon from '@/assets/svg/FilterIcon';
 import Button from '@/components/atoms/Button';
 import Image from '@/components/atoms/Image';
 import Status from '@/components/atoms/Status';
-import Switch from '@/components/atoms/Switch';
 import ActionButtons from '@/components/molecules/ActionButtons';
 import Pagination from '@/components/molecules/Pagination';
 import SearchBar from '@/components/molecules/SearchBar';
 import StatusTab from '@/components/molecules/StatusTab';
 import DataTable from '@/components/organisms/DataTable';
-import SellerListFilterDrawer from '@/features/seller/components/SellerListFilterDrawer';
-import { useGetSellersQuery } from '@/store/api/endpoints/sellerEndpoints';
+import CategoryListFilterDrawer from '@/features/categories/components/CategoryListFilterDrawer';
+import { useGetCategoriesQuery } from '@/store/api/endpoints/categoryEndpoints';
 import { useMemo, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router';
 
@@ -24,20 +23,18 @@ const CategoryListPage = () => {
   const currentPage = Number(searchParams.get('page') ?? 1);
   const itemsPerPage = Number(searchParams.get('itemsPerPage') ?? 15);
 
-  const actStatusParam = searchParams.get('actStatus') ?? '';
   const statusParam = searchParams.get('status') ?? '';
 
   const filterParams = useMemo(
     () => ({
-      actStatus: actStatusParam || undefined,
       status: (statusParam as 'Y' | 'N') || undefined,
     }),
-    [actStatusParam, statusParam]
+    [statusParam]
   );
 
   const filteredCount = Object.values(filterParams).filter((v) => v !== undefined).length;
 
-  const sellerParams = {
+  const categoryParams = {
     ...filterParams,
     approvalStatus: approvalStatusParam,
     keyword: keywordParams,
@@ -45,20 +42,11 @@ const CategoryListPage = () => {
     itemsPerPage,
   };
 
-  const { data: sellers, isLoading } = useGetSellersQuery(sellerParams);
+  const { data: categoies } = useGetCategoriesQuery(categoryParams);
 
-  console.log({ sellers, isLoading });
-
-  const handleTabChange = () => {
-    // setSelectedProducts([]);
-    // setExcludedProductIds([]);
-    // setPendingDisplayOrders({});
-    // setAllRowsSelected(false);
-  };
-
-  const handleStatus = (status: string) => {
-    console.log({ status });
-  };
+  // const handleStatus = (status: string) => {
+  //   console.log({ status });
+  // };
 
   const handleView = (sellerId: number) => {
     console.log({ sellerId });
@@ -67,24 +55,19 @@ const CategoryListPage = () => {
   };
 
   const handleEdit = (id: number) => {
-    navigate(`/settings/sellers/${id}/edit`);
-  };
-
-  const handleBankInfo = (id: number) => {
-    navigate(`/settings/sellers/${id}/banks`);
-    console.log({ id });
+    navigate(`/settings/categories/${id}/edit`);
   };
 
   return (
     <div>
       <div className="flex justify-between">
         <h1 className="heading-1">Manage Categories</h1>
-        <Button variant="add" onClick={() => navigate('/settings/sellers/create')}>
+        <Button variant="add" onClick={() => navigate('/settings/categories/create')}>
           Add New Category
         </Button>
       </div>
       <div className="bg-surface mt-3 rounded-xl border border-border">
-        <StatusTab options={categoryStatusTabs} onTabChange={handleTabChange} isShowCount={false} />
+        <StatusTab options={categoryStatusTabs} initialStatus="all" />
 
         <div className="flex justify-between px-5 py-4">
           <SearchBar />
@@ -108,54 +91,41 @@ const CategoryListPage = () => {
           <DataTable
             header={[
               'SL No',
-              'Seller Name',
-              'Shop Name',
-              'Contact Info',
-              'Assigned Vendor',
-              'Account Status',
+              'Name',
+              'Breadcrumb',
+              'Category Slug',
+              'Display Order',
               'Status',
               'Action',
             ]}
           >
-            {sellers?.data?.map((seller, index: number) => (
-              <tr key={seller.sellerId}>
+            {categoies?.data?.map((category, index: number) => (
+              <tr key={category.categoryId}>
                 <td className="px-5 py-3">{(currentPage - 1) * itemsPerPage + index + 1}</td>
-                <td className="px-5 py-3">{seller.sellerName}</td>
                 <td className="px-5 py-3">
                   <div className="flex gap-2 items-center max-w-48">
                     <Image
-                      src={`https://prod.saralifestyle.com${seller.shopLogoUrl}`}
+                      src={`https://prod.saralifestyle.com${category.imagePath}`}
                       width={48}
                       height={48}
-                      alt="default-avater"
+                      alt="category-image"
                     />
-                    <p>{seller.shopName}</p>
+                    <p>{category.categoryName}</p>
                   </div>
                 </td>
+                <td className="px-5 py-3">{category.breadcrumbCategory}</td>
+                <td className="px-5 py-3">{category.slug}</td>
+
+                <td className="px-5 py-3">{category.displayOrder}</td>
                 <td className="px-5 py-3">
-                  <div className="">
-                    <p>{seller.sellerContactNo}</p>
-                    <p>{seller.sellerEmail}</p>
-                  </div>
-                </td>
-                <td className="px-5 py-3">{seller.assignVendorName}</td>
-                <td className="px-5 py-3">
-                  {/* bank account status is not provided in current api response */}
-                  <Status status={seller.sellerBankAccount ? 'active' : 'pending'} />
+                  <Status status={category.isActive ? 'active' : 'pending'} />
                 </td>
 
                 <td className="px-5 py-3">
-                  <Switch
-                    isEnabled={seller.isActive === 'Y'}
-                    onEnabled={() => handleStatus(seller.isActive)}
-                  />
-                </td>
-                <td className="px-5 py-3">
                   <ActionButtons
                     actions={[
-                      { label: 'View', onClick: () => handleView(seller.sellerId) },
-                      { label: 'Edit', onClick: () => handleEdit(seller.sellerId) },
-                      { label: 'Bank Info', onClick: () => handleBankInfo(seller.sellerId) },
+                      { label: 'View', onClick: () => handleView(category.categoryId) },
+                      { label: 'Edit', onClick: () => handleEdit(category.categoryId) },
                     ]}
                   />
                 </td>
@@ -166,13 +136,13 @@ const CategoryListPage = () => {
 
         <div className="text-center py-5">
           <Pagination
-            totalPages={sellers?.pagination?.totalPages}
-            totalItems={sellers?.pagination?.totalItems}
+            totalPages={categoies?.pagination?.totalPages}
+            totalItems={categoies?.pagination?.totalItems}
           />
         </div>
       </div>
 
-      <SellerListFilterDrawer
+      <CategoryListFilterDrawer
         isOpen={isFilterDrawerOpen}
         onClose={() => setFilterDrawerOpen(false)}
         initialValues={filterParams}

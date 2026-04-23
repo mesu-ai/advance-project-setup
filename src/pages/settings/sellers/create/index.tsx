@@ -1,5 +1,5 @@
-import SellerForm from '@/features/seller/components/SellerForm';
-import type { SellerFormData } from '@/features/seller/schema';
+import SellerForm from '@/features/sellers/components/SellerForm';
+import type { SellerFormData } from '@/features/sellers/schema';
 
 const CreateSellerPage = () => {
   const onSubmit = async (data: SellerFormData) => {

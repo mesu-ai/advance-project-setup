@@ -6,11 +6,11 @@ import SearchSelect from '@/components/molecules/SearchSelect';
 import useLocalSearch from '@/hooks/useLocalSearch';
 import useSearchKeyword from '@/hooks/useSearchKeyword';
 import {
-  useGetCategoriesQuery,
   useGetCategoryBySearchQuery,
+  useGetCategoryTreeQuery,
 } from '@/store/api/endpoints/categoryEndpoints';
 import type {
-  CategoryT,
+  CategoryTreeT,
   FirstChildT,
   SecondChildT,
   SelectedCategoryT,
@@ -91,14 +91,16 @@ const ProductCategorySelector = ({
   onSelected,
   suggession,
 }: CategorySelectorProps) => {
-  const { data: categoies, isLoading } = useGetCategoriesQuery();
+  const { data: categoies, isLoading } = useGetCategoryTreeQuery();
 
   const derivedChildren = useMemo(() => {
     if (!categoies?.data || !selected?.id) {
       return { first: [], second: [], third: [] };
     }
 
-    const base = categoies?.data?.find((c: CategoryT) => c.categoryName === selected.layer.base);
+    const base = categoies?.data?.find(
+      (c: CategoryTreeT) => c.categoryName === selected.layer.base
+    );
 
     if (!base) return { first: [], second: [], third: [] };
 
@@ -124,11 +126,11 @@ const ProductCategorySelector = ({
   const thirdChild = derivedChildren.third;
 
   const getCategoryName = useCallback(
-    (c: CategoryT | FirstChildT | SecondChildT | ThirdChildT) => c.categoryName,
+    (c: CategoryTreeT | FirstChildT | SecondChildT | ThirdChildT) => c.categoryName,
     []
   );
 
-  const baseSearch = useLocalSearch<CategoryT>(categoies?.data ?? [], getCategoryName, 200);
+  const baseSearch = useLocalSearch<CategoryTreeT>(categoies?.data ?? [], getCategoryName, 200);
   const firstSearch = useLocalSearch<FirstChildT>(firstChild, getCategoryName, 200);
   const secondSearch = useLocalSearch<SecondChildT>(secondChild, getCategoryName, 200);
   const thirdSearch = useLocalSearch<ThirdChildT>(thirdChild, getCategoryName, 200);
@@ -140,7 +142,7 @@ const ProductCategorySelector = ({
     { skip: !debouncedKeyword }
   );
 
-  const handleBaseCategory = (category: CategoryT) => {
+  const handleBaseCategory = (category: CategoryTreeT) => {
     onSelected({
       id: category.categoryId,
       name: category.categoryName,
@@ -278,7 +280,7 @@ const ProductCategorySelector = ({
                 />
                 <ul className="max-h-[320px] overflow-y-auto">
                   {!isLoading &&
-                    baseSearch?.result?.map((category: CategoryT) => {
+                    baseSearch?.result?.map((category: CategoryTreeT) => {
                       const isSelected = selected.layer?.base === category.categoryName;
 
                       return (

@@ -1,10 +1,19 @@
-import type { ApiResponseT, CategoryT } from '@/types';
+import type {
+  ApiResponseT,
+  CategoryDetailsT,
+  CategoryParamsT,
+  CategorySummaryT,
+  CategoryTreeT,
+} from '@/types';
 import { baseApi } from '../baseApi';
 
 export const categoryApi = baseApi.injectEndpoints({
   endpoints: (build) => ({
-    getCategories: build.query<ApiResponseT<CategoryT[]>, void>({
-      query: () => '/categories',
+    getCategories: build.query<ApiResponseT<CategorySummaryT[]>, CategoryParamsT>({
+      query: (params) => ({
+        url: '/categories',
+        params,
+      }),
       providesTags: ['Category'],
     }),
 
@@ -14,7 +23,25 @@ export const categoryApi = baseApi.injectEndpoints({
         params,
       }),
     }),
+
+    getCateogryWithLayers: build.query({
+      query: (categoryId) => `/categories/${categoryId}/with-layers`,
+    }),
+
+    getCategoryTree: build.query<ApiResponseT<CategoryTreeT[]>, void>({
+      query: () => '/categories/tree',
+      providesTags: ['Category'],
+    }),
+
+    getCategoryById: build.query<ApiResponseT<CategoryDetailsT>, string>({
+      query: (categoryId) => `/categories/${categoryId}`,
+    }),
   }),
 });
 
-export const { useGetCategoriesQuery, useGetCategoryBySearchQuery } = categoryApi;
+export const {
+  useGetCategoriesQuery,
+  useGetCategoryBySearchQuery,
+  useGetCategoryTreeQuery,
+  useGetCategoryByIdQuery,
+} = categoryApi;

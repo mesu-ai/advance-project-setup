@@ -9,7 +9,7 @@ import Pagination from '@/components/molecules/Pagination';
 import SearchBar from '@/components/molecules/SearchBar';
 import StatusTab from '@/components/molecules/StatusTab';
 import DataTable from '@/components/organisms/DataTable';
-import SellerListFilterDrawer from '@/features/seller/components/SellerListFilterDrawer';
+import SellerListFilterDrawer from '@/features/sellers/components/SellerListFilterDrawer';
 import { useGetSellersQuery } from '@/store/api/endpoints/sellerEndpoints';
 import { useMemo, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router';
@@ -49,13 +49,6 @@ const SellerListPage = () => {
 
   console.log({ sellers, isLoading });
 
-  const handleTabChange = () => {
-    // setSelectedProducts([]);
-    // setExcludedProductIds([]);
-    // setPendingDisplayOrders({});
-    // setAllRowsSelected(false);
-  };
-
   const handleStatus = (status: string) => {
     console.log({ status });
   };
@@ -89,7 +82,7 @@ const SellerListPage = () => {
         </Button>
       </div>
       <div className="bg-surface mt-3 rounded-xl border border-border">
-        <StatusTab options={sellerStatusTabs} onTabChange={handleTabChange} isShowCount={false} />
+        <StatusTab options={sellerStatusTabs} />
 
         <div className="flex justify-between px-5 py-4">
           <SearchBar />

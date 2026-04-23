@@ -30,6 +30,8 @@ const settingsRoutePermissions: RoutePermissionMapT = {
 
   '/settings/brands': { page: 'brands.index', pageLabel: 'Brand Settings' },
   '/settings/categories': { page: 'categories.index', pageLabel: 'Category Settings' },
+  '/settings/categories/create': { page: 'categories.create', pageLabel: 'Category Create' },
+  '/settings/categories/:categoryId/edit': { page: 'categories.edit', pageLabel: 'Category Edit' },
 } as const;
 
 const accessRoutePermissions: RoutePermissionMapT = {

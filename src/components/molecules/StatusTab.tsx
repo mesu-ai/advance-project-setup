@@ -6,22 +6,24 @@ interface StatusTabProps {
   options: StatusTabOptionT[];
   initialStatus?: string;
   isShowCount?: boolean;
+  queryKey?: string;
   onTabChange?: (status: string) => void;
 }
 
 const StatusTab = ({
   options,
   initialStatus = 'approved',
-  isShowCount = true,
+  isShowCount,
+  queryKey = 'approvalStatus',
   onTabChange,
 }: StatusTabProps) => {
   const [searchParams] = useSearchParams();
 
-  const activeApprovalStatus = searchParams.get('approvalStatus') ?? initialStatus;
+  const activeStatus = searchParams.get(queryKey) ?? initialStatus;
 
   const buildTabUrl = (status: string) => {
     const next = new URLSearchParams();
-    next.set('approvalStatus', status);
+    next.set(queryKey, status);
     // reset page on tab change
     return `?${next.toString()}`;
   };
@@ -29,7 +31,7 @@ const StatusTab = ({
   return (
     <div className="px-5 pt-8 pb-4 border-b border-border flex gap-8 text-sm font-medium">
       {options.map((s) => {
-        const isActive = activeApprovalStatus === s.status;
+        const isActive = activeStatus === s.status;
 
         return (
           <Link

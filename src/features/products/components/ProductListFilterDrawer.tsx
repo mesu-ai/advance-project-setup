@@ -8,6 +8,7 @@ import { Controller, useForm } from 'react-hook-form';
 import { useSearchParams } from 'react-router';
 import { useEffect } from 'react';
 import * as z from 'zod';
+import { statusOptions } from '@/assets/data/status';
 
 const productFilterSchema = z.object({
   categoryId: z.number().optional(),
@@ -163,10 +164,7 @@ const ProductListFilterDrawer = ({ isOpen, onClose, initialValues }: ProductFilt
             render={({ field }) => (
               <ComboBox
                 label="Product Status"
-                options={[
-                  { label: 'Active', value: 'Y' },
-                  { label: 'Inactive', value: 'N' },
-                ]}
+                options={statusOptions}
                 optionKeys={{ label: 'label', value: 'value' }}
                 placeholder="Select Product Status"
                 {...field}

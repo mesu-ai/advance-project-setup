@@ -149,8 +149,6 @@ export const productSchema = z
   .superRefine((val, ctx) => {
     const { isReturnable, returnDuration, returnPolicy } = val;
 
-    console.log({ isReturnable });
-
     if (isReturnable === 'Y') {
       if (!returnDuration) {
         ctx.addIssue({

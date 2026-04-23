@@ -4,7 +4,7 @@ import ActionButtons from '@/components/molecules/ActionButtons';
 import Pagination from '@/components/molecules/Pagination';
 import SearchBar from '@/components/molecules/SearchBar';
 import DataTable from '@/components/organisms/DataTable';
-import ShopBankModal from '@/features/seller/components/ShopBankModal';
+import ShopBankModal from '@/features/sellers/components/ShopBankModal';
 import { useGetSellerBanksQuery } from '@/store/api/endpoints/sellerEndpoints';
 import type { BankT } from '@/types';
 import { useState } from 'react';

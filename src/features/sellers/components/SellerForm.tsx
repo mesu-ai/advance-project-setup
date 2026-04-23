@@ -10,7 +10,7 @@ import { ALLOWED_UPLOAD_FILE_MIME_TYPES, IMAGE_MIME_TYPES } from '@/constants/fi
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Controller, FormProvider, useFieldArray, useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router';
-import { sellerSchema, type SellerFormData } from '../schema';
+import { sellerSchema, type SellerFormData } from '../../sellers/schema';
 
 const countryData = [
   { id: 1, name: 'Bangladesh' },

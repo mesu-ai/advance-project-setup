@@ -238,7 +238,7 @@ const ManageProductPage = () => {
         </Button>
       </div>
       <div className="bg-surface mt-3 rounded-xl border border-border">
-        <StatusTab options={productApprovalStatus} onTabChange={handleTabChange} />
+        <StatusTab options={productApprovalStatus} onTabChange={handleTabChange} isShowCount />
         <div className="flex justify-between px-5 py-4">
           <SearchBar />
           <div

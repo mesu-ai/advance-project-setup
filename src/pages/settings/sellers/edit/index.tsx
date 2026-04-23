@@ -1,5 +1,5 @@
-import SellerForm from '@/features/seller/components/SellerForm';
-import type { SellerFormData } from '@/features/seller/schema';
+import SellerForm from '@/features/sellers/components/SellerForm';
+import type { SellerFormData } from '@/features/sellers/schema';
 import { useGetSellerByIdQuery } from '@/store/api/endpoints/sellerEndpoints';
 import { useParams } from 'react-router';
 

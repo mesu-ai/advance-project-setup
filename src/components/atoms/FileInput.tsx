@@ -1,12 +1,23 @@
+import CloseIcon from '@/assets/svg/CloseIcon';
 import PlusIcon from '@/assets/svg/PlusIcon';
-import { useEffect, useId, useState, type ComponentPropsWithRef, type DragEvent } from 'react';
+import {
+  useEffect,
+  useId,
+  useRef,
+  useState,
+  type ComponentPropsWithRef,
+  type DragEvent,
+  type MouseEvent,
+} from 'react';
 
 interface FileInputProps extends Omit<ComponentPropsWithRef<'input'>, 'type' | 'value' | 'onDrop'> {
-  label: string;
-  error?: string;
-  errorSameRow?: string;
+  label?: string;
   value?: File | File[] | string;
   onDrop?: (file: File) => void;
+  onRemove?: () => void;
+  isPreview?: boolean;
+  error?: string;
+  errorSameRow?: string;
 }
 
 const FileInput = ({
@@ -15,50 +26,82 @@ const FileInput = ({
   error,
   errorSameRow,
   value,
+  isPreview = true,
   required,
   onDrop,
+  onRemove,
   ...props
 }: FileInputProps) => {
   const [preview, setPreview] = useState<string | null>(null);
-  const [isDragOver, setIsDragOver] = useState<boolean>(false);
+  const [isDragOver, setIsDragOver] = useState(false);
+  const inputRef = useRef<HTMLInputElement | null>(null);
+  const dragDepth = useRef(0);
   const generatedId = useId();
 
-  // const fileName =
-  //   value instanceof File ? value.name : typeof value === 'string' ? value.split('/').pop() : '';
+  const fileName =
+    value instanceof File ? value.name : typeof value === 'string' ? value.split('/').pop() : '';
+
+  const handleDragEnter = (e: DragEvent<HTMLLabelElement>) => {
+    e.preventDefault();
+    if (!onDrop) return;
+    dragDepth.current += 1;
+    setIsDragOver(true);
+  };
 
   const handleDragOver = (e: DragEvent<HTMLLabelElement>) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (onDrop) setIsDragOver(true);
+    e.preventDefault(); // required to allow drop
   };
+
   const handleDragLeave = (e: DragEvent<HTMLLabelElement>) => {
     e.preventDefault();
-    e.stopPropagation();
-    setIsDragOver(false);
+    if (!onDrop) return;
+    dragDepth.current -= 1;
+    if (dragDepth.current <= 0) {
+      dragDepth.current = 0;
+      setIsDragOver(false);
+    }
   };
 
-  const handleOnDrop = (e: DragEvent<HTMLLabelElement>) => {
+  const handleDrop = (e: DragEvent<HTMLLabelElement>) => {
     e.preventDefault();
-    e.stopPropagation();
+    dragDepth.current = 0;
     setIsDragOver(false);
-
-    const files = Array.from(e.dataTransfer?.files ?? []);
-    const file = files[0];
+    const file = e.dataTransfer?.files[0];
     if (file && onDrop) onDrop(file);
   };
 
+  const handleImageRemove = (e: MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    setPreview(null);
+
+    if (inputRef.current) {
+      inputRef.current.value = '';
+    }
+    onRemove?.();
+  };
+
   useEffect(() => {
-    if (!value) return;
+    if (!value) {
+      setPreview(null);
+      return;
+    }
     if (value instanceof File) {
-      const objectUrl = URL.createObjectURL(value);
-      setPreview(objectUrl);
-      return () => URL.revokeObjectURL(objectUrl);
+      const url = URL.createObjectURL(value);
+      setPreview(url);
+      return () => URL.revokeObjectURL(url);
     }
     if (typeof value === 'string') {
-      // const imageUrl = `${baseURL}${value}`;
       setPreview(value);
     }
-  }, [value]);
+  }, [value]); // isPreview intentionally excluded
+
+  const labelHeight = !isPreview
+    ? 'min-h-[35.73px]'
+    : errorSameRow || error
+      ? 'h-[calc(100%-48px)]'
+      : 'h-[calc(100%-28px)]';
 
   return (
     <div className={className}>
@@ -68,25 +111,50 @@ const FileInput = ({
 
       <label
         htmlFor={generatedId}
-        onDrop={handleOnDrop}
+        onDragEnter={handleDragEnter}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
-        className={`${errorSameRow ? 'h-[calc(100%-48px)]' : 'h-[calc(100%-28px)]'} input-field border-dashed flex items-center justify-center gap-x-2 ${isDragOver && 'border-primary-500'}`}
+        onDrop={handleDrop}
+        className={`${labelHeight} input-field flex items-center justify-center border-dashed ${
+          isDragOver ? 'border-primary-500' : ''
+        }`}
       >
-        {preview ? (
-          <img src={preview} alt="preview-image" className="h-24 w-auto" />
+        {isPreview ? (
+          <div className="relative flex w-full items-center justify-center gap-x-2">
+            {preview && (
+              <div className="relative">
+                <img src={preview} alt="preview" className="max-h-20 object-contain" />
+                <button
+                  type="button"
+                  onClick={handleImageRemove}
+                  aria-label="remove preview image"
+                  className="cursor-pointer absolute top-0 right-0 text-danger-500 hover:text-danger-300"
+                >
+                  <CloseIcon />
+                </button>
+              </div>
+            )}
+            {!preview && !isDragOver && (
+              <span className="flex h-10 w-10 items-center justify-center rounded bg-white-600">
+                <PlusIcon className="stroke-neutral-300" />
+              </span>
+            )}
+            <span
+              aria-hidden
+              className={`pointer-events-none absolute inset-0 z-10 flex items-center justify-center bg-primary-50/85 text-secondary-500 transition-opacity ${
+                isDragOver ? 'opacity-100' : 'opacity-0'
+              }`}
+            >
+              Drop your file here
+            </span>
+          </div>
         ) : (
-          <span
-            className={
-              isDragOver
-                ? 'text-secondary-500'
-                : 'w-10 h-10 bg-white-600 rounded flex justify-center items-center'
-            }
-          >
-            {isDragOver ? 'Drop Your Image Here' : <PlusIcon className="stroke-neutral-300" />}
-          </span>
+          <p className="w-full truncate text-start text-sm font-medium text-neutral-500">
+            Choose File: <span className="font-normal">{fileName || 'No file chosen'}</span>
+          </p>
         )}
-        <input type="file" id={generatedId} className="hidden" {...props} />
+
+        <input id={generatedId} type="file" ref={inputRef} className="sr-only" {...props} />
       </label>
 
       {error && (

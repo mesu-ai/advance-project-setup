@@ -3,6 +3,7 @@ import type { RoutePermissionMapT } from '@/types';
 const productRoutePermissions: RoutePermissionMapT = {
   '/products': { page: 'products.index', showInTable: false },
   '/products/create': { page: 'products.create', pageLabel: 'Product Create' },
+  '/products/:productId/edit': { page: 'products.edit', pageLabel: 'Product Edit' },
   '/products/manage': {
     page: 'products.manage',
     actions: ['edit', 'view'],
@@ -15,6 +16,22 @@ const orderRoutePermissions: RoutePermissionMapT = {
   '/orders/create': { page: 'orders.create', pageLabel: 'Order Create' },
   '/orders/manage': { page: 'orders.manage', pageLabel: 'Order Manage' },
   '/orders/cancel': { page: 'orders.cancel', pageLabel: 'Order Cancel' },
+} as const;
+
+const settingsRoutePermissions: RoutePermissionMapT = {
+  '/settings/sellers': { page: 'sellers.index', pageLabel: 'Seller Settings' },
+  '/settings/sellers/create': { page: 'sellers.create', pageLabel: 'Seller Create' },
+  '/settings/sellers/:sellerId/edit': { page: 'sellers.edit', pageLabel: 'Seller Edit' },
+
+  '/settings/sellers/:sellerId/shops/:shopId/banks': {
+    page: 'sellers.banks',
+    pageLabel: 'Seller Banks',
+  },
+
+  '/settings/brands': { page: 'brands.index', pageLabel: 'Brand Settings' },
+  '/settings/categories': { page: 'categories.index', pageLabel: 'Category Settings' },
+  '/settings/categories/create': { page: 'categories.create', pageLabel: 'Category Create' },
+  '/settings/categories/:categoryId/edit': { page: 'categories.edit', pageLabel: 'Category Edit' },
 } as const;
 
 const accessRoutePermissions: RoutePermissionMapT = {
@@ -50,7 +67,13 @@ export const routerPermissionMap: RoutePermissionMapT = Object.freeze({
   '/': { page: 'dashboard.index', actions: ['view', 'delete'] },
   ...productRoutePermissions,
   ...orderRoutePermissions,
+  ...settingsRoutePermissions,
   ...accessRoutePermissions,
 });
 
-export { productRoutePermissions, orderRoutePermissions, accessRoutePermissions };
+export {
+  productRoutePermissions,
+  orderRoutePermissions,
+  settingsRoutePermissions,
+  accessRoutePermissions,
+};

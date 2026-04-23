@@ -1,11 +1,11 @@
 //sidebar.routes.ts
-import type { SideRouteProps } from '@/types';
 import ProductIcon from '@/assets/svg/ProductIcon';
 import OrderIcon from '@/assets/svg/OrderIcon';
 import DashboardIcon from '@/assets/svg/DashboardIcon';
 import RoleIcon from '@/assets/svg/RoleIcon';
+import type { SidebarRouteGroupT, SidebarRouteT } from '@/types';
 
-export const sidebarGenRoutes: SideRouteProps[] = [
+export const sidebarGeneralRoutes: SidebarRouteT[] = [
   { title: 'Dashboard', path: '/', icon: DashboardIcon },
   {
     title: 'Products',
@@ -13,7 +13,7 @@ export const sidebarGenRoutes: SideRouteProps[] = [
     icon: ProductIcon,
     children: [
       { title: 'Create Product', path: 'create' },
-      { title: 'Manage Product', path: 'manage' },
+      { title: 'Manage Products', path: 'manage' },
     ],
   },
   {
@@ -22,13 +22,13 @@ export const sidebarGenRoutes: SideRouteProps[] = [
     icon: OrderIcon,
     children: [
       { title: 'Create Order', path: 'create' },
-      { title: 'Manage Order', path: 'manage' },
       { title: 'Cancel Order', path: 'cancel' },
+      { title: 'Manage Orders', path: 'manage' },
     ],
   },
 ];
 
-export const sidebarUserRoutes: SideRouteProps[] = [
+export const sidebarUserRoutes: SidebarRouteT[] = [
   {
     title: 'Access Control',
     path: 'access-control',
@@ -38,4 +38,16 @@ export const sidebarUserRoutes: SideRouteProps[] = [
       { title: 'Roles & Permissions', path: 'roles' },
     ],
   },
+];
+
+export const sidebarSettingsRoutes: SidebarRouteT[] = [
+  { title: 'Sellers', path: 'settings/sellers', icon: DashboardIcon },
+  { title: 'Brands', path: 'settings/brands', icon: DashboardIcon },
+  { title: 'Categories', path: 'settings/categories', icon: ProductIcon },
+];
+
+export const sidebarRoutes: SidebarRouteGroupT[] = [
+  { title: 'General', routes: sidebarGeneralRoutes },
+  { title: 'Settings', routes: sidebarSettingsRoutes },
+  { title: 'Users', routes: sidebarUserRoutes },
 ];

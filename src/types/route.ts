@@ -1,19 +1,24 @@
 import type { ComponentType, LazyExoticComponent, ReactNode, SVGProps } from 'react';
 
-export interface AppRouteProps {
+export interface AppRouteT {
   index?: boolean;
   path?: string;
   Component?: LazyExoticComponent<ComponentType<unknown>> | (() => ReactNode);
   layout?: LazyExoticComponent<ComponentType<unknown>> | (() => ReactNode);
   middleware?: [];
-  children?: AppRouteProps[];
+  children?: AppRouteT[];
 }
 
-export interface SideRouteProps {
+export interface SidebarRouteT {
   title: string;
   path: string;
   icon?: ComponentType<SVGProps<SVGSVGElement>>;
-  children?: SideRouteProps[];
+  children?: SidebarRouteT[];
+}
+
+export interface SidebarRouteGroupT {
+  title: string;
+  routes: SidebarRouteT[];
 }
 
 export interface RoutePermissionT {

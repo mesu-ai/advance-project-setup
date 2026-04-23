@@ -13,13 +13,20 @@ export const authApi = baseApi.injectEndpoints({
       // invalidatesTags: ['Auth'],
     }),
 
-    refreshToken: build.mutation<RefreshTokenResponseT, void>({
+    refreshToken: build.query<RefreshTokenResponseT, void>({
       query: () => ({
         url: '/auth/refresh',
         method: 'POST',
         credentials: 'include',
       }),
     }),
+    // refreshToken: build.mutation<RefreshTokenResponseT, void>({
+    //   query: () => ({
+    //     url: '/auth/refresh',
+    //     method: 'POST',
+    //     credentials: 'include',
+    //   }),
+    // }),
 
     logout: build.mutation<void, void>({
       query: () => ({
@@ -32,4 +39,4 @@ export const authApi = baseApi.injectEndpoints({
   }),
 });
 
-export const { useLoginMutation, useRefreshTokenMutation, useLogoutMutation } = authApi;
+export const { useLoginMutation, useRefreshTokenQuery, useLogoutMutation } = authApi;

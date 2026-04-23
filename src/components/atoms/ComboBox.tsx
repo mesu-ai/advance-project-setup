@@ -256,6 +256,9 @@ const ComboBox = <T, ValueKey extends PrimitiveKeys<T>>({
           ) : (
             <p>Loading...</p>
           )}
+          {!isLoading && options.length === 0 && (
+            <p className="text-sm text-neutral-300">No options available</p>
+          )}
 
           {addMore?.enabled && (
             <p className="pt-3 border-t border-border text-center text-sm">

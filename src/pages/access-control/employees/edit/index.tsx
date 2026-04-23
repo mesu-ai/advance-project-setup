@@ -15,7 +15,7 @@ const EditEmployeePage = () => {
   if (!employee?.data) return <div>Employee not found</div>;
 
   return (
-    <PageSection title="Add New Employee" className="px-5 py-4">
+    <PageSection title="Edit Employee Information" className="px-5 py-4">
       <EmployeeForm
         mode="edit"
         onSubmit={onSubmit}

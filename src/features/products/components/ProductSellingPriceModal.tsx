@@ -5,12 +5,16 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import * as z from 'zod';
 
-const PriceModalSchema = z.object({
-  sellingPrice: z.coerce.number<number>('Invalid price').positive('Selling price must be positive').optional(),
-  sellingDate: z.iso.datetime({ local: true }),
+const priceModalSchema = z.object({
+  sellingPrice: z.coerce
+    .number<number>('Invalid price')
+    .positive('Selling price must be positive')
+    .optional(),
+  startDate: z.iso.datetime({ local: true }),
+  endDate: z.iso.datetime({ local: true }),
 });
 
-export type PriceFormData = z.infer<typeof PriceModalSchema>;
+export type PriceFormData = z.infer<typeof priceModalSchema>;
 
 interface SellingPriceModalProps {
   isOpen: boolean;
@@ -19,7 +23,7 @@ interface SellingPriceModalProps {
   initialValues?: PriceFormData;
 }
 
-const SellingPriceModal = ({
+const ProductSellingPriceModal = ({
   isOpen,
   onClose,
   onSubmit,
@@ -31,7 +35,7 @@ const SellingPriceModal = ({
     reset,
     formState: { isSubmitting, errors },
   } = useForm<PriceFormData>({
-    resolver: zodResolver(PriceModalSchema),
+    resolver: zodResolver(priceModalSchema),
     defaultValues: initialValues ?? {},
   });
 
@@ -59,14 +63,25 @@ const SellingPriceModal = ({
           {...register('sellingPrice')}
           required
         />
-        <Input
-          type="datetime-local"
-          label="Selling Date"
-          placeholder="Select Selling Date"
-          error={errors.sellingDate?.message}
-          {...register('sellingDate')}
-          required
-        />
+
+        <div className="grid grid-cols-2 gap-3">
+          <Input
+            type="datetime-local"
+            label="Start Date"
+            placeholder="Select Selling Date"
+            error={errors.startDate?.message}
+            {...register('startDate')}
+            required
+          />
+          <Input
+            type="datetime-local"
+            label="End Date"
+            placeholder="Select Selling Date"
+            error={errors.endDate?.message}
+            {...register('endDate')}
+            required
+          />
+        </div>
 
         <div className="flex justify-end gap-4 pt-4">
           <Button onClick={handleClose} variant="cancel">
@@ -81,4 +96,4 @@ const SellingPriceModal = ({
   );
 };
 
-export default SellingPriceModal;
+export default ProductSellingPriceModal;

@@ -5,7 +5,7 @@ import Pagination from '@/components/molecules/Pagination';
 import { useState } from 'react';
 import DataTable from '@/components/organisms/DataTable';
 import Button from '@/components/atoms/Button';
-import SearchBar from '@/components/atoms/Search';
+import Search from '@/components/atoms/Search';
 import ActionButtons from '@/components/molecules/ActionButtons';
 import PageSection from '@/components/templates/PageSection';
 import Modal from '@/components/organisms/Modal/Modal';
@@ -21,13 +21,9 @@ const EmployeeListPage = () => {
   const [confirmAction, setConfirmAction] = useState<(() => void) | null>(null);
 
   const [selectedEmp, setSelectedEmp] = useState<EmployeeT>();
-  const [currPage, setCurrPage] = useState<number>(1);
 
   const navigate = useNavigate();
-
   const { data: employees } = useGetEmployeesQuery();
-
-  console.log({ currPage });
 
   const handleView = (empToView: EmployeeT) => {
     setSelectedEmp(empToView);
@@ -54,7 +50,7 @@ const EmployeeListPage = () => {
   return (
     <PageSection title="All Employee List">
       <div className="flex justify-between px-5 py-4">
-        <SearchBar className="max-w-[350px]" onSearch={(keyword) => console.log(keyword)} />
+        <Search className="max-w-[350px] my-auto" onSearch={(keyword) => console.log(keyword)} />
         <Button variant="add" onClick={() => navigate('/access-control/employees/create')}>
           Add New Employee
         </Button>
@@ -98,7 +94,7 @@ const EmployeeListPage = () => {
             ))}
         </DataTable>
         <div className="text-center py-5">
-          <Pagination totalPage={12} currentPage={5} setCurrentPage={setCurrPage} />
+          <Pagination totalPages={5} totalItems={10} />
         </div>
       </div>
 

@@ -23,7 +23,7 @@ const ActionButtons: FC<ActionButtonsProps> = memo(({ actions, label = 'Actions'
         <ArrowIcon className="w-5 h-5 rotate-180 group-focus-within:rotate-0 transition-transform" />
       </button>
 
-      <div className="z-10 text-sm font-medium bg-white top-full mt-2 hidden group-focus-within:flex absolute p-3 rounded-lg shadow-custom-2 flex-col items-start gap-2 text-neutral-300">
+      <div className="w-full z-10 text-sm font-medium bg-white top-full mt-2 hidden group-focus-within:flex absolute py-3 rounded-lg shadow-custom-2 flex-col items-start gap-2 text-neutral-300">
         {actions.map((action, idx) => (
           <button
             key={idx}

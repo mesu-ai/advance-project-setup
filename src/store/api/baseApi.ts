@@ -136,6 +136,7 @@ export const baseApi = createApi({
     'Media',
     'Column',
     'Seller',
+    'Brand',
   ], // More tag types
   endpoints: () => ({}),
 });

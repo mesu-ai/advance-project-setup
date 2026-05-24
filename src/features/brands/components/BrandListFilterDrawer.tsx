@@ -7,24 +7,19 @@ import { useSearchParams } from 'react-router';
 import { useEffect } from 'react';
 import * as z from 'zod';
 
-const sellerFilterSchema = z.object({
-  actStatus: z.string().optional(),
+const brandFilterSchema = z.object({
   status: z.enum(['Y', 'N']).optional(),
 });
 
-type FilterFormData = z.infer<typeof sellerFilterSchema>;
+type FilterFormData = z.infer<typeof brandFilterSchema>;
 
-interface SellerListFilterDrawerProps {
+interface BrandListFilterDrawerProps {
   isOpen: boolean;
   onClose: () => void;
   initialValues?: FilterFormData;
 }
 
-const SellerListFilterDrawer = ({
-  isOpen,
-  onClose,
-  initialValues,
-}: SellerListFilterDrawerProps) => {
+const BrandListFilterDrawer = ({ isOpen, onClose, initialValues }: BrandListFilterDrawerProps) => {
   const [searchParams, setSearchParams] = useSearchParams();
 
   const initialQueryParams = Object.fromEntries(searchParams.entries());
@@ -35,7 +30,7 @@ const SellerListFilterDrawer = ({
     reset,
     formState: { isSubmitting },
   } = useForm<FilterFormData>({
-    resolver: zodResolver(sellerFilterSchema),
+    resolver: zodResolver(brandFilterSchema),
     defaultValues: initialValues ?? {},
   });
 
@@ -65,25 +60,6 @@ const SellerListFilterDrawer = ({
     <Drawer isOpen={isOpen} onClose={handleClose} title="Filter Sellers">
       <form onSubmit={handleSubmit(onSubmit)} className="h-full flex flex-col justify-between w-80">
         <div className="space-y-4">
-          <Controller
-            name="actStatus"
-            control={control}
-            render={({ field }) => (
-              <ComboBox
-                label="Account Status"
-                options={[
-                  { label: 'Approved', value: 'approved' },
-                  { label: 'Pending', value: 'pending' },
-                  { label: 'Missing', value: 'missing' },
-                  { label: 'Resubmit', value: 'resubmit' },
-                ]}
-                optionKeys={{ label: 'label', value: 'value' }}
-                placeholder="Select Account Status"
-                {...field}
-              />
-            )}
-          />
-
           <Controller
             name="status"
             control={control}
@@ -123,4 +99,4 @@ const SellerListFilterDrawer = ({
   );
 };
 
-export default SellerListFilterDrawer;
+export default BrandListFilterDrawer;

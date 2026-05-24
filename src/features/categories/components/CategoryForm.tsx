@@ -170,7 +170,7 @@ const CategoryForm = ({ mode, initialValues, onSubmit }: CategoryFormProps) => {
         </div>
 
         <div className="flex justify-end gap-4">
-          <Button variant="cancel" onClick={() => navigate('/access-control/employees')}>
+          <Button variant="cancel" onClick={() => navigate('/settings/categories')}>
             Cancel
           </Button>
 

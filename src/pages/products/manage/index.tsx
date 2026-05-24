@@ -178,7 +178,8 @@ const ManageProductPage = () => {
   };
 
   const handleDuplicate = (id: number) => {
-    console.log({ id });
+    navigate(`/products/${id}/duplicate`);
+    // console.log({ id });
   };
 
   const handlePending = (id: number) => {
@@ -318,9 +319,9 @@ const ManageProductPage = () => {
                     actions={[
                       { label: 'View', onClick: () => handleView(product) },
                       { label: 'Edit', onClick: () => handleEdit(product.productId) },
-                      { label: 'Duplicate', onClick: () => handleDuplicate(product.productId) },
-                      { label: 'Pending', onClick: () => handlePending(product.productId) },
                       { label: 'Reject', onClick: () => handleReject(product.productId) },
+                      { label: 'Pending', onClick: () => handlePending(product.productId) },
+                      { label: 'Duplicate', onClick: () => handleDuplicate(product.productId) },
                     ]}
                   />
                 </td>

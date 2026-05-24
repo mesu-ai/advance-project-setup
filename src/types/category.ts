@@ -34,7 +34,7 @@ export interface CategoryParamsT {
 }
 
 export interface CategorySummaryT extends CategoryBaseT {
-  // breadcrumbCategory: string;
+  breadcrumbCategory: string;
   displayOrder: number;
   status: 'Y' | 'N';
   isActive: 'Y' | 'N';

@@ -4,6 +4,7 @@ const productRoutePermissions: RoutePermissionMapT = {
   '/products': { page: 'products.index', showInTable: false },
   '/products/create': { page: 'products.create', pageLabel: 'Product Create' },
   '/products/:productId/edit': { page: 'products.edit', pageLabel: 'Product Edit' },
+  '/products/:productId/duplicate': { page: 'products.duplicate', pageLabel: 'Product Duplicate' },
   '/products/manage': {
     page: 'products.manage',
     actions: ['edit', 'view'],
@@ -28,10 +29,13 @@ const settingsRoutePermissions: RoutePermissionMapT = {
     pageLabel: 'Seller Banks',
   },
 
-  '/settings/brands': { page: 'brands.index', pageLabel: 'Brand Settings' },
   '/settings/categories': { page: 'categories.index', pageLabel: 'Category Settings' },
   '/settings/categories/create': { page: 'categories.create', pageLabel: 'Category Create' },
   '/settings/categories/:categoryId/edit': { page: 'categories.edit', pageLabel: 'Category Edit' },
+
+  '/settings/brands': { page: 'brands.index', pageLabel: 'Brand Settings' },
+  '/settings/brands/create': { page: 'brands.create', pageLabel: 'Brand Create' },
+  '/settings/brands/:brandId/edit': { page: 'brands.edit', pageLabel: 'Brand Edit' },
 } as const;
 
 const accessRoutePermissions: RoutePermissionMapT = {

@@ -9,6 +9,7 @@ const Contact = lazy(() => import('../pages/contact/index'));
 const Products = lazy(() => import('../pages/products/index'));
 const CreateProduct = lazy(() => import('../pages/products/create/index'));
 const EditProduct = lazy(() => import('../pages/products/edit/index'));
+const DuplicateProduct = lazy(() => import('../pages/products/duplicate/index'));
 const ManageProduct = lazy(() => import('../pages/products/manage/index'));
 
 // order
@@ -29,8 +30,8 @@ const CreateCategory = lazy(() => import('../pages/settings/categories/create/in
 const EditCategory = lazy(() => import('../pages/settings/categories/edit/index'));
 
 const BrandList = lazy(() => import('../pages/settings/brands/index'));
-// const CreateBrand = lazy(() => import('../pages/settings/brands/create/index'));
-// const EditBrand = lazy(() => import('../pages/settings/brands/edit/index'));
+const CreateBrand = lazy(() => import('../pages/settings/brands/create/index'));
+const EditBrand = lazy(() => import('../pages/settings/brands/edit/index'));
 
 // access control
 const AccessControl = lazy(() => import('../pages/access-control/index'));
@@ -78,6 +79,7 @@ export const appRoutes: AppRouteT[] = [
       { index: true, Component: Products },
       { path: 'create', Component: CreateProduct },
       { path: ':productId/edit', Component: EditProduct },
+      { path: ':productId/duplicate', Component: DuplicateProduct },
       { path: 'manage', Component: ManageProduct },
     ],
   },
@@ -122,8 +124,8 @@ export const appRoutes: AppRouteT[] = [
         path: 'brands',
         children: [
           { index: true, Component: BrandList },
-          // { path: 'create', Component: CreateBrand },
-          // { path: ':brandId/edit', Component: EditBrand },
+          { path: 'create', Component: CreateBrand },
+          { path: ':brandId/edit', Component: EditBrand },
         ],
       },
     ],

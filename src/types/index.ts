@@ -11,3 +11,4 @@ export * from './inventory';
 export * from './order';
 export * from './column';
 export * from './seller';
+export * from './brand';

@@ -45,9 +45,7 @@ const SellerListPage = () => {
     itemsPerPage,
   };
 
-  const { data: sellers, isLoading } = useGetSellersQuery(sellerParams);
-
-  console.log({ sellers, isLoading });
+  const { data: sellers } = useGetSellersQuery(sellerParams);
 
   const handleStatus = (status: string) => {
     console.log({ status });

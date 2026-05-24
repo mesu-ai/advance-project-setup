@@ -268,7 +268,7 @@ const ProductForm = ({ mode, initialValues, initialCategory, onSubmit }: Product
     replaceImagFields(mappedImageFields);
   }, [hasVariantImages, colorOptions, replaceImagFields, getValues]);
 
-  console.log('errors', errors);
+  // console.log('errors', errors);
 
   return (
     <div>
